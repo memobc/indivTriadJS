@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Psych Experiment</title>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="jspsych/jspsych.js"></script>
+        <script src="jspsych/jspsych-html-keyboard-response.js"></script>
+        <script src="jspsych/jspsych-fullscreen.js" type="text/javascript"></script>
+        <script src="jspsych/jspsych-external-html.js" type="text/javascript"></script>
+        <script src="jspsych/jspsych-instructions.js" type="text/javascript"></script>
+        <script src="jspsych/jspsych-survey-text.js" type="text/javascript"></script>
+        <link href="jspsych/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+    </head>
+    <body></body>
+    <script>
+
+    // grabs all variables from the url
+    // url variables are specified as follows:
+    // Ex: experiment.html?subject=s001
+    // urlvar.subject = 's001'
+    var urlvar = jsPsych.data.urlVariables();
+    console.log(urlvar.subject)
+    jsPsych.data.addProperties({subject: urlvar.subject});
+
+    // Save Data Function. Taken from jspsych website
+    function saveData(name, data){
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({filename: name, filedata: data}));
+    }
+
+    // Custom "Unique" function. Method of an array. Returns only unique elements of that array.
+    // Not sure why this isn't a function by default...sigh.
+    Array.prototype.unique = function() {
+      return this.filter(function (value, index, self) {
+        return self.indexOf(value) === index;
+      });
+    }
+
+    // Use d3's read csv function to read in our .csv's.
+    // So this function is weird. It only allows you access to the csv file data
+    // within the ".then()" function...
+    d3.csv("./lists/available_lists.csv").then(function(available_lists){
+
+      // List Filename
+      // IF the subject id is the SONA test ID, grab the demo list. If not, grab
+      // a randomly selected list.
+      var listFileName = []
+      if(urlvar.subject == "65506"){
+        listFileName = "./lists/demo_list";
+      }
+      if(urlvar.subject != "65506"){
+        var randomlySelectedList = jsPsych.randomization.sampleWithoutReplacement(available_lists, 1)
+        listFileName = "./lists/list-" + randomlySelectedList[0].listid;
+      }
+
+      // Add the list file name to the jsPsych data frame. See the jsPsych.data
+      // documentation on the jsPsych website.
+      jsPsych.data.addProperties({listid: listFileName});
+
+      // Another ds.csv call. All code using data from this csv must be within
+      // the ".then()" method call
+      d3.csv(listFileName + ".csv").then(function(data){
+
+        // Initialize timeline variable. See jspsych tutorial
+        var timeline   = []
+
+        // Welcome Message
+        var welcome    = SetWelcome()
+        timeline.push(welcome)
+
+        // Consent Form
+        var consent = {
+          type:'external-html',
+          url: "consents/SONA_Neut.html",
+          cont_btn: "agree",
+          data: {
+            phase: 'consent'
+          }
+        };
+        timeline.push(consent)
+
+        // Demographics Questionnaire
+        var demographics = {
+          type:'survey-text',
+          questions: [{prompt: "What is your age?<br>(in years)"},
+                      {prompt: "What is your gender?<br>(male, female, or other)"},
+                      {prompt: "At what age did you first learn English?<br>(native OR in years)"}],
+          preamble: 'Demographic Questionnaire',
+          data: {
+            phase: 'demographics'
+          }
+        };
+        timeline.push(demographics)
+
+        // Force Fullscreen
+        timeline.push({
+          type: 'fullscreen',
+          fullscreen_mode: true,
+          data: {
+            phase: 'fullscreen_up'
+          }
+        });
+
+        // Instructions
+        var instuct = SetExpInstruct()
+        timeline.push(instuct)
+
+        // Trials
+        var exp_trials = SetExpTrials(data)
+        timeline.push(exp_trials)
+
+        // End Full Screen
+        timeline.push({
+          type: 'fullscreen',
+          fullscreen_mode: false,
+          data: {
+            phase: 'fullscreen_down'
+          }
+        });
+
+        // Initiate jsPsych; on_finish defines a function that executes once the
+        // experiment has been completed. This function
+        // 1. Creates a unique data/time string
+        // 2. Saves the experiment and interaction data
+        // 3. Updates the available_lists csv
+        // 4. Displays the link on the last page for participants to give themselves
+        //    credit
+        jsPsych.init({
+            timeline: timeline,
+            on_finish: function() {
+
+                // a unique data/time string
+                // mm-dd-yyyy-hh-mm-ss
+                var today = new Date();
+                var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
+
+                // Save Data w/ unique data/time string
+                saveData(datestring + '_' + urlvar.subject + "_experiment_data", jsPsych.data.get().csv());
+                saveData(datestring + '_' + urlvar.subject + "_interaction_data", jsPsych.data.getInteractionData().csv());
+
+                // Update available_lists.csv
+                // var Updated_Available_Lists = convertToCSV(available_lists)
+                // saveData("available_lists.csv", Updated_Available_Lists)
+
+                // Display the link so participants can give themselves SONA credit
+                var el = jsPsych.getDisplayElement();
+                var a = document.createElement('a');
+                var farewell_paragraph = document.createElement('p');
+                var farewell_text = document.createTextNode("Thank you for participating!");
+                farewell_paragraph.appendChild(farewell_text);
+                var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
+                a.appendChild(linkText);
+                a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1127&credit_token=2d1623ee4a54413d826ed9a1b282539d&survey_code=" + urlvar.subject;
+                el.appendChild(farewell_paragraph);
+                el.appendChild(a);
+
+            }
+        })
+
+      }).catch(function(err) {
+          // catch error. log it to the console
+          console.log(err)
+      })
+    });
+
+function SetExpTrials(enc){
+  // Defines Experiment Trials
+
+  // Custom function for extracting the stimulus column from the csv data
+  function getStim(item, index){
+    return {stimulus: "<p>" + item.Stim + "</p>"};
+  }
+
+  // extract the `WordListID` field from an object array
+  function getList(item, index){
+    return item.WordListID;
+  }
+
+  // take an object array and filter it by `WordListID`
+  function getFilteredData(array, listID){
+    return array.filter(function(el){return el.WordListID == listID})
+  }
+
+  // encoding trial object
+  // This object details all of the parameters that are common
+  // to every encoding trial
+  var enc_trial = {
+      type: 'html-keyboard-response',
+      stimulus: jsPsych.timelineVariable('stimulus'),
+      choices: jsPsych.NO_KEYS,
+      trial_duration: 3000,
+      stimulus_duration: 3000,
+      response_ends_trial: false,
+      post_trial_gap: 1000,
+      data: {
+        phase: 'enc'
+      }
+  }
+
+  // recall trial object
+  // This object details all of the parameters that are common
+  // to every retrieval trial
+  var recall_trial = {
+    type:'survey-text',
+    questions: [{prompt: "What <u>words</u> can you remember?", columns: 20, name:"response"}],
+    preamble: '<p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p>',
+    button_label: "Submit",
+    data: {
+      phase: 'rec'
+    }
+  }
+
+  // the recall node details the retrieval trial procedure, including the
+  // conditional loop. The retrieval trials will continuously loop UNTIL
+  // the subject submits the word "end"
+  var recall_node = {
+    timeline: [recall_trial],
+    loop_function: function(data){
+      var theResponse = data.values()[0].responses
+      if("{\"Q0\":\"end\"}" != theResponse){
+          return true;
+      } else {
+          return false;
+      }
+    }
+  }
+
+  // Unique list IDs
+  var listID = enc.map(getList)
+  listID     = listID.unique()
+
+  // initializing variables
+  var curList     = ''
+  var curListData = []
+  var experiment_timeline = {timeline: []}
+
+  // for each listID, add the stimuli html strings as timeline_variables
+  for (var i = 0; i < listID.length; i++) {
+
+    curList     = listID[i]
+
+    curListData = getFilteredData(enc, curList)
+
+    // The encoding list procedure node
+    var enc_trial_procedure = {
+        timeline: [enc_trial],
+        timeline_variables: curListData.map(getStim),
+        randomize_order: true,
+        repetitions: 3
+    }
+
+    // the list procedure node
+    var list_procedure = {
+      timeline: [enc_trial_procedure, recall_node]
+    }
+
+    experiment_timeline.timeline.push(list_procedure)
+
+  }
+
+  return(experiment_timeline)
+
+}
+
+function SetWelcome(){
+  /* welcome message */
+  var welcome = {
+    type: "html-keyboard-response",
+    stimulus: "Welcome to the experiment. Press any key to begin.",
+    data: {
+      phase: 'welcome_screen'
+    },
+  };
+  return(welcome)
+}
+
+function SetExpInstruct(){
+  /* encoding instructions */
+
+  // A series of reusable html strings
+  var enc_example_1 = "<p>Selena Gomez + <u>juggling</u> + cafe</p><p>&nbsp;</p>"
+  var enc_example_2 = "<p>Ariana Grande + <u>knitting</u> + laboratory</p><p>&nbsp;</p>"
+  var enc_example_3 = "<p>Halsey + <u>stretching</u> + classroom</p><p>&nbsp;</p>"
+  var enc_example_4 = "<p>Camila Cabello + <u>coding</u> + quad</p><p>&nbsp;</p>"
+  var rec_example_juggling = '<div id="jspsych-survey-text-" 0"="" class="jspsych-survey-text-question" style="margin: 2em 0em;"><div id="jspsych-survey-text-preamble" class="jspsych-survey-text-preamble"><p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p></div><p class="jspsych-survey-text">What <u>words</u> can you remember?</p><input type="text" name="#jspsych-survey-text-response-0" size="20" value="juggling" autofocus=""></div><button id="jspsych-survey-text-next" class="jspsych-btn jspsych-survey-text">Submit</button>'
+  var rec_example_coding = '<div id="jspsych-survey-text-" 0"="" class="jspsych-survey-text-question" style="margin: 2em 0em;"><div id="jspsych-survey-text-preamble" class="jspsych-survey-text-preamble"><p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p></div><p class="jspsych-survey-text">What <u>words</u> can you remember?</p><input type="text" name="#jspsych-survey-text-response-0" size="20" value="coding" autofocus=""></div><button id="jspsych-survey-text-next" class="jspsych-btn jspsych-survey-text">Submit</button>'
+  var rec_example_blank = '<div id="jspsych-survey-text-" 0"="" class="jspsych-survey-text-question" style="margin: 2em 0em;"><div id="jspsych-survey-text-preamble" class="jspsych-survey-text-preamble"><p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p></div><p class="jspsych-survey-text">What <u>words</u> can you remember?</p><input type="text" name="#jspsych-survey-text-response-0" size="20" value="" autofocus=""></div><button id="jspsych-survey-text-next" class="jspsych-btn jspsych-survey-text">Submit</button>'
+  var rec_example_end = '<div id="jspsych-survey-text-" 0"="" class="jspsych-survey-text-question" style="margin: 2em 0em;"><div id="jspsych-survey-text-preamble" class="jspsych-survey-text-preamble"><p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p></div><p class="jspsych-survey-text">What <u>words</u> can you remember?</p><input type="text" name="#jspsych-survey-text-response-0" size="20" value="end" autofocus=""></div><button id="jspsych-survey-text-next" class="jspsych-btn jspsych-survey-text">Submit</button>'
+
+  var enc_instruct = {
+      type: 'instructions',
+      pages: [
+          '<p>This is a memory experiment.</p><p>You have two tasks:</p><ol type="1" style="text-align:left"><li>to <b>vividly imagine</b> a series of scenarios</li><li>to <b>memorize</b> a series of target words</li></ol><p>Click next to continue.</p>',
+          '<p>Here is an example of what you will be asked to do:</p><p>&nbsp;</p>' + enc_example_1,
+          '<p>Each sentence will be displayed for 3 seconds.</p><p>&nbsp;</p>' + enc_example_2,
+          '<p>During this time, try to <b>vividly imagine</b> the scenario described and</p><p>to <b>remember</b> the underlined target word.</p>' + enc_example_3,
+          '<p>You will be asked to recall the underlined target words</p><p>in a later memory test.</p>' + enc_example_4,
+          '<p>For example:</p><p>&nbsp;</p>' + rec_example_blank,
+          '<p>If the first target word you can remember is <u>juggling</u>,</p><p>type it into the box and hit "Submit".</p>' + rec_example_juggling,
+          '<p>Please type one word at a time and hit the "Submit"</p><p>button each time to log your answers.</p>' + rec_example_coding,
+          '<p>When you cannot remember any more words,</p><p>submit "end" to end the memory test.</p>' + rec_example_end,
+          '<p>Click next when you are ready to begin the experiment.</p>'
+      ],
+      data: {
+        phase: 'enc_instr'
+      },
+      post_trial_gap: 1500,
+      show_clickable_nav: true
+  }
+  return(enc_instruct)
+}
+
+    </script>
+</html>
