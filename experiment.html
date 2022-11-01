@@ -11,6 +11,25 @@
         <script src="jspsych/plugin-survey-text.js" type="text/javascript"></script>
         <script src="jspsych/plugin-survey-likert.js" type="text/javascript"></script>
         <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css"></link>
+        <style>
+          .centertop {
+            position: absolute;
+            top: 5%;
+            width: 100%;
+            text-align: center;
+          }
+          .lowerright {
+            position: absolute;
+            bottom: 5%;
+            right: 10%;
+          }
+          .lowerleft {
+            position: absolute;
+            bottom: 5%;
+            left: 10%;
+          }
+
+    </style>
     </head>
     <body></body>
     <script>
@@ -65,11 +84,27 @@ function getFilteredData(array, listID){
   return array.filter(function(el){return el.index < listID})
 }
 
+const pick = (obj, ...keys) => Object.fromEntries(
+  keys
+  .filter(key => key in obj)
+  .map(key => [key, obj[key]])
+);
+
+const omit = (obj, ...keys) => Object.fromEntries(
+  Object.entries(obj)
+  .filter(([key]) => !keys.includes(key))
+);
+
+var myarray = Array.from({length: 8}, (x, i) => i);
+var randperm = jsPsych.randomization.sampleWithoutReplacement(myarray, 8);
+var allKeyStim = [];
+var c = -1;
+
 // Initialize timeline variable. See jspsych tutorial
-var timeline   = []
+var timeline   = [];
 
 // Welcome Message
-var welcome    = SetWelcome()
+var welcome    = SetWelcome();
 
 // Consent Form
 var consent = {
@@ -125,7 +160,7 @@ var instuct = SetExpInstruct()
 
 // End Full Screen
 var fullscreen_down = {
-  type: 'fullscreen',
+  type: jsPsychFullscreen,
   fullscreen_mode: false,
   data: {
     phase: 'fullscreen_down'
@@ -135,7 +170,7 @@ var fullscreen_down = {
 var topTwelvePeople = [];
 var topTwelvePlaces = [];
 
-d3.csv("form1.csv").then(function(data){
+d3.csv("experiment_data_abr.csv").then(function(data){
 
   timeline.push(welcome)
 
@@ -143,9 +178,12 @@ d3.csv("form1.csv").then(function(data){
 
   // timeline.push(consent)
 
-  // people
-  var people = data.filter(function(el){return el.index < 4 })
-  people = people.map(obj => ({...obj, labels: people_likert_scale, required: true, name: obj.prompt}))
+  //timeline.push(demographics)
+
+  // people object array
+  var people = data.map(x => pick(x, 'people'))
+  people = people.map(obj => ({...obj, prompt: obj.people, labels: people_likert_scale, required: true, name: obj.people}))
+  people = people.map(obj => omit(obj, 'people'))
 
   var peoplesurvey = {
     type: jsPsychSurveyLikert,
@@ -163,9 +201,9 @@ d3.csv("form1.csv").then(function(data){
   timeline.push(peoplesurvey)
 
   // places
-
-  var places = data.filter(function(el){return el.index > 43.5})
-  places = places.map(obj => ({...obj, labels: places_likert_scale, required: true}))
+  var places = data.map(x => pick(x, 'places'))
+  places = places.map(obj => ({...obj, prompt: obj.places, labels: places_likert_scale, required: true, name: obj.places}))
+  places = places.map(obj => omit(obj, 'places'))
 
   var placessurvey = {
     type: jsPsychSurveyLikert,
@@ -178,42 +216,81 @@ d3.csv("form1.csv").then(function(data){
       var responses = data.response;
       var sortedPlaces = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
       topTwelvePlaces = sortedPlaces.slice(0,11);
+      allKeyStim = topTwelvePlaces.concat(topTwelvePeople)
     }
   };
   timeline.push(placessurvey)
 
-  timeline.push(demographics)
+  //timeline.push(instuct)
 
-  timeline.push(instuct)
-
-  // Trials
+  // encoding
   var enc_trial = {
       type: jsPsychHtmlKeyboardResponse,
-      stimulus: 'Hello World!',//jsPsych.timelineVariable('stimulus'),
+      stimulus: function(){
+        c=++c;
+        var first = jsPsych.timelineVariable('first');
+        var second = jsPsych.timelineVariable('second');
+        var keyWord = allKeyStim[randperm[c]];
+        var html = '<div style="width: 85vmin; height:50vmin; font-size: 4vmin; position: relative;">'+
+                   '<div class="centertop">'+keyWord+'</div>'+
+                   '<div class="lowerleft">'+first+'</div>'+
+                   '<div class="lowerright">'+second+'</div>'+
+                   '</div>'
+        return html
+      },
       choices: "NO_KEYS",
-      trial_duration: 3000,
-      stimulus_duration: 3000,
-      response_ends_trial: false,
+      trial_duration: 9000,
+      stimulus_duration: 9000,
+      response_ends_trial: true,
       post_trial_gap: 1000,
       data: {
         phase: 'enc'
       }
   }
 
+  var objects = data.map(x => pick(x, 'first', 'second'))
+
   var enc_trial_procedure = {
-      on_start: function(){
-        console.log(topTwelvePlaces);
-        console.log(topTwelvePeople);
-
-      },
       timeline: [enc_trial],
-      timeline_variables: {},
+      timeline_variables: objects,
       randomize_order: true,
-      repetitions: 3
+      repetitions: 1
   }
-  timeline.push(enc_trial_procedure)
+  //timeline.push(enc_trial_procedure)
 
-  // timeline.push(exp_trials)
+  // retrieval
+  var ret_trial = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: function(){
+        c=++c;
+        var first = jsPsych.timelineVariable('first');
+        var second = jsPsych.timelineVariable('second');
+        var keyWord = allKeyStim[randperm[c]];
+        var html = '<div style="width: 85vmin; height:50vmin; font-size: 4vmin; position: relative;">'+
+                   '<div class="centertop">'+keyWord+'</div>'+
+                   '<div class="lowerleft">'+first+'</div>'+
+                   '<div class="lowerright">'+second+'</div>'+
+                   '</div>'
+        return html
+      },
+      choices: "NO_KEYS",
+      trial_duration: 9000,
+      stimulus_duration: 9000,
+      response_ends_trial: true,
+      post_trial_gap: 1000,
+      data: {
+        phase: 'enc'
+      }
+  }
+
+  var ret_trial_procedure = {
+      timeline: [ret_trial],
+      timeline_variables: objects,
+      randomize_order: true,
+      repetitions: 1
+  }
+
+  timeline.push(ret_trial_procedure)
 
   timeline.push(fullscreen_down);
 
