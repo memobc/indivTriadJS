@@ -10,110 +10,63 @@
         <script src="jspsych/plugin-instructions.js" type="text/javascript"></script>
         <script src="jspsych/plugin-survey-text.js" type="text/javascript"></script>
         <script src="jspsych/plugin-survey-likert.js" type="text/javascript"></script>
+        <script src="experiment.js" type="text/javascript"></script>
         <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css"></link>
-        <style>
-          .centertop {
-            position: absolute;
-            top: 5%;
-            width: 100%;
-            text-align: center;
-          }
-          .lowerright {
-            position: absolute;
-            bottom: 5%;
-            right: 10%;
-          }
-          .lowerleft {
-            position: absolute;
-            bottom: 5%;
-            left: 10%;
-          }
-
-    </style>
+        <link href="experiment.css" rel="stylesheet" type="text/css"></link>
     </head>
     <body></body>
     <script>
+
+// initialize experiment
+var jsPsych = initJsPsych({
+  on_finish: finish_experiment,
+  show_progress_bar: false
+});
 
 // grabs all variables from the url
 // url variables are specified as follows:
 // Ex: experiment.html?subject=s001
 // urlvar.subject = 's001'
-var jsPsych = initJsPsych({
-  on_finish: function() {
-
-      // a unique data/time string
-      // mm-dd-yyyy-hh-mm-ss
-      var today = new Date();
-      var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
-
-      // Save Data w/ unique data/time string
-      saveData(datestring + '_' + urlvar.subject + "_experiment_data", jsPsych.data.get().csv());
-      saveData(datestring + '_' + urlvar.subject + "_interaction_data", jsPsych.data.getInteractionData().csv());
-
-      // Update available_lists.csv
-      // var Updated_Available_Lists = convertToCSV(available_lists)
-      // saveData("available_lists.csv", Updated_Available_Lists)
-
-      // Display the link so participants can give themselves SONA credit
-      var el = jsPsych.getDisplayElement();
-      var a = document.createElement('a');
-      var farewell_paragraph = document.createElement('p');
-      var farewell_text = document.createTextNode("Thank you for participating!");
-      farewell_paragraph.appendChild(farewell_text);
-      var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
-      a.appendChild(linkText);
-      a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1127&credit_token=2d1623ee4a54413d826ed9a1b282539d&survey_code=" + urlvar.subject;
-      el.appendChild(farewell_paragraph);
-      el.appendChild(a);
-
-  }
-});
-
 var urlvar = jsPsych.data.urlVariables();
 jsPsych.data.addProperties({subject: urlvar.subject});
 
-// Custom "Unique" function. Method of an array. Returns only unique elements of that array.
-// Not sure why this isn't a function by default...sigh.
-Array.prototype.unique = function() {
-  return this.filter(function (value, index, self) {
-    return self.indexOf(value) === index;
-  });
-}
+// global variables -- available to all functions
 
-function getFilteredData(array, listID){
-  return array.filter(function(el){return el.index < listID})
-}
+// encoding randomization
+var myarray = Array.from({length: 24}, (x, i) => i);
+var randperm = jsPsych.randomization.sampleWithoutReplacement(myarray, 24);
 
-const pick = (obj, ...keys) => Object.fromEntries(
-  keys
-  .filter(key => key in obj)
-  .map(key => [key, obj[key]])
-);
-
-const omit = (obj, ...keys) => Object.fromEntries(
-  Object.entries(obj)
-  .filter(([key]) => !keys.includes(key))
-);
-
-var myarray = Array.from({length: 8}, (x, i) => i);
-var randperm = jsPsych.randomization.sampleWithoutReplacement(myarray, 8);
+// allKeySim = a list containing all of the people and places selected by the
+//             participant
 var allKeyStim = [];
-var c = -1;
 
-// Initialize timeline variable. See jspsych tutorial
-var timeline   = [];
+// c,cc = counter variables that keep track of the current encoding (c) or
+//        retrieval (cc) trial we are currently on. Start at -1 since javascript
+//        indexs lists starting from 0
+var c = -1;
+var cc = -1;
+
+//
+var enc_trial_data = [];
+var ret_trials = [];
+
+// timeline = a list that contains all of the elements of our experiment in the
+//            order that they are to be experienced
+var timeline = [];
 
 // Welcome Message
-var welcome    = SetWelcome();
+var welcome = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "Welcome to the experiment. Press any key to begin.",
+    data: {phase: 'welcome_screen'},
+  };
 
 // Consent Form
 var consent = {
-  type:jsPsychExternalHtml,
+  type: jsPsychExternalHtml,
   url: "consents/SONA_Neut.html",
   cont_btn: "agree",
-  data: {
-    phase: 'consent'
-  }
+  data: {phase: 'consent'}
 };
 
 var people_likert_scale = [
@@ -141,44 +94,45 @@ var demographics = {
               {prompt: "What is your gender?<br>(male, female, or other)"},
               {prompt: "At what age did you first learn English?<br>(native OR in years)"}],
   preamble: 'Demographic Questionnaire',
-  data: {
-    phase: 'demographics'
-  }
+  data: {phase: 'demographics'}
 };
 
 // Force Fullscreen
 var fullscreen_up = {
   type: jsPsychFullscreen,
   fullscreen_mode: true,
-  data: {
-    phase: 'fullscreen_up'
-  }
+  data: {phase: 'fullscreen_up'}
 }
 
 // Instructions
-var instuct = SetExpInstruct()
+var enc_instuct = SetEncInstr();
+var ret_instuct = SetRetInstr();
 
 // End Full Screen
 var fullscreen_down = {
   type: jsPsychFullscreen,
   fullscreen_mode: false,
-  data: {
-    phase: 'fullscreen_down'
-  }
+  data: {phase: 'fullscreen_down'}
 }
 
+// topTwelvePeople = list containing participant's top 12 most familiar famous
+//                   people
+// topTwelvePlaces = list containing participant's top 12 most vividly
+//                   imagineable places
 var topTwelvePeople = [];
 var topTwelvePlaces = [];
 
-d3.csv("experiment_data_abr.csv").then(function(data){
+// d3 is a part of the D3.js JavasScript library. Used here to read in a csv files
+// from the disk
+d3.csv("experiment_data.csv").then(function(data){
 
   timeline.push(welcome)
 
-  // timeline.push(fullscreen_up);
+  timeline.push(fullscreen_up);
 
-  // timeline.push(consent)
+  timeline.push(consent)
 
-  //timeline.push(demographics)
+  timeline.push(demographics)
 
   // people object array
   var people = data.map(x => pick(x, 'people'))
@@ -187,16 +141,12 @@ d3.csv("experiment_data_abr.csv").then(function(data){
 
   var peoplesurvey = {
     type: jsPsychSurveyLikert,
-    preamble: "How familiar are you with the following individuals?",
+    preamble: "<p>How familiar are you with the following individuals?</p>",
     questions: people,
     data: {phase: 'people_ratings'},
     button_label: 'continue',
     randomize_question_order: true,
-    on_finish: function(data){
-      var responses = data.response;
-      var sortedPeople = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
-      topTwelvePeople = sortedPeople.slice(0,11);
-    }
+    on_finish: calculate_top_twelvePeople
   };
   timeline.push(peoplesurvey)
 
@@ -207,46 +157,34 @@ d3.csv("experiment_data_abr.csv").then(function(data){
 
   var placessurvey = {
     type: jsPsychSurveyLikert,
-    preamble: "How vividly can you imagine each of these places?",
+    preamble: "<p>How vividly can you imagine each of these places?</p>",
     questions: places,
     data: {phase: 'place_ratings'},
     button_label: 'continue',
     randomize_question_order: true,
-    on_finish: function(data){
-      var responses = data.response;
-      var sortedPlaces = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
-      topTwelvePlaces = sortedPlaces.slice(0,11);
-      allKeyStim = topTwelvePlaces.concat(topTwelvePeople)
-    }
+    on_finish: calculate_top_twelvePlaces
   };
   timeline.push(placessurvey)
 
-  //timeline.push(instuct)
+  timeline.push(enc_instuct)
 
   // encoding
   var enc_trial = {
       type: jsPsychHtmlKeyboardResponse,
-      stimulus: function(){
-        c=++c;
-        var first = jsPsych.timelineVariable('first');
-        var second = jsPsych.timelineVariable('second');
-        var keyWord = allKeyStim[randperm[c]];
-        var html = '<div style="width: 85vmin; height:50vmin; font-size: 4vmin; position: relative;">'+
-                   '<div class="centertop">'+keyWord+'</div>'+
-                   '<div class="lowerleft">'+first+'</div>'+
-                   '<div class="lowerright">'+second+'</div>'+
-                   '</div>'
-        return html
-      },
+      stimulus: construct_encoding_stimulus,
       choices: "NO_KEYS",
       trial_duration: 9000,
       stimulus_duration: 9000,
       response_ends_trial: true,
       post_trial_gap: 1000,
       data: {
-        phase: 'enc'
-      }
-  }
+        phase: 'enc',
+        objOne: jsPsych.timelineVariable('first'),
+        objTwo: jsPsych.timelineVariable('second'),
+        key: function(){
+          return allKeyStim[randperm[c]]
+        }},
+  };
 
   var objects = data.map(x => pick(x, 'first', 'second'))
 
@@ -254,40 +192,30 @@ d3.csv("experiment_data_abr.csv").then(function(data){
       timeline: [enc_trial],
       timeline_variables: objects,
       randomize_order: true,
-      repetitions: 1
+      repetitions: 1,
+      on_timeline_finish: set_up_retrieval,
   }
-  //timeline.push(enc_trial_procedure)
+  timeline.push(enc_trial_procedure)
+
+  // retrieval instructions
+  timeline.push(ret_instuct)
 
   // retrieval
   var ret_trial = {
       type: jsPsychHtmlKeyboardResponse,
-      stimulus: function(){
-        c=++c;
-        var first = jsPsych.timelineVariable('first');
-        var second = jsPsych.timelineVariable('second');
-        var keyWord = allKeyStim[randperm[c]];
-        var html = '<div style="width: 85vmin; height:50vmin; font-size: 4vmin; position: relative;">'+
-                   '<div class="centertop">'+keyWord+'</div>'+
-                   '<div class="lowerleft">'+first+'</div>'+
-                   '<div class="lowerright">'+second+'</div>'+
-                   '</div>'
-        return html
-      },
-      choices: "NO_KEYS",
-      trial_duration: 9000,
-      stimulus_duration: 9000,
+      stimulus: construct_retrieval_stimulus,
+      choices: ['1','2','3','4','5','6'],
+      trial_duration: null,
+      stimulus_duration: null,
       response_ends_trial: true,
       post_trial_gap: 1000,
-      data: {
-        phase: 'enc'
-      }
+      data: {phase: 'ret'}
   }
 
   var ret_trial_procedure = {
       timeline: [ret_trial],
-      timeline_variables: objects,
-      randomize_order: true,
-      repetitions: 1
+      randomize_order: false,
+      repetitions: 48
   }
 
   timeline.push(ret_trial_procedure)
@@ -297,138 +225,6 @@ d3.csv("experiment_data_abr.csv").then(function(data){
   jsPsych.run(timeline)
 
 });
-
-function SetExpTrials(enc){
-  // Defines Experiment Trials
-
-  // encoding trial object
-  // This object details all of the parameters that are common
-  // to every encoding trial
-  var enc_trial = {
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: jsPsych.timelineVariable('stimulus'),
-      choices: "NO_KEYS",
-      trial_duration: 3000,
-      stimulus_duration: 3000,
-      response_ends_trial: false,
-      post_trial_gap: 1000,
-      data: {
-        phase: 'enc'
-      }
-  }
-
-  // recall trial object
-  // This object details all of the parameters that are common
-  // to every retrieval trial
-  var recall_trial = {
-    type:jsPsychSurveyText,
-    questions: [{prompt: "What <u>words</u> can you remember?", columns: 20, name:"response"}],
-    preamble: '<p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p>',
-    button_label: "Submit",
-    data: {
-      phase: 'rec'
-    }
-  }
-
-  // the recall node details the retrieval trial procedure, including the
-  // conditional loop. The retrieval trials will continuously loop UNTIL
-  // the subject submits the word "end"
-  var recall_node = {
-    timeline: [recall_trial],
-    loop_function: function(data){
-      var theResponse = data.values()[0].responses
-      if("{\"Q0\":\"end\"}" != theResponse){
-          return true;
-      } else {
-          return false;
-      }
-    }
-  }
-
-  // Unique list IDs
-  var listID = enc.map(getList)
-  listID     = listID.unique()
-
-  // initializing variables
-  var curList     = ''
-  var curListData = []
-  var experiment_timeline = {timeline: []}
-
-  // for each listID, add the stimuli html strings as timeline_variables
-  for (var i = 0; i < listID.length; i++) {
-
-    curList     = listID[i]
-
-    curListData = getFilteredData(enc, curList)
-
-    // The encoding list procedure node
-    var enc_trial_procedure = {
-        timeline: [enc_trial],
-        timeline_variables: curListData.map(getStim),
-        randomize_order: true,
-        repetitions: 3
-    }
-
-    // the list procedure node
-    var list_procedure = {
-      timeline: [enc_trial_procedure, recall_node]
-    }
-
-    experiment_timeline.timeline.push(list_procedure)
-
-  }
-
-  return(experiment_timeline)
-
-}
-
-function SetWelcome(){
-  /* welcome message */
-  var welcome = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: "Welcome to the experiment. Press any key to begin.",
-    data: {
-      phase: 'welcome_screen'
-    },
-  };
-  return(welcome)
-}
-
-function SetExpInstruct(){
-  /* encoding instructions */
-
-  // A series of reusable html strings
-  var enc_example_1 = "<p>Selena Gomez + <u>juggling</u> + cafe</p><p>&nbsp;</p>"
-  var enc_example_2 = "<p>Ariana Grande + <u>knitting</u> + laboratory</p><p>&nbsp;</p>"
-  var enc_example_3 = "<p>Halsey + <u>stretching</u> + classroom</p><p>&nbsp;</p>"
-  var enc_example_4 = "<p>Camila Cabello + <u>coding</u> + quad</p><p>&nbsp;</p>"
-  var rec_example_juggling = '<div id="jspsych-survey-text-" 0"="" class="jspsych-survey-text-question" style="margin: 2em 0em;"><div id="jspsych-survey-text-preamble" class="jspsych-survey-text-preamble"><p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p></div><p class="jspsych-survey-text">What <u>words</u> can you remember?</p><input type="text" name="#jspsych-survey-text-response-0" size="20" value="juggling" autofocus=""></div><button id="jspsych-survey-text-next" class="jspsych-btn jspsych-survey-text">Submit</button>'
-  var rec_example_coding = '<div id="jspsych-survey-text-" 0"="" class="jspsych-survey-text-question" style="margin: 2em 0em;"><div id="jspsych-survey-text-preamble" class="jspsych-survey-text-preamble"><p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p></div><p class="jspsych-survey-text">What <u>words</u> can you remember?</p><input type="text" name="#jspsych-survey-text-response-0" size="20" value="coding" autofocus=""></div><button id="jspsych-survey-text-next" class="jspsych-btn jspsych-survey-text">Submit</button>'
-  var rec_example_blank = '<div id="jspsych-survey-text-" 0"="" class="jspsych-survey-text-question" style="margin: 2em 0em;"><div id="jspsych-survey-text-preamble" class="jspsych-survey-text-preamble"><p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p></div><p class="jspsych-survey-text">What <u>words</u> can you remember?</p><input type="text" name="#jspsych-survey-text-response-0" size="20" value="" autofocus=""></div><button id="jspsych-survey-text-next" class="jspsych-btn jspsych-survey-text">Submit</button>'
-  var rec_example_end = '<div id="jspsych-survey-text-" 0"="" class="jspsych-survey-text-question" style="margin: 2em 0em;"><div id="jspsych-survey-text-preamble" class="jspsych-survey-text-preamble"><p>Memory Test</p><p>Please submit one word at a time.</p><p>Submit "end" to end the test.</p></div><p class="jspsych-survey-text">What <u>words</u> can you remember?</p><input type="text" name="#jspsych-survey-text-response-0" size="20" value="end" autofocus=""></div><button id="jspsych-survey-text-next" class="jspsych-btn jspsych-survey-text">Submit</button>'
-
-  var enc_instruct = {
-      type: jsPsychInstructions,
-      pages: [
-          '<p>This is a memory experiment.</p><p>You have two tasks:</p><ol type="1" style="text-align:left"><li>to <b>vividly imagine</b> a series of scenarios</li><li>to <b>memorize</b> a series of target words</li></ol><p>Click next to continue.</p>',
-          '<p>Here is an example of what you will be asked to do:</p><p>&nbsp;</p>' + enc_example_1,
-          '<p>Each sentence will be displayed for 3 seconds.</p><p>&nbsp;</p>' + enc_example_2,
-          '<p>During this time, try to <b>vividly imagine</b> the scenario described and</p><p>to <b>remember</b> the underlined target word.</p>' + enc_example_3,
-          '<p>You will be asked to recall the underlined target words</p><p>in a later memory test.</p>' + enc_example_4,
-          '<p>For example:</p><p>&nbsp;</p>' + rec_example_blank,
-          '<p>If the first target word you can remember is <u>juggling</u>,</p><p>type it into the box and hit "Submit".</p>' + rec_example_juggling,
-          '<p>Please type one word at a time and hit the "Submit"</p><p>button each time to log your answers.</p>' + rec_example_coding,
-          '<p>When you cannot remember any more words,</p><p>submit "end" to end the memory test.</p>' + rec_example_end,
-          '<p>Click next when you are ready to begin the experiment.</p>'
-      ],
-      data: {
-        phase: 'enc_instr'
-      },
-      post_trial_gap: 1500,
-      show_clickable_nav: true
-  }
-  return(enc_instruct)
-}
 
     </script>
 </html>

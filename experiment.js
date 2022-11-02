@@ -4,11 +4,59 @@ pick = (obj, ...keys) => Object.fromEntries(
   .map(key => [key, obj[key]])
 );
 
+omit = (obj, ...keys) => Object.fromEntries(
+  Object.entries(obj)
+  .filter(([key]) => !keys.includes(key))
+);
+
 remove = function(array, value){
   var array_copy = [...array];
   var index = array_copy.indexOf(value);
   array_copy.splice(index, 1)
   return array_copy;
+}
+
+SetEncInstr = function(){
+  /* encoding instructions */
+
+  // A series of reusable html strings
+  var expKeyword = 'Jennifer Anniston';
+  var expObjOne = 'Bowling Ball';
+  var expObjTwo = 'Hockey Stick';
+  var enc_example_1 = '<div style="width: 85vmin; height: 50vmin; font-size: 4vmin; position: relative;">'+
+                      '<div class="centertop">'+expKeyword+'</div>'+
+                      '<div class="lowerleft">'+expObjOne+'</div>'+
+                      '<div class="lowerright">'+expObjTwo+'</div>'+
+                      '</div>'
+
+  var instruct = {
+      type: jsPsychInstructions,
+      pages: [
+          '<p>This is a memory experiment.</p><p>Your task is to:</p><ol type="1" style="text-align:left"><li><b>vividly imagine</b> a scenario composed of three words in as much detail as possible.</li></ol><p>Click next to continue.</p>',
+          '<p>Here is an example of what you will be asked to do:</p>' + enc_example_1,
+          '<p>Each trial will have three words displayed in a triangle.</p>' + enc_example_1,
+          '<p>During this time, try to <b>vividly imagine</b> a scenario</p><p>linking the three words together.</p>' + enc_example_1,
+          '<p>You will be asked to recall the words on a </p><p> a later memory test.</p>' + enc_example_1,
+          '<p>Click next when you are ready to begin the experiment.</p>'
+      ],
+      data: {phase: 'enc_instr'},
+      post_trial_gap: 1500,
+      show_clickable_nav: true
+  }
+  return(instruct)
+}
+
+calculate_top_twelvePeople = function(data){
+  var responses = data.response;
+  var sortedPeople = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
+  topTwelvePeople = sortedPeople.slice(0,12);
+}
+
+calculate_top_twelvePlaces = function(data){
+  var responses = data.response;
+  var sortedPlaces = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
+  topTwelvePlaces = sortedPlaces.slice(0,12);
+  allKeyStim = topTwelvePlaces.concat(topTwelvePeople)
 }
 
 construct_encoding_stimulus = function(){
@@ -32,8 +80,7 @@ set_up_retrieval = function(){
   // make retrieval trials
   var objOneList = enc_trial_data.map(x => x.objOne);
   var objTwoList = enc_trial_data.map(x => x.objTwo);
-  var allOptions = [];
-  allOptions = objOneList.concat(objTwoList);
+  var allOptions = objOneList.concat(objTwoList);
 
   // for object one
   for (let i = 0; i < enc_trial_data.length; i++) {
@@ -114,6 +161,54 @@ set_up_retrieval = function(){
   }
 }
 
+SetRetInstr = function(){
+  /* retrieval instructions */
+
+  // A series of reusable html strings
+  var expKeyword = 'Jennifer Anniston';
+  var resp_opt_1 = 'Bowling Ball';
+  var resp_opt_2 = 'Screw';
+  var resp_opt_3 = 'Earrings';
+  var resp_opt_4 = 'Candle';
+  var resp_opt_5 = 'Button';
+  var resp_opt_6 = 'Apron';
+  var example_blank = '<div style="width: 70vmin; height:70vmin; font-size: 3vmin; position: relative;">'+
+                   '<div class="center">'+expKeyword+'</div>'+
+                   '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
+                   '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
+                   '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
+                   '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
+                   '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
+                   '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
+                   '</div>'
+  var example_correct = '<div style="width: 70vmin; height:70vmin; font-size: 3vmin; position: relative;">'+
+                   '<div class="center">'+expKeyword+'</div>'+
+                   '<div class="resp_opt_1"; style="background-color: powderblue">'+'1: '+resp_opt_1+'</div>'+
+                   '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
+                   '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
+                   '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
+                   '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
+                   '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
+                   '</div>'
+
+  var instruct = {
+      type: jsPsychInstructions,
+      pages: [
+        '<p>We will now test your memory for the previously presented events.</p>',
+        '<p>Here is an example of how we will test your memory:</p>' + example_blank,
+        '<p>You will be presented with one of the words presented<\p><p>previously along with 6 response options.</p>' + example_blank,
+        '<p>Your task is to select the option that was presented<\p><p>alongside the keyword.<\p>' + example_correct,
+        '<p>Please use the 1-6 keys at the top of the keyboard to<\p><p>indicate your response.<\p>' + example_correct,
+        '<p>Click next when you are ready to begin the experiment.</p>'
+      ],
+      data: {phase: 'ret_instr'},
+      post_trial_gap: 1500,
+      show_clickable_nav: true
+  }
+
+  return(instruct)
+}
+
 construct_retrieval_stimulus = function(){
   cc=++cc;
   console.log(cc)
@@ -124,8 +219,8 @@ construct_retrieval_stimulus = function(){
   var resp_opt_4 = ret_trials[cc].resp_opt_4;
   var resp_opt_5 = ret_trials[cc].resp_opt_5;
   var resp_opt_6 = ret_trials[cc].resp_opt_6;
-  console.log(keyWord.length)
-  var html = '<div style="width: 100vmin; height:100vmin; font-size: 4vmin; position: relative; background-color: powderblue;">'+
+  jsPsych.data.write(ret_trials[cc])
+  var html = '<div style="width: 100vmin; height:100vmin; font-size: 4vmin; position: relative;">'+
              '<div class="center">'+keyWord+'</div>'+
              '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
              '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
@@ -137,7 +232,7 @@ construct_retrieval_stimulus = function(){
   return html
 }
 
-finish_experiment = function() {
+finish_experiment = function(){
 
     // a unique data/time string
     // mm-dd-yyyy-hh-mm-ss
@@ -147,10 +242,6 @@ finish_experiment = function() {
     // Save Data w/ unique data/time string
     saveData(datestring + '_' + urlvar.subject + "_experiment_data", jsPsych.data.get().csv());
     saveData(datestring + '_' + urlvar.subject + "_interaction_data", jsPsych.data.getInteractionData().csv());
-
-    // Update available_lists.csv
-    // var Updated_Available_Lists = convertToCSV(available_lists)
-    // saveData("available_lists.csv", Updated_Available_Lists)
 
     // Display the link so participants can give themselves SONA credit
     var el = jsPsych.getDisplayElement();
@@ -164,4 +255,11 @@ finish_experiment = function() {
     el.appendChild(farewell_paragraph);
     el.appendChild(a);
 
+}
+
+saveData = function(name, data){
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({filename: name, filedata: data}));
 }
