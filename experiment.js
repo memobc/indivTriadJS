@@ -20,7 +20,7 @@ SetEncInstr = function(){
   /* encoding instructions */
 
   // A series of reusable html strings
-  var expKeyword = 'Jennifer Anniston';
+  var expKeyword = 'Jennifer Aniston';
   var expObjOne = 'Bowling Ball';
   var expObjTwo = 'Hockey Stick';
   var enc_example_1 = '<div style="width: 65vmin; height: 35vmin; font-size: 3vmin; position: relative; margin: auto">'+
@@ -165,7 +165,7 @@ SetRetInstr = function(){
   /* retrieval instructions */
 
   // A series of reusable html strings
-  var expKeyword = 'Jennifer Anniston';
+  var expKeyword = 'Jennifer Aniston';
   var resp_opt_1 = 'Bowling Ball';
   var resp_opt_2 = 'Screw';
   var resp_opt_3 = 'Earrings';
@@ -279,4 +279,3 @@ finish_experiment = function(){
 	}
      });
    }
-
