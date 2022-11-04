@@ -29,14 +29,18 @@ SetEncInstr = function(){
                       '<div class="lowerright">'+expObjTwo+'</div>'+
                       '</div>'
 
+var succss_example = '<div id="jspsych-html-slider-response-wrapper" style="margin: 100px auto; width: 80vmin;"><div id="jspsych-html-slider-response-stimulus"><div style="margin: auto"><p>How successful were you in imagining a scenario?</p></div></div><div class="jspsych-html-slider-response-container" style="position:relative; margin: 0 auto 3em auto; width:auto;"><input type="range" class="jspsych-slider" value="50" min="0" max="100" step="1" id="jspsych-html-slider-response-response"><div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(5% - (100% / 2) - -7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Unsuccessful</span></div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(95% - (100% / 2) - 7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Successful</span></div></div></div></div>'
+
   var instruct = {
       type: jsPsychInstructions,
       pages: [
-          '<p>This is a memory experiment.</p><p style = "margin:auto; inline-size: 40%">Your task is to <b>vividly imagine</b> a scenario composed of three words in as much detail as possible.</p><p>Click next to continue.</p>',
+          '<p>This is a memory experiment.</p><p style = "margin:auto; inline-size: 40%">Your task is to vividly imagine a scenario composed of three words in as much detail as possible.</p><p>Click next to continue.</p>',
           '<p>Here is an example of what you will be asked to do:</p>' + enc_example_1,
           '<p>Each trial will have three words displayed in a triangle.</p>' + enc_example_1,
           '<p>During this time, try to vividly imagine a scenario linking the three words together.</p>' + enc_example_1,
-          '<p>You will be asked to recall the words on a later memory test.</p>' + enc_example_1,
+          '<p style = "inline-size: 80%; margin: auto">After each trial, you will be asked to report how successful you were in imagining a scenario:' + succss_example,
+          '<p style = "inline-size: 80%; margin: auto">Using your mouse, drag the slider to indicate how successful you were.' + succss_example,
+          '<p>You will be asked to recall the words on a later memory test.</p>',
           '<p>Click next when you are ready to begin the experiment.</p>'
       ],
       data: {phase: 'enc_instr'},
@@ -197,7 +201,7 @@ SetRetInstr = function(){
         '<p>We will now test your memory for the previously presented events.</p>',
         '<p>Here is an example of how we will test your memory:</p>' + example_blank,
         '<p>You will be presented with one of the words presented previously along with 6 response options.</p>' + example_blank,
-        '<p>Your task is to select the option that was presented alongside the keyword.<\p>' + example_correct,
+        '<p>Your task is to select the option that was presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
         '<p>Please use the 1-6 keys at the top of the keyboard to indicate your response.<\p>' + example_correct,
         '<p>Click next when you are ready to begin the experiment.</p>'
       ],
@@ -256,14 +260,6 @@ finish_experiment = function(){
     el.appendChild(a);
 
 }
-
-//saveData = function(name, data){
-//  var xhr = new XMLHttpRequest();
-//  xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
-//  xhr.setRequestHeader('Content-Type', 'application/json');
-//  xhr.send(JSON.stringify({filename: name, filedata: data}));
-//  console.log(JSON.stringify({filename: name, filedata: data}))
-//}
 
   // jsPsych savedata function
   function saveData(filename, filedata){

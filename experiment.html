@@ -5,6 +5,7 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script src="https://d3js.org/d3.v5.min.js"></script>
         <script src="jspsych/jspsych.js"></script>
+        <script src="jspsych/plugin-html-slider-response.js"></script>
         <script src="jspsych/plugin-html-keyboard-response.js"></script>
         <script src="jspsych/plugin-fullscreen.js" type="text/javascript"></script>
         <script src="jspsych/plugin-external-html.js" type="text/javascript"></script>
@@ -152,9 +153,9 @@ d3.csv("experiment_data.csv").then(function(data){
   timeline.push(peoplesurvey)
 
   // places
-  var places = data.map(x => pick(x, 'places'))
-  places = places.map(obj => ({...obj, prompt: obj.places, labels: places_likert_scale, required: true, name: obj.places}))
-  places = places.map(obj => omit(obj, 'places'))
+  var places = data.map(x => pick(x, 'place'))
+  places = places.map(obj => ({...obj, prompt: obj.place, labels: places_likert_scale, required: true, name: obj.place}))
+  places = places.map(obj => omit(obj, 'place'))
 
   var placessurvey = {
     type: jsPsychSurveyLikert,
@@ -187,10 +188,20 @@ d3.csv("experiment_data.csv").then(function(data){
         }},
   };
 
+  var success_rating = {
+    type: jsPsychHtmlSliderResponse,
+    stimulus: `<div style="width:500px;">
+        <p>How successful were you in imagining a scenario?</p>
+        </div>`,
+    require_movement: true,
+    post_trial_gap: 500,
+    labels: ['Unsuccessful', 'Successful']
+};
+
   var objects = data.map(x => pick(x, 'first', 'second'))
 
   var enc_trial_procedure = {
-      timeline: [enc_trial],
+      timeline: [enc_trial, success_rating],
       timeline_variables: objects,
       randomize_order: true,
       repetitions: 1,
