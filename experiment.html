@@ -236,7 +236,7 @@ d3.csv("experiment_data.csv").then(function(data){
         // at the end of each trial, update the progress bar
         // based on the current value and the proportion to update for each trial
         var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
-        jsPsych.setProgressBar(curr_progress_bar_value + (1/48));
+        jsPsych.setProgressBar(curr_progress_bar_value + (1/72));
       },
       data: {phase: 'ret'}
   }
@@ -250,7 +250,7 @@ d3.csv("experiment_data.csv").then(function(data){
         }
       },
       randomize_order: false,
-      repetitions: 48
+      repetitions: 72
   }
 
   timeline.push(ret_trial_procedure)

@@ -78,6 +78,7 @@ construct_encoding_stimulus = function(){
 };
 
 set_up_retrieval = function(){
+
   // once done with encoding, set up the retrieval trials
   enc_trial_data = jsPsych.data.get().filter({phase: 'enc'}).values();
 
@@ -86,7 +87,7 @@ set_up_retrieval = function(){
   var objTwoList = enc_trial_data.map(x => x.objTwo);
   var allOptions = objOneList.concat(objTwoList);
 
-  // for object one
+  // for key -- object one
   for (let i = 0; i < enc_trial_data.length; i++) {
 
     // this key
@@ -125,7 +126,7 @@ set_up_retrieval = function(){
 
   }
 
-  // for object two
+  // for key -- object two
   for (let i = 0; i < enc_trial_data.length; i++) {
 
     // this key
@@ -163,6 +164,61 @@ set_up_retrieval = function(){
     ret_trials.push(this_trial)
 
   }
+
+  // for objOne -- objTwo
+  for (let i = 0; i < enc_trial_data.length; i++) {
+
+    // randomly select either the first or second object as the cue
+    var OneOrTwo = [1, 2];
+    var randSelection = jsPsych.randomization.sampleWithoutReplacement(OneOrTwo, 1);
+
+    if(randSelection == 1){
+
+      // this key
+      var thisKey = enc_trial_data[i].objOne;
+
+      // the correct answer
+      var correct = enc_trial_data[i].objTwo;
+
+    } else {
+
+      // this key
+      var thisKey = enc_trial_data[i].objTwo;
+
+      // the correct answer
+      var correct = enc_trial_data[i].objOne;
+
+    }
+
+    // remove the correct answer and the key from the bank of possible lures
+    var possible_lures = [];
+    possible_lures = remove(allOptions, correct);
+    possible_lures = remove(possible_lures, thisKey);
+
+    // Randomly Pick 5 Lures
+    var these_lures = jsPsych.randomization.sampleWithoutReplacement(possible_lures, 5);
+
+    // concatenate the correct answer and the lures. Randomize their order
+    var all_resp_options = these_lures.concat(correct);
+    randomized_resp_options = jsPsych.randomization.sampleWithoutReplacement(all_resp_options, 6);
+
+    var this_trial = {
+      key: thisKey,
+      resp_opt_1: randomized_resp_options[0],
+      resp_opt_2: randomized_resp_options[1],
+      resp_opt_3: randomized_resp_options[2],
+      resp_opt_4: randomized_resp_options[3],
+      resp_opt_5: randomized_resp_options[4],
+      resp_opt_6: randomized_resp_options[5],
+    }
+
+    ret_trials.push(this_trial)
+
+  }
+
+  // randomly sort the ret_trials array
+  ret_trials = jsPsych.randomization.sampleWithoutReplacement(ret_trials, ret_trials.length)
+
 }
 
 SetRetInstr = function(){
