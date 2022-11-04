@@ -311,7 +311,7 @@ finish_experiment = function(){
     farewell_paragraph.appendChild(farewell_text);
     var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
     a.appendChild(linkText);
-    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1127&credit_token=2d1623ee4a54413d826ed9a1b282539d&survey_code=" + urlvar.subject;
+    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1287&credit_token=c497d6c0727547be816b76ce8b8b1b52&survey_code=" + urlvar.subject;
     el.appendChild(farewell_paragraph);
     el.appendChild(a);
 
