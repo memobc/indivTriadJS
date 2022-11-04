@@ -23,7 +23,7 @@ SetEncInstr = function(){
   var expKeyword = 'Jennifer Anniston';
   var expObjOne = 'Bowling Ball';
   var expObjTwo = 'Hockey Stick';
-  var enc_example_1 = '<div style="width: 85vmin; height: 50vmin; font-size: 4vmin; position: relative;">'+
+  var enc_example_1 = '<div style="width: 65vmin; height: 35vmin; font-size: 3vmin; position: relative; margin: auto">'+
                       '<div class="centertop">'+expKeyword+'</div>'+
                       '<div class="lowerleft">'+expObjOne+'</div>'+
                       '<div class="lowerright">'+expObjTwo+'</div>'+
@@ -32,11 +32,11 @@ SetEncInstr = function(){
   var instruct = {
       type: jsPsychInstructions,
       pages: [
-          '<p>This is a memory experiment.</p><p>Your task is to:</p><ol type="1" style="text-align:left"><li><b>vividly imagine</b> a scenario composed of three words in as much detail as possible.</li></ol><p>Click next to continue.</p>',
+          '<p>This is a memory experiment.</p><p style = "margin:auto; inline-size: 40%">Your task is to <b>vividly imagine</b> a scenario composed of three words in as much detail as possible.</p><p>Click next to continue.</p>',
           '<p>Here is an example of what you will be asked to do:</p>' + enc_example_1,
           '<p>Each trial will have three words displayed in a triangle.</p>' + enc_example_1,
-          '<p>During this time, try to <b>vividly imagine</b> a scenario</p><p>linking the three words together.</p>' + enc_example_1,
-          '<p>You will be asked to recall the words on a </p><p> a later memory test.</p>' + enc_example_1,
+          '<p>During this time, try to vividly imagine a scenario linking the three words together.</p>' + enc_example_1,
+          '<p>You will be asked to recall the words on a later memory test.</p>' + enc_example_1,
           '<p>Click next when you are ready to begin the experiment.</p>'
       ],
       data: {phase: 'enc_instr'},
@@ -172,7 +172,7 @@ SetRetInstr = function(){
   var resp_opt_4 = 'Candle';
   var resp_opt_5 = 'Button';
   var resp_opt_6 = 'Apron';
-  var example_blank = '<div style="width: 70vmin; height:70vmin; font-size: 3vmin; position: relative;">'+
+  var example_blank = '<div style="width: 55vmin; height:50vmin; font-size: 3vmin; position: relative; line-height: normal; margin:auto">'+
                    '<div class="center">'+expKeyword+'</div>'+
                    '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
                    '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
@@ -181,7 +181,7 @@ SetRetInstr = function(){
                    '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
                    '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
                    '</div>'
-  var example_correct = '<div style="width: 70vmin; height:70vmin; font-size: 3vmin; position: relative;">'+
+  var example_correct = '<div style="width: 55vmin; height:50vmin; font-size: 3vmin; position: relative; line-height: normal; margin:auto">'+
                    '<div class="center">'+expKeyword+'</div>'+
                    '<div class="resp_opt_1"; style="background-color: powderblue">'+'1: '+resp_opt_1+'</div>'+
                    '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
@@ -196,9 +196,9 @@ SetRetInstr = function(){
       pages: [
         '<p>We will now test your memory for the previously presented events.</p>',
         '<p>Here is an example of how we will test your memory:</p>' + example_blank,
-        '<p>You will be presented with one of the words presented<\p><p>previously along with 6 response options.</p>' + example_blank,
-        '<p>Your task is to select the option that was presented<\p><p>alongside the keyword.<\p>' + example_correct,
-        '<p>Please use the 1-6 keys at the top of the keyboard to<\p><p>indicate your response.<\p>' + example_correct,
+        '<p>You will be presented with one of the words presented previously along with 6 response options.</p>' + example_blank,
+        '<p>Your task is to select the option that was presented alongside the keyword.<\p>' + example_correct,
+        '<p>Please use the 1-6 keys at the top of the keyboard to indicate your response.<\p>' + example_correct,
         '<p>Click next when you are ready to begin the experiment.</p>'
       ],
       data: {phase: 'ret_instr'},
@@ -220,7 +220,7 @@ construct_retrieval_stimulus = function(){
   var resp_opt_5 = ret_trials[cc].resp_opt_5;
   var resp_opt_6 = ret_trials[cc].resp_opt_6;
   jsPsych.data.write(ret_trials[cc])
-  var html = '<div style="width: 100vmin; height:100vmin; font-size: 4vmin; position: relative;">'+
+  var html = '<div style="width: 100vmin; height:100vmin; font-size: 4vmin; position: relative; line-height: normal;">'+
              '<div class="center">'+keyWord+'</div>'+
              '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
              '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
@@ -240,8 +240,8 @@ finish_experiment = function(){
     var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
 
     // Save Data w/ unique data/time string
-    saveData(datestring + '_' + urlvar.subject + "_experiment_data", jsPsych.data.get().csv());
-    saveData(datestring + '_' + urlvar.subject + "_interaction_data", jsPsych.data.getInteractionData().csv());
+    saveData(datestring + '_' + urlvar.subject + "_experiment_data.csv", jsPsych.data.get().csv());
+    saveData(datestring + '_' + urlvar.subject + "_interaction_data.csv", jsPsych.data.getInteractionData().csv());
 
     // Display the link so participants can give themselves SONA credit
     var el = jsPsych.getDisplayElement();
@@ -257,9 +257,26 @@ finish_experiment = function(){
 
 }
 
-saveData = function(name, data){
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.send(JSON.stringify({filename: name, filedata: data}));
-}
+//saveData = function(name, data){
+//  var xhr = new XMLHttpRequest();
+//  xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
+//  xhr.setRequestHeader('Content-Type', 'application/json');
+//  xhr.send(JSON.stringify({filename: name, filedata: data}));
+//  console.log(JSON.stringify({filename: name, filedata: data}))
+//}
+
+  // jsPsych savedata function
+  function saveData(filename, filedata){
+     $.ajax({
+	type:'post',
+        cache: false,
+        url: 'save_data.php', // this is the path to the above PHP script
+        data: {filename: filename, filedata: filedata},
+        success: function(data) {
+          if (data == "ok") {
+            console.log("Success!")
+          }
+	}
+     });
+   }
+
