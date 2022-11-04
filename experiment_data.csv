@@ -1,25 +1,25 @@
-index,people,places,first,second
-0,Hillary Clinton,Dune,golf ball,disco ball
-1,Oprah,Valley,sewing machine,soccer ball
-2,Lady Gaga,Library,key,wrench
-3,Brad Pitt,Bridge,harmonica,windmill
-4,Michael Jackson,Restaurant,drum sticks,banjo
-5,Julia Roberts,Ice Rink,swing,microscope
-6,Lady Diana,Lecture Hall,funnel,measuring cup
-7,Julianne Moore,Indoor Pool,wheelchair,bullet
-8,Shakira,Warehouse,cannon,mouse trap
-9,Tom Hanks,Courtroom,toothbrush,parachute
-10,Dwayne Johnson,Sauna,frisbee,mattress
-11,Robert Pattinson,Newsroom,toaster,tampon
-12,Robin Williams,Bathroom,dart board,lawn mower
-13,Michael Phelps,Cruise Ship,compass,dog house
-14,Serena Williams,Bar,umbrella,calculator
-15,Mahatma Gandhi,Wind Farm,chalk,condom
-16,Rosa Parks,Stone House,blender,hammer
-17,Audrey Hepburn,Green House,tennis ball,handcuffs
-18,Ryan Reynolds,Theater,locker,ruler
-19,Mindy Kaling,Cabin,arrow,kite
-20,Ellen Degeneres,Ferris Wheel,sand castle,bow
-21,Anne Hathaway,Studio,horseshoe,basketball
-22,Timothee Chalamet,Jetty,guitar case,battery
-23,Sandra Bullock,Savannah,snowboard,skateboard
+people,place,index,first,second
+Hillary Clinton,Dunes,0,guitar case,dream catcher
+Oprah,Valley,1,sewing machine,swing
+Lady Gaga,Library,2,lipstick,surf board
+Brad Pitt,Bridge,3,horseshoe,zipper
+Michael Jackson,Restaurant,4,drum sticks,banjo
+Julia Roberts,Ice Rink,5,wheelchair,pencil
+Lady Diana,Lecture Hall,6,key,measuring cup
+Julianne Moore,Indoor Pool,7,accordion,cannon
+Shakira,Warehouse,8,cash register,mouse trap
+Tom Hanks,Courtroom,9,umbrella,parachute
+Dwayne Johnson,Sauna,10,frisbee,pool table
+Robert Pattinson,Newsroom,11,violin,anchor
+Robin Williams,Bathroom,12,earrings,light switch
+Michael Phelps,Cruise Ship,13,compass,football
+Serena Williams,Bar,14,windmill,calculator
+Mahatma Gandhi,Wind Farm,15,chalk,dart board
+Rosa Parks,Stone House,16,bullet,handcuffs
+Audrey Hepburn,Green House,17,tennis ball,harmonica
+Ryan Reynolds,Theater,18,mail box,scissors
+Mindy Kaling,Cabin,19,bird house,lawn mower
+Ellen Degeneres,Ferris Wheel,20,sand castle,bow
+Anne Hathaway,Studio,21,mail box,basketball
+Timothee Chalamet,Jetty,22,kite,battery
+Sandra Bullock,Savannah,23,snowboard,snowman
