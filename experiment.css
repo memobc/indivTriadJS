@@ -19,44 +19,47 @@
   /* RETRIEVAL */
   .center {
     position: absolute;
-    top: 50%;
+    top: 48%;
     left: 40%;
     inline-size: 20%;
   }
   .resp_opt_1 {
     position: absolute;
-    top: 50%;  /* unit */
+    top: 45%;  /* unit */
     left: 70%; /* unit*1.5 */
     inline-size: 20%;
   }
   .resp_opt_2 {
     position: absolute;
-    top: 76%; /*unit*1.43*/
+    top: 71%; /*unit*1.43*/
     left: 55%; /*unit*1.25*/
     inline-size: 20%;
   }
   .resp_opt_3 {
     position: absolute;
-    top: 76%; /*unit*1.43*/
+    top: 71%; /*unit*1.43*/
     left: 25%; /*unit*.75*/
     inline-size: 20%;
   }
   .resp_opt_4 {
     position: absolute;
-    top: 50%; /*unit*/
+    top: 45%; /*unit*/
     left: 10%; /*unit*.5*/
     inline-size: 20%;
   }
   .resp_opt_5 {
     position: absolute;
-    top: 24%; /*unit*.57*/
+    top: 19%; /*unit*.57*/
     left: 25%; /*unit*.75*/
     inline-size: 20%;
   }
   .resp_opt_6 {
     position: absolute;
-    top: 24%; /*unit*.57*/
+    top: 19%; /*unit*.57*/
     left: 55%; /*unit*1.25*/
     inline-size: 20%;
+  }
+  #jspsych-survey-likert-next{
+    margin-bottom: 35px;
   }
 </style>

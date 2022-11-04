@@ -22,7 +22,8 @@
 // initialize experiment
 var jsPsych = initJsPsych({
   on_finish: finish_experiment,
-  show_progress_bar: false
+  show_progress_bar: true,
+  auto_update_progress_bar: false
 });
 
 // grabs all variables from the url
@@ -195,6 +196,12 @@ d3.csv("experiment_data.csv").then(function(data){
         </div>`,
     require_movement: true,
     post_trial_gap: 500,
+    on_finish: function(){
+      // at the end of each trial, update the progress bar
+      // based on the current value and the proportion to update for each trial
+      var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
+      jsPsych.setProgressBar(curr_progress_bar_value + (1/objects.length));
+    },
     labels: ['Unsuccessful', 'Successful']
 };
 
@@ -205,6 +212,10 @@ d3.csv("experiment_data.csv").then(function(data){
       timeline_variables: objects,
       randomize_order: true,
       repetitions: 1,
+      on_timeline_start: function(){
+        // set progress bar to 0 at the start of experiment
+        jsPsych.setProgressBar(0);
+      },
       on_timeline_finish: set_up_retrieval,
   }
   timeline.push(enc_trial_procedure)
@@ -221,11 +232,23 @@ d3.csv("experiment_data.csv").then(function(data){
       stimulus_duration: null,
       response_ends_trial: true,
       post_trial_gap: 1000,
+      on_finish: function(){
+        // at the end of each trial, update the progress bar
+        // based on the current value and the proportion to update for each trial
+        var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
+        jsPsych.setProgressBar(curr_progress_bar_value + (1/48));
+      },
       data: {phase: 'ret'}
   }
 
   var ret_trial_procedure = {
       timeline: [ret_trial],
+      on_timeline_start: function(){
+        if (cc == -1) {
+          // set progress bar to 0 at the start of experiment
+          jsPsych.setProgressBar(0);
+        }
+      },
       randomize_order: false,
       repetitions: 48
   }

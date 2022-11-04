@@ -68,7 +68,7 @@ construct_encoding_stimulus = function(){
   var first = jsPsych.timelineVariable('first');
   var second = jsPsych.timelineVariable('second');
   var keyWord = allKeyStim[randperm[c]];
-  var html = '<div style="width: 85vmin; height: 50vmin; font-size: 4vmin; position: relative;">'+
+  var html = '<div style="width: 75vmin; height: 35vmin; font-size: 4vmin; position: relative;">'+
              '<div class="centertop">'+keyWord+'</div>'+
              '<div class="lowerleft">'+first+'</div>'+
              '<div class="lowerright">'+second+'</div>'+
@@ -224,7 +224,7 @@ construct_retrieval_stimulus = function(){
   var resp_opt_5 = ret_trials[cc].resp_opt_5;
   var resp_opt_6 = ret_trials[cc].resp_opt_6;
   jsPsych.data.write(ret_trials[cc])
-  var html = '<div style="width: 100vmin; height:100vmin; font-size: 4vmin; position: relative; line-height: normal;">'+
+  var html = '<div style="width: 90vmin; height:80vmin; font-size: 4vmin; position: relative; line-height: normal;">'+
              '<div class="center">'+keyWord+'</div>'+
              '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
              '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
