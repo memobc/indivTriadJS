@@ -1,0 +1,115 @@
+---
+title: "Triads Pilot"
+author: "Kyle Kurkela"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggridges)
+df <- read_csv('tidy_ret.csv', col_types = 'ifdfcccccccccflf')
+df.enc <- read_csv('tidy_enc.csv', col_types = 'fdii')
+df.raw <- read_csv('raw.csv')
+```
+
+### How well could participants imagine the events?
+
+```{r}
+ggplot(df.enc, aes(x = response)) +
+  geom_histogram(bins = 30) +
+  labs(title = 'Overall Success Ratings Distribution')
+```
+
+```{r}
+psych::describe(df.enc) %>%
+  filter(vars == 3)
+```
+
+```{r}
+ggplot(df.enc, aes(x = response, y = subject)) +
+  geom_density_ridges(
+    jittered_points = TRUE, scale = .95, rel_min_height = .01,
+    point_shape = "|", point_size = 3, size = 0.25,
+    position = position_points_jitter(height = 0)
+  ) +
+  labs(title = 'Individual Variability in the use of the success scale', x = 'success (0 = unsuccessful, 100 = successful)', caption = 'dashes = trials') +
+  scale_x_continuous()
+```
+
+### How long did participants take to respond during encoding?
+
+```{r}
+ggplot(df.enc, aes(x = rt, y = subject)) +
+  geom_density_ridges(
+    jittered_points = TRUE, scale = .95, rel_min_height = .01,
+    point_shape = "|", point_size = 3, size = 0.25,
+    position = position_points_jitter(height = 0)
+  ) +
+  labs(title = 'Individual Variability in the use of the success scale', subtitle = 'response times', x = 'rt (ms)', caption = 'dashes = trials') +
+  scale_x_continuous(breaks = seq(1000, 10000, 1000))
+```
+
+### How well did participants do on the experiment?
+
+```{r, warning=FALSE}
+df %>%
+  group_by(subject) %>%
+  summarise(propCorrect = mean(isCorrect, na.rm = TRUE), .groups = 'drop') %>%
+  ggplot(aes(x = '', y = propCorrect)) +
+  geom_dotplot(binaxis = 'y', stackdir = 'center') +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
+  geom_hline(yintercept = 1/6, color = 'red') +
+  expand_limits(y = c(0,1)) +
+  labs(title = 'Overall Memory Performance', caption = 'red = chance (1/6 or ~17%), dots = subjects, crossbar = mean +/- se') +
+  theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
+```
+
+```{r}
+df %>%
+  summarise(mean(isCorrect, na.rm = TRUE))
+```
+
+Participants performed excellently on the experiment.
+
+### How long did participants take to respond at retrieval?
+
+```{r}
+df %>%
+  ggplot(aes(x = rt)) +
+  geom_histogram(bins = 30) +
+  labs(x = 'rt (ms)') +
+  scale_x_continuous(breaks = seq(1000,30000,2000))
+```
+
+```{r}
+psych::describe(x = df) %>%
+  filter(vars == 3)
+```
+
+### How long did participants take to complete the experiment?
+
+```{r}
+df.raw %>%
+  group_by(subject) %>%
+  summarise(time_elapsed_ms = max(time_elapsed)) %>%
+  mutate(time_elapsed_s = time_elapsed_ms/1000,
+         time_elapsed_min = time_elapsed_s/60) %>%
+  ggplot(aes(x = '', y = time_elapsed_min)) +
+  geom_dotplot(binaxis = 'y', stackdir = 'center') +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
+  expand_limits(y = c(10,30)) +
+  labs(title = '')
+```
+
+## Successful imagination at encoding should predict memory at retrieval?
+
+```{r}
+
+```
+
