@@ -13,26 +13,27 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggridges)
-df <- read_csv('tidy_ret.csv', col_types = 'ifdfcccccccccflf')
-df.enc <- read_csv('tidy_enc.csv', col_types = 'fdii')
+library(lme4)
+df <- read_csv('tidy_ret.csv', col_types = 'ifdfccccccciccfdiilf')
+df.enc <- read_csv('tidy_enc.csv', col_types = 'ficccfdi')
 df.raw <- read_csv('raw.csv')
 ```
 
-### How well could participants imagine the events?
+## How well could participants imagine the events?
 
 ```{r}
-ggplot(df.enc, aes(x = response)) +
+ggplot(df.enc, aes(x = success)) +
   geom_histogram(bins = 30) +
   labs(title = 'Overall Success Ratings Distribution')
 ```
 
 ```{r}
 psych::describe(df.enc) %>%
-  filter(vars == 3)
+  filter(vars == 7)
 ```
 
 ```{r}
-ggplot(df.enc, aes(x = response, y = subject)) +
+ggplot(df.enc, aes(x = success, y = subject)) +
   geom_density_ridges(
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
     point_shape = "|", point_size = 3, size = 0.25,
@@ -42,7 +43,7 @@ ggplot(df.enc, aes(x = response, y = subject)) +
   scale_x_continuous()
 ```
 
-### How long did participants take to respond during encoding?
+## How long did participants take to respond during encoding?
 
 ```{r}
 ggplot(df.enc, aes(x = rt, y = subject)) +
@@ -55,7 +56,7 @@ ggplot(df.enc, aes(x = rt, y = subject)) +
   scale_x_continuous(breaks = seq(1000, 10000, 1000))
 ```
 
-### How well did participants do on the experiment?
+## How well did participants do on the experiment?
 
 ```{r, warning=FALSE}
 df %>%
@@ -77,22 +78,22 @@ df %>%
 
 Participants performed excellently on the experiment.
 
-### How long did participants take to respond at retrieval?
+## How long did participants take to respond at retrieval?
 
 ```{r}
 df %>%
-  ggplot(aes(x = rt)) +
+  ggplot(aes(x = rt_ret)) +
   geom_histogram(bins = 30) +
   labs(x = 'rt (ms)') +
   scale_x_continuous(breaks = seq(1000,30000,2000))
 ```
 
-```{r}
+```{r, warning=FALSE}
 psych::describe(x = df) %>%
   filter(vars == 3)
 ```
 
-### How long did participants take to complete the experiment?
+## How long did participants take to complete the experiment?
 
 ```{r}
 df.raw %>%
@@ -103,13 +104,71 @@ df.raw %>%
   ggplot(aes(x = '', y = time_elapsed_min)) +
   geom_dotplot(binaxis = 'y', stackdir = 'center') +
   stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
-  expand_limits(y = c(10,30)) +
+  expand_limits(y = c(10,50)) +
   labs(title = '')
 ```
 
 ## Successful imagination at encoding should predict memory at retrieval?
 
 ```{r}
-
+glmer(isCorrect ~ (1|subject), data = df, family = 'binomial') -> model.fit.0
+glmer(isCorrect ~ success + (1|subject), data = df, family = 'binomial') -> model.fit.1
 ```
 
+```{r}
+# likelihood ratio test of the `success` predictor
+anova(model.fit.0, model.fit.1)
+```
+
+```{r}
+df %>%
+  filter(!is.na(isCorrect)) -> df.filtered
+
+predict(model.fit.1, type = 'response') -> df.filtered$predictedProbCorrect
+predict(model.fit.1, type = 'response', re.form = NA) -> df.filtered$predictedProbCorrectFixed
+
+ggplot(df.filtered, aes(x = success, y = as.numeric(isCorrect))) +
+  geom_point(shape = '|', position = position_jitter(width = 0.25, height = 0)) +
+  geom_line(aes(group = subject, y = predictedProbCorrect, color = subject), alpha = 0.5) +  
+  geom_line(aes(y = predictedProbCorrectFixed), color = 'black', size = 2) +
+  geom_hline(yintercept = 1/6, color = 'red', linetype = 'dotted') +
+  labs(title = 'Success Ratings At Encoding Predicts Retrieval Success',
+       y = 'Retrieval Success (Probability)',
+       x = 'Self-Reported Imaination Success at Encoding',
+       caption = '')
+```
+
+## Does success rating depend on the key word?
+
+```{r}
+# intercept only w/ random intercepts
+lmer(success ~ (1|subject), data = df.enc) -> model.fit.0
+
+# keyType w/ random intercepts
+lmer(success ~ keyType + (1|subject), data = df.enc) -> model.fit.1
+
+# keyType w/ correlated random slope, random intercept
+lmer(success ~ keyType + (keyType|subject), data = df.enc) -> model.fit.2
+```
+
+```{r}
+# likelihood ratio tests comparing intercept only; keyType predictor; random slopes with keyType predictor
+anova(model.fit.0, model.fit.1, model.fit.2)
+```
+
+```{r}
+df.enc$predicted <- predict(model.fit.2)
+df.enc$predictedFixed <- predict(model.fit.2, re.form = NA)
+
+ggplot(df.enc, aes(x = keyType, y = success)) +
+  geom_point(aes(y = predicted, color = subject)) +
+  geom_line(aes(y = predicted, color = subject, group = subject), alpha = 0.5, linetype = 'dashed') +
+  geom_point(aes(y = predictedFixed), color = 'red') +
+  geom_line(aes(y = predictedFixed), color = 'red', group = '') +
+  labs(title = 'Imagination Success Rating At Encoding Depends on the Key Word in Word Triads',
+       y = 'Predicted Imagination Success Rating')
+```
+
+```{r}
+summary(model.fit.2)
+```

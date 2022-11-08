@@ -28,9 +28,6 @@ onlyRetData.df %>%
 
 left_join(responseData.df, optionsData.df) -> joinedRetData.df
 
-joinedRetData.df %>%
-  mutate(correctResponse = map)
-
 # encoding ----------------------------------------------------------------
 
 df %>%
@@ -40,7 +37,10 @@ onlyEncData.df %>%
   select(where(~!all(is.na(.x)))) %>%
   select(-stimulus) %>%
   select(subject, trial_index, key, objOne, objTwo) %>%
-  mutate(trial_index = trial_index + 1) -> usefulEnc.df
+  mutate(trial_index = trial_index + 1) %>%
+  mutate(keyType = case_when(key %in% stim$people ~ 'famous person',
+                             key %in% stim$place ~ 'everyday place',
+                             TRUE ~ '')) -> usefulEnc.df
 
 df %>%
   filter(trial_type == 'html-slider-response') %>%
@@ -66,19 +66,12 @@ findCorrectAnswer <- function(x){
 }
 
 # calculate isCorrect and correctResponse
-left_join(joinedRetData.df, usefulEnc.df, by = c('subject', 'key')) %>%
+left_join(joinedRetData.df, tidy.enc.df, by = c('subject', 'key'), suffix = c('_ret', '_enc')) %>%
   filter(!is.na(objOne)) %>%
-  group_by(subject, trial_index) %>%
+  group_by(subject, trial_index_ret) %>%
   nest() %>%
   mutate(correctResponse = map_int(.x = data, .f = findCorrectAnswer)) %>%
   unnest(data) %>%
   mutate(isCorrect = response == correctResponse) -> tidy.df
-
-# calculate key type
-tidy.df %>%
-  mutate(keyType = case_when(key %in% stim$people ~ 'famous person',
-                             key %in% stim$place ~ 'everyday place',
-                             TRUE ~ '')) %>%
-  mutate(keyType = factor(keyType)) -> tidy.df
 
 write_csv(x = tidy.df, file = 'tidy_ret.csv')
