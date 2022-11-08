@@ -5,3 +5,4 @@ BOSS_norms_maureen_condensed.csv
 .Rproj.user/
 data/*.csv
 data/*.html
+*.Rhistory

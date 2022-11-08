@@ -4,7 +4,7 @@
 library(tidyverse)
 
 # body
-files <- list.files('Nina_similar_famous_faces_noBR/', pattern = '*.png')
+files <- list.files('./Nina_similar_famous_faces_noBR', pattern = '.*.png')
 
 organize <- function(listEntry){
   if(length(listEntry) == 2){
@@ -114,7 +114,9 @@ df <- read_csv(file = 'BOSS_norms_maureen_condensed.csv')
 df %>% 
   arrange(desc(NameAgreement)) %>% 
   filter(Living == 'Non-Living') %>%
-  head(n = 100) %>%
+  head(n = 102) %>%
+  select(ModalName) %>%
+  distinct() %>%
   pull(ModalName) -> object.names
 
 # fix select names by hand
