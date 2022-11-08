@@ -176,8 +176,8 @@ d3.csv("experiment_data.csv").then(function(data){
       type: jsPsychHtmlKeyboardResponse,
       stimulus: construct_encoding_stimulus,
       choices: "NO_KEYS",
-      trial_duration: 12000,
-      stimulus_duration: 12000,
+      trial_duration: 1000,//12000,
+      stimulus_duration: 1000,//12000,
       response_ends_trial: false,
       post_trial_gap: 1000,
       data: {
@@ -194,7 +194,7 @@ d3.csv("experiment_data.csv").then(function(data){
     stimulus: `<div style="width:500px;">
         <p>How successful were you in imagining a scenario?</p>
         </div>`,
-    require_movement: true,
+    require_movement: false,
     post_trial_gap: 500,
     on_finish: function(){
       // at the end of each trial, update the progress bar
@@ -202,7 +202,8 @@ d3.csv("experiment_data.csv").then(function(data){
       var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
       jsPsych.setProgressBar(curr_progress_bar_value + (1/objects.length));
     },
-    labels: ['Unsuccessful', 'Successful']
+    labels: ['Unsuccessful', 'Successful'],
+    data: {phase: 'enc'}
 };
 
   var objects = data.map(x => pick(x, 'first', 'second'))
@@ -238,7 +239,10 @@ d3.csv("experiment_data.csv").then(function(data){
         var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
         jsPsych.setProgressBar(curr_progress_bar_value + (1/72));
       },
-      data: {phase: 'ret'}
+      data: function(){
+        ret_trials[cc].phase = 'ret'
+        return ret_trials[cc]
+      }
   }
 
   var ret_trial_procedure = {

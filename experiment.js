@@ -120,6 +120,7 @@ set_up_retrieval = function(){
       resp_opt_4: randomized_resp_options[3],
       resp_opt_5: randomized_resp_options[4],
       resp_opt_6: randomized_resp_options[5],
+      enc_trial_index: enc_trial_data[i].trial_index
     }
 
     ret_trials.push(this_trial)
@@ -159,6 +160,7 @@ set_up_retrieval = function(){
       resp_opt_4: randomized_resp_options[3],
       resp_opt_5: randomized_resp_options[4],
       resp_opt_6: randomized_resp_options[5],
+      enc_trial_index: enc_trial_data[i].trial_index
     }
 
     ret_trials.push(this_trial)
@@ -210,6 +212,7 @@ set_up_retrieval = function(){
       resp_opt_4: randomized_resp_options[3],
       resp_opt_5: randomized_resp_options[4],
       resp_opt_6: randomized_resp_options[5],
+      enc_trial_index: enc_trial_data[i].trial_index
     }
 
     ret_trials.push(this_trial)
