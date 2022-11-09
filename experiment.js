@@ -282,7 +282,7 @@ construct_retrieval_stimulus = function(){
   var resp_opt_4 = ret_trials[cc].resp_opt_4;
   var resp_opt_5 = ret_trials[cc].resp_opt_5;
   var resp_opt_6 = ret_trials[cc].resp_opt_6;
-  jsPsych.data.write(ret_trials[cc])
+
   var html = '<div style="width: 90vmin; height:80vmin; font-size: 4vmin; position: relative; line-height: normal;">'+
              '<div class="center">'+keyWord+'</div>'+
              '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
