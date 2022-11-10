@@ -80,7 +80,7 @@ construct_encoding_stimulus = function(){
 set_up_retrieval = function(){
 
   // once done with encoding, set up the retrieval trials
-  enc_trial_data = jsPsych.data.get().filter({phase: 'enc'}).values();
+  enc_trial_data = jsPsych.data.get().filter({phase: 'enc'}).filter({rt: null}).values();
 
   // make retrieval trials
   var objOneList = enc_trial_data.map(x => x.objOne);
