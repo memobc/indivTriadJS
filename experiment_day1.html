@@ -21,7 +21,7 @@
 
 // initialize experiment
 var jsPsych = initJsPsych({
-  on_finish: finish_experiment,
+  on_finish: finish_experiment_dayOne,
   show_progress_bar: true,
   auto_update_progress_bar: false
 });
@@ -127,7 +127,7 @@ var topTwelvePlaces = [];
 
 // d3 is a part of the D3.js JavasScript library. Used here to read in a csv files
 // from the disk
-d3.csv("experiment_data.csv").then(function(data){
+d3.csv("day1_experiment_data.csv").then(function(data){
 
   timeline.push(welcome)
 

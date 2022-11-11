@@ -320,17 +320,67 @@ finish_experiment = function(){
 
 }
 
-  // jsPsych savedata function
-  function saveData(filename, filedata){
-     $.ajax({
-	type:'post',
-        cache: false,
-        url: 'save_data.php', // this is the path to the above PHP script
-        data: {filename: filename, filedata: filedata},
-        success: function(data) {
-          if (data == "ok") {
-            console.log("Success!")
-          }
-	}
-     });
-   }
+finish_experiment_dayOne = function(){
+
+    // a unique data/time string
+    // mm-dd-yyyy-hh-mm-ss
+    var today = new Date();
+    var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
+
+    // Save Data w/ unique data/time string
+    saveData(datestring + '_' + urlvar.subject + "_experiment_data.csv", jsPsych.data.get().csv());
+    saveData(datestring + '_' + urlvar.subject + "_interaction_data.csv", jsPsych.data.getInteractionData().csv());
+
+    // Display the link so participants can give themselves SONA credit
+    var el = jsPsych.getDisplayElement();
+    var a = document.createElement('a');
+    var farewell_paragraph = document.createElement('p');
+    var farewell_text = document.createTextNode("Thank you for participating!");
+    farewell_paragraph.appendChild(farewell_text);
+    var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
+    a.appendChild(linkText);
+    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1296&credit_token=4e26aa97c80e4ed498758f301ff269aa&survey_code=" + urlvar.subject;
+    el.appendChild(farewell_paragraph);
+    el.appendChild(a);
+
+}
+
+finish_experiment_dayTwo = function(){
+
+    // a unique data/time string
+    // mm-dd-yyyy-hh-mm-ss
+    var today = new Date();
+    var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
+
+    // Save Data w/ unique data/time string
+    saveData(datestring + '_' + urlvar.subject + "_experiment_data.csv", jsPsych.data.get().csv());
+    saveData(datestring + '_' + urlvar.subject + "_interaction_data.csv", jsPsych.data.getInteractionData().csv());
+
+    // Display the link so participants can give themselves SONA credit
+    var el = jsPsych.getDisplayElement();
+    var a = document.createElement('a');
+    var farewell_paragraph = document.createElement('p');
+    var farewell_text = document.createTextNode("Thank you for participating!");
+    farewell_paragraph.appendChild(farewell_text);
+    var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
+    a.appendChild(linkText);
+    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1297&credit_token=a2cfc2ea894e46689484c27d86ed1642&survey_code=" + urlvar.subject;
+    el.appendChild(farewell_paragraph);
+    el.appendChild(a);
+
+}
+
+// jsPsych savedata function
+function saveData(filename, filedata){
+   $.ajax({
+type:'post',
+      cache: false,
+      url: 'save_data.php', // this is the path to the above PHP script
+      data: {filename: filename, filedata: filedata},
+      success: function(data) {
+        if (data == "ok") {
+          console.log("Success!")
+        }
+}
+   });
+ }

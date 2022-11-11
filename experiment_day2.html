@@ -21,7 +21,7 @@
 
 // initialize experiment
 var jsPsych = initJsPsych({
-  on_finish: finish_experiment,
+  on_finish: finish_experiment_dayTwo,
   show_progress_bar: true,
   auto_update_progress_bar: false
 });
@@ -60,7 +60,7 @@ var timeline = [];
 // Welcome Message
 var welcome = {
     type: jsPsychHtmlKeyboardResponse,
-    stimulus: "Welcome to the experiment. Press any key to begin.",
+    stimulus: "Welcome to the part 2 of the experiment. Press any key to begin.",
     data: {phase: 'welcome_screen'},
   };
 
@@ -132,10 +132,6 @@ d3.csv("experiment_data.csv").then(function(data){
   timeline.push(welcome)
 
   timeline.push(fullscreen_up);
-
-  timeline.push(consent)
-
-  timeline.push(demographics)
 
   // people object array
   var people = data.map(x => pick(x, 'people'))
