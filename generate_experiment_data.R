@@ -132,27 +132,72 @@ object.names %>%
 # build -------------------------------------------------------------------
 # build to experiment data
 
+## celeb names
+
 set.seed(123)
+
+# select 24 people to be presented on day 1
 celeb.names %>%
-  sample_n(size = 24) %>%
+  sample_n(size = 24) -> day1
+
+# remove those 24 people from the pool; select 24 more to be presented on day 2
+celeb.names %>%
+  anti_join(., day1) %>%
+  sample_n(size = 24) -> day2
+
+# clean up
+day1 %>%
   mutate(last = str_replace_na(last, replacement = ''),
          people = str_c(first, last, sep = ' '),
          people = str_trim(people)) %>%
-  select(-first, -last) -> people
+  select(-first, -last) -> day1.people
+
+day2 %>%
+  mutate(last = str_replace_na(last, replacement = ''),
+         people = str_c(first, last, sep = ' '),
+         people = str_trim(people)) %>%
+  select(-first, -last) -> day2.people
+
+## Place
 
 set.seed(123)
 place.names %>%
   as_tibble() %>%
-  sample_n(size = 24) %>%
-  rename(place = value) -> place
+  sample_n(size = 24) -> day1
+
+place.names %>%
+  as_tibble() %>%
+  anti_join(., day1) %>%
+  sample_n(size = 24) -> day2
+
+day1 %>%
+  rename(place = value) -> day1.place
+
+day2 %>%
+  rename(place = value) -> day2.place
+
+## objects
 
 set.seed(123)
 object.names %>%
   as_tibble() %>%
-  sample_n(size = 48) %>%
+  sample_n(size = 48) -> day1
+
+object.names %>%
+  as_tibble() %>%
+  anti_join(., day1) %>%
+  sample_n(size = 48) -> day2
+
+day1 %>%
   mutate(index = c(0:23, 0:23), objPosition = gl(n = 2, k = 24, labels = c('first', 'second'))) %>%
-  pivot_wider(values_from = value, names_from = objPosition) -> objects
+  pivot_wider(values_from = value, names_from = objPosition) -> day1.objects
 
-bind_cols(people, place, objects) -> experiment_data
+day2 %>%
+  mutate(index = c(0:23, 0:23), objPosition = gl(n = 2, k = 24, labels = c('first', 'second'))) %>%
+  pivot_wider(values_from = value, names_from = objPosition) -> day2.objects
 
-write_csv(x = experiment_data, 'experiment_data.csv')
+bind_cols(day1.people, day1.place, day1.objects) -> experiment_data_day1
+write_csv(x = experiment_data_day1, 'day1_experiment_data.csv')
+
+bind_cols(day2.people, day2.place, day2.objects) -> experiment_data_day2
+write_csv(x = experiment_data_day2, 'day2_experiment_data.csv')
