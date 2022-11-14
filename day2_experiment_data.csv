@@ -1,25 +1,29 @@
 people,place,index,first,second
-Steve Jobs,Bedroom,0,golf ball,funnel
-Julie Andrews,Mountain,1,stapler,brick
-Sean Connery,Bikerack,2,staples,hockey stick
-Stephen Hawking,Diner,3,basketball,anchor
-Liam Hemsworth,Golf Course,4,locker,wrench
-Sandra Oh,Stairs,5,banjo,cannon
-Charli Damelio,Basketball Court,6,envelope,key
-Jimmy Fallon,Sunflowers,7,ring,broom
-Ariana,Tennis Court,8,fork,compass
-Beyonce,Hospital,9,shirt,hammer
-Kristen Wiig,Lighthouse,10,blender,soccer ball
-Robert Downey Jr.,Field,11,pool table,nutcracker
-Emma Watson,Kitchen,12,exit sign,tennis ball
-Idris Elba,Gym,13,button,screw
-Mother Teresa,Bakery,14,toothbrush,drum sticks
-Meghan Markle,Beach,15,candle,skateboard
-Stephen Curry,Canyon,16,sewing machine,toaster
-Robert Deniro,Carousel,17,scarf,measuring cup
-Samuel L. Jackson,Classroom,18,swing,bowling pin
-Keira Knightley,Indoor Tennis Court,19,lipstick,violin
-John Travolta,Salon,20,dice,ruler
-Nicole Kidman,Power Station,21,chain,ladder
-Bruce Willis,Racetrack,22,nunchuks,fire hydrant
-Halle Berry,Dentist,23,dog house,bowling ball
+Stephen Curry,Bikerack,0,paint brush,compass
+Steve Jobs,Diner,1,wrench,rubik cube
+Liam Neeson,Golf Course,2,candle,screw
+Sean Connery,Sunflowers,3,cigarette,key
+Charli Damelio,Basketball Court,4,staples,match
+John Krasinski,Track,5,tennis ball,dart board
+Ariana,Waiting Room,6,toothbrush,brick
+Beyonce,Indoor Tennis Court,7,toolbox,book
+Leonardo Dicaprio,Living Room,8,bird house,nutcracker
+Sandra Oh,Field,9,anchor,dice
+Emma Watson,Lab,10,nunchuks,skateboard
+Idris Elba,Gym,11,button,lawn mower
+Nelson Mandela,Bakery,12,scissors,trampoline
+Melissa McCarthy,Beach,13,calculator,envelope
+Steve Carell,Canyon,14,toilet paper,football
+Samuel L. Jackson,Carousel,15,blender,handcuffs
+Scarlett Johansson,Classroom,16,swing,dog house
+Kevin Hart,Kitchen,17,locker,sewing machine
+John F. Kennedy,Stream,18,hula hoop,ladder
+Octavia Spencer,Racetrack,19,toaster,bowling pin
+Bruce Willis,Rapids,20,scarf,violin
+Halle Berry,Dentist,21,lighthouse,basketball
+Reese Witherspoon,Cave,22,pool table,bow
+Denzel Washington,Forest,23,banjo,wheel barrow
+Taylor Swift,Highway,24,drum sticks,soccer ball
+Zendaya,Church,25,lipstick,rake
+,,26,ruler,helicopter
+,,27,bumper car,iron

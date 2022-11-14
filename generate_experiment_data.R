@@ -62,12 +62,12 @@ case_when(place.names == 'Winecellar' ~ 'Wine Cellar',
           place.names == 'Windfarm' ~ 'Wind Farm',
           place.names == 'Stonehouse' ~ 'Stone House',
           place.names == 'Powerstation' ~ 'Power Station',
-          place.names == 'Parking' ~ 'Parking Lot',          
+          place.names == 'Parking' ~ 'Parking Lot',
           place.names == 'RedDoor' ~ 'Red Door',
           place.names == 'Mri' ~ 'MRI',
-          place.names == 'IndoorTennis' ~ 'Indoor Tennis Court',          
+          place.names == 'IndoorTennis' ~ 'Indoor Tennis Court',
           place.names == 'IndoorPool' ~ 'Indoor Pool',
-          place.names == 'Icerink' ~ 'Ice Rink',          
+          place.names == 'Icerink' ~ 'Ice Rink',
           place.names == 'Greenhouse' ~ 'Green House',
           place.names == 'Ferriswheel' ~ 'Ferris Wheel',
           place.names == 'DiningRoom' ~ 'Dining Room',
@@ -83,7 +83,7 @@ case_when(place.names == 'Winecellar' ~ 'Wine Cellar',
           place.names == 'Lockers' ~ 'Locker Room',
           place.names == 'Tennis' ~ 'Tennis Court',
           place.names == 'Bed' ~ 'Bedroom',
-          place.names == 'Bath' ~ 'Bathroom',           
+          place.names == 'Bath' ~ 'Bathroom',
           TRUE ~ place.names) -> place.names
 
 # remove select places by hand
@@ -111,10 +111,10 @@ place.names %>%
 df <- read_csv(file = 'BOSS_norms_maureen_condensed.csv')
 
 # arrange by name agreement, only non-living objects
-df %>% 
-  arrange(desc(NameAgreement)) %>% 
+df %>%
+  arrange(desc(NameAgreement)) %>%
   filter(Living == 'Non-Living') %>%
-  head(n = 102) %>%
+  head(n = 130) %>%
   select(ModalName) %>%
   distinct() %>%
   pull(ModalName) -> object.names
@@ -138,66 +138,74 @@ set.seed(123)
 
 # select 24 people to be presented on day 1
 celeb.names %>%
-  sample_n(size = 24) -> day1
+  sample_n(size = 26) -> day1
 
 # remove those 24 people from the pool; select 24 more to be presented on day 2
 celeb.names %>%
   anti_join(., day1) %>%
-  sample_n(size = 24) -> day2
+  sample_n(size = 26) -> day2
 
 # clean up
 day1 %>%
   mutate(last = str_replace_na(last, replacement = ''),
          people = str_c(first, last, sep = ' '),
          people = str_trim(people)) %>%
-  select(-first, -last) -> day1.people
+  select(-first, -last) %>%
+  add_row(people = NA) %>% 
+  add_row(people = NA) -> day1.people
 
 day2 %>%
   mutate(last = str_replace_na(last, replacement = ''),
          people = str_c(first, last, sep = ' '),
          people = str_trim(people)) %>%
-  select(-first, -last) -> day2.people
+  select(-first, -last) %>%
+  add_row(people = NA) %>% 
+  add_row(people = NA) -> day2.people
 
 ## Place
 
 set.seed(123)
 place.names %>%
   as_tibble() %>%
-  sample_n(size = 24) -> day1
+  sample_n(size = 26) -> day1
 
 place.names %>%
   as_tibble() %>%
   anti_join(., day1) %>%
-  sample_n(size = 24) -> day2
+  sample_n(size = 26) -> day2
 
 day1 %>%
-  rename(place = value) -> day1.place
+  rename(place = value) %>%
+  add_row(place = NA) %>% 
+  add_row(place = NA) -> day1.place
 
 day2 %>%
-  rename(place = value) -> day2.place
+  rename(place = value) %>%
+  add_row(place = NA) %>% 
+  add_row(place = NA) -> day2.place
 
 ## objects
 
 set.seed(123)
 object.names %>%
   as_tibble() %>%
-  sample_n(size = 48) -> day1
+  sample_n(size = 56) -> day1
 
 object.names %>%
   as_tibble() %>%
   anti_join(., day1) %>%
-  sample_n(size = 48) -> day2
+  sample_n(size = 56) -> day2
 
 day1 %>%
-  mutate(index = c(0:23, 0:23), objPosition = gl(n = 2, k = 24, labels = c('first', 'second'))) %>%
+  mutate(index = c(0:27, 0:27), objPosition = gl(n = 2, k = 28, labels = c('first', 'second'))) %>%
   pivot_wider(values_from = value, names_from = objPosition) -> day1.objects
 
 day2 %>%
-  mutate(index = c(0:23, 0:23), objPosition = gl(n = 2, k = 24, labels = c('first', 'second'))) %>%
+  mutate(index = c(0:27, 0:27), objPosition = gl(n = 2, k = 28, labels = c('first', 'second'))) %>%
   pivot_wider(values_from = value, names_from = objPosition) -> day2.objects
 
 bind_cols(day1.people, day1.place, day1.objects) -> experiment_data_day1
-write_csv(x = experiment_data_day1, 'day1_experiment_data.csv')
+write_csv(x = experiment_data_day1, 'day1_experiment_data.csv', na = "")
 
 bind_cols(day2.people, day2.place, day2.objects) -> experiment_data_day2
-write_csv(x = experiment_data_day2, 'day2_experiment_data.csv')
+write_csv(x = experiment_data_day2, 'day2_experiment_data.csv', na = "")

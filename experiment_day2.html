@@ -37,8 +37,13 @@ jsPsych.data.addProperties({day: 'two'});
 // global variables -- available to all functions
 
 // encoding randomization
-var myarray = Array.from({length: 24}, (x, i) => i);
-var randperm = jsPsych.randomization.sampleWithoutReplacement(myarray, 24);
+var myarray = Array.from({length: 28}, (x, i) => i);
+var randperm = jsPsych.randomization.sampleWithoutReplacement(myarray, 28);
+
+var personCatch = Array.from({length: 14}, (x, i) => i);
+personCatch = jsPsych.randomization.sampleWithoutReplacement(personCatch, 2);
+var placeCatch = Array.from({length: 14}, (x, i) => i);
+placeCatch = jsPsych.randomization.sampleWithoutReplacement(placeCatch, 2);
 
 // allKeySim = a list containing all of the people and places selected by the
 //             participant
@@ -49,6 +54,9 @@ var allKeyStim = [];
 //        indexs lists starting from 0
 var c = -1;
 var cc = -1;
+
+var place_count = -1;
+var person_count = -1;
 
 //
 var enc_trial_data = [];
@@ -135,7 +143,10 @@ d3.csv("day2_experiment_data.csv").then(function(data){
   timeline.push(fullscreen_up);
 
   // people object array
-  var people = data.map(x => pick(x, 'people'))
+  function removeBlank(value){
+    return !value.people == ''
+  }
+  var people = data.filter(removeBlank).map(x => pick(x, 'people'))
   people = people.map(obj => ({...obj, prompt: obj.people, labels: people_likert_scale, required: true, name: obj.people}))
   people = people.map(obj => omit(obj, 'people'))
 
@@ -146,7 +157,7 @@ d3.csv("day2_experiment_data.csv").then(function(data){
     data: {phase: 'people_ratings'},
     button_label: 'continue',
     randomize_question_order: true,
-    on_finish: calculate_top_twelvePeople
+    on_finish: calculate_top_People
   };
   timeline.push(peoplesurvey)
 
@@ -162,7 +173,7 @@ d3.csv("day2_experiment_data.csv").then(function(data){
     data: {phase: 'place_ratings'},
     button_label: 'continue',
     randomize_question_order: true,
-    on_finish: calculate_top_twelvePlaces
+    on_finish: calculate_top_Places
   };
   timeline.push(placessurvey)
 
@@ -183,7 +194,11 @@ d3.csv("day2_experiment_data.csv").then(function(data){
         objTwo: jsPsych.timelineVariable('second'),
         key: function(){
           return allKeyStim[randperm[c]]
-        }},
+        },
+        encTrialNum: function(){
+          return c
+        }
+      }
   };
 
   var success_rating = {
@@ -200,13 +215,50 @@ d3.csv("day2_experiment_data.csv").then(function(data){
       jsPsych.setProgressBar(curr_progress_bar_value + (1/objects.length));
     },
     labels: ['Unsuccessful', 'Successful'],
-    data: {phase: 'enc'}
-};
+    data: {
+      phase: 'enc',
+      encTrialNum: function(){
+        return c
+      }
+    }
+  };
+
+var free_text_response = {
+  type: jsPsychSurveyText,
+  questions: [
+    {prompt: 'Please describe what you were imagining:', rows: 5, required: true}
+  ],
+  data: {
+    phase: 'enc',
+    encTrialNum: function(){
+      return c
+    }
+  }
+}
+var if_node = {
+    timeline: [free_text_response],
+    conditional_function: function(){
+        // advance the place and person counters
+
+        var place_stim = data.map(x => x.place)
+        var current_key = allKeyStim[randperm[c]]
+
+        if(place_stim.includes(current_key)){
+          // advance the place counter
+          place_count=++place_count;
+          return placeCatch.includes(place_count)
+        } else {
+          // advance the person counter
+          person_count=++person_count;
+          return personCatch.includes(person_count)
+        }
+    }
+}
 
   var objects = data.map(x => pick(x, 'first', 'second'))
 
   var enc_trial_procedure = {
-      timeline: [enc_trial, success_rating],
+      timeline: [enc_trial, success_rating, if_node],
       timeline_variables: objects,
       randomize_order: true,
       repetitions: 1,

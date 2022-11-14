@@ -29,7 +29,7 @@ SetEncInstr = function(){
                       '<div class="lowerright">'+expObjTwo+'</div>'+
                       '</div>'
 
-var succss_example = '<div id="jspsych-html-slider-response-wrapper" style="margin: 100px auto; width: 80vmin;"><div id="jspsych-html-slider-response-stimulus"><div style="margin: auto"><p>How successful were you in imagining a scenario?</p></div></div><div class="jspsych-html-slider-response-container" style="position:relative; margin: 0 auto 3em auto; width:auto;"><input type="range" class="jspsych-slider" value="50" min="0" max="100" step="1" id="jspsych-html-slider-response-response"><div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(5% - (100% / 2) - -7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Unsuccessful</span></div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(95% - (100% / 2) - 7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Successful</span></div></div></div></div>'
+  var succss_example = '<div id="jspsych-html-slider-response-wrapper" style="margin: 100px auto; width: 80vmin;"><div id="jspsych-html-slider-response-stimulus"><div style="margin: auto"><p>How successful were you in imagining a scenario?</p></div></div><div class="jspsych-html-slider-response-container" style="position:relative; margin: 0 auto 3em auto; width:auto;"><input type="range" class="jspsych-slider" value="50" min="0" max="100" step="1" id="jspsych-html-slider-response-response"><div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(5% - (100% / 2) - -7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Unsuccessful</span></div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(95% - (100% / 2) - 7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Successful</span></div></div></div></div>'
 
   var instruct = {
       type: jsPsychInstructions,
@@ -50,16 +50,16 @@ var succss_example = '<div id="jspsych-html-slider-response-wrapper" style="marg
   return(instruct)
 }
 
-calculate_top_twelvePeople = function(data){
+calculate_top_People = function(data){
   var responses = data.response;
   var sortedPeople = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
-  topTwelvePeople = sortedPeople.slice(0,12);
+  topTwelvePeople = sortedPeople.slice(0,14);
 }
 
-calculate_top_twelvePlaces = function(data){
+calculate_top_Places = function(data){
   var responses = data.response;
   var sortedPlaces = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
-  topTwelvePlaces = sortedPlaces.slice(0,12);
+  topTwelvePlaces = sortedPlaces.slice(0,14);
   allKeyStim = topTwelvePlaces.concat(topTwelvePeople)
 }
 
@@ -74,13 +74,16 @@ construct_encoding_stimulus = function(){
              '<div class="lowerright">'+second+'</div>'+
              '</div>'
   return html
-
 };
 
 set_up_retrieval = function(){
 
+  var catchTrialNumbers = jsPsych.data.get().filter({phase: 'enc'}).filter({trial_type: 'survey-text'}).values().map(x => x.encTrialNum)
+
   // once done with encoding, set up the retrieval trials
-  enc_trial_data = jsPsych.data.get().filter({phase: 'enc'}).filter({rt: null}).values();
+  enc_trial_data = jsPsych.data.get().filter({phase: 'enc'}).filter({rt: null}).filterCustom(function(trial){
+    return !catchTrialNumbers.includes(trial.encTrialNum)
+  }).values();
 
   // make retrieval trials
   var objOneList = enc_trial_data.map(x => x.objOne);
