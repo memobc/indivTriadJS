@@ -31,6 +31,8 @@ SetEncInstr = function(){
 
   var succss_example = '<div id="jspsych-html-slider-response-wrapper" style="margin: 100px auto; width: 80vmin;"><div id="jspsych-html-slider-response-stimulus"><div style="margin: auto"><p>How successful were you in imagining a scenario?</p></div></div><div class="jspsych-html-slider-response-container" style="position:relative; margin: 0 auto 3em auto; width:auto;"><input type="range" class="jspsych-slider" value="50" min="0" max="100" step="1" id="jspsych-html-slider-response-response"><div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(5% - (100% / 2) - -7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Unsuccessful</span></div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(95% - (100% / 2) - 7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Successful</span></div></div></div></div>'
 
+  var text_box_example = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Please describe what you were imagining:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder=""></textarea></div></form>'
+
   var instruct = {
       type: jsPsychInstructions,
       pages: [
@@ -38,8 +40,9 @@ SetEncInstr = function(){
           '<p>Here is an example of what you will be asked to do:</p>' + enc_example_1,
           '<p>Each trial will have three words displayed in a triangle.</p>' + enc_example_1,
           '<p>During this time, try to vividly imagine a scenario linking the three words together.</p>' + enc_example_1,
-          '<p style = "inline-size: 80%; margin: auto">After each trial, you will be asked to report how successful you were in imagining a scenario:' + succss_example,
-          '<p style = "inline-size: 80%; margin: auto">Using your mouse, drag the slider to indicate how successful you were.' + succss_example,
+          '<p style = "inline-size: 80%; margin: auto">After each trial, you will be asked to report how successful you were in imagining a scenario:</p>' + succss_example,
+          '<p style = "inline-size: 80%; margin: auto">Using your mouse, drag the slider to indicate how successful you were.</p>' + succss_example,
+          '<p style = "inline-size: 80%; margin: auto">For some trials, you will be asked to report what you were imagining by typing text into a text box. Please be as detailed as possible.</p>' + text_box_example,
           '<p>You will be asked to recall the words on a later memory test.</p>',
           '<p>Click next when you are ready to begin the experiment.</p>'
       ],
