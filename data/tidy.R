@@ -11,6 +11,21 @@ write_csv(x = df, file = 'raw.csv')
 # person, place stimuli lists
 stim <- read_csv('../experiment_data.csv')
 
+## match enc--ret
+
+# addEncTrialNum <- function(data){
+#   data %>% 
+#     mutate(encTrialNum = rep(seq(1,24), each = 2)) -> tmp
+#   browser()
+# }
+# 
+# df.raw %>%
+#   filter(str_detect(internal_node_id, pattern = '0.0-7.0')) %>%
+#   select(where(~!all(is.na(.x)))) %>%
+#   nest(data = -subject) %>%
+#   mutate(data = map(data, addEncTrialNum))
+
+
 ## retrieval
 
 df %>%
@@ -40,7 +55,8 @@ onlyEncData.df %>%
   mutate(trial_index = trial_index + 1) %>%
   mutate(keyType = case_when(key %in% stim$people ~ 'famous person',
                              key %in% stim$place ~ 'everyday place',
-                             TRUE ~ '')) -> usefulEnc.df
+                             TRUE ~ '')) %>%
+  mutate(encTrialNum = rep(1:24, 10)) -> usefulEnc.df
 
 df %>%
   filter(trial_type == 'html-slider-response') %>%
@@ -48,13 +64,49 @@ df %>%
   select(subject, rt, response, trial_index) -> tidy.enc.df
 
 left_join(usefulEnc.df, tidy.enc.df) %>%
-  rename(success = response) -> tidy.enc.df
+  rename(success = response) %>%
+  nest(EncData = -subject) -> tidy.enc.df
 
 write_csv(x = tidy.enc.df, file = 'tidy_enc.csv')
 
 ## Ret + Enc
 
+matchEncRet <- function(EncData, RetData){
+    
+  encTrialNum = array()
+  for(i in 1:nrow(RetData)){
+    key <- RetData[i,]$key
+    index <- str_which(EncData$key, key)
+    if(is_empty(index)){
+      index <- str_which(EncData$objOne, key)
+    }
+    if(is_empty(index)){
+      index <- str_which(EncData$objTwo, key)
+    }
+    encTrialNum[i] = index
+  }
+  
+  print(length(encTrialNum))
+  
+  RetData %>%
+    add_column(encTrialNum) -> x
+  
+  return(x)
+
+}
+
+joinedRetData.df %>%
+  nest(RetData = -subject) %>%
+  left_join(tidy.enc.df) %>%
+  mutate(MatchedData = map2(EncData, RetData, matchEncRet)) %>%
+  select(subject, MatchedData) %>%
+  unnest(cols = c(MatchedData)) -> joinedRetData.df
+
+tidy.enc.df %>%
+  unnest(EncData) -> tidy.enc.df
+
 findCorrectAnswer <- function(x){
+  browser()
   objOne <- x$objOne
   objTwo <- x$objTwo
   resp_opts <- x %>% select(resp_opt_1:resp_opt_6) %>% as.list()
@@ -66,8 +118,7 @@ findCorrectAnswer <- function(x){
 }
 
 # calculate isCorrect and correctResponse
-left_join(joinedRetData.df, tidy.enc.df, by = c('subject', 'key'), suffix = c('_ret', '_enc')) %>%
-  filter(!is.na(objOne)) %>%
+left_join(joinedRetData.df, tidy.enc.df, by = c('subject', 'encTrialNum'), suffix = c('_ret', '_enc')) %>%
   group_by(subject, trial_index_ret) %>%
   nest() %>%
   mutate(correctResponse = map_int(.x = data, .f = findCorrectAnswer)) %>%
