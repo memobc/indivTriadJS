@@ -67,8 +67,6 @@ left_join(usefulEnc.df, tidy.enc.df) %>%
   rename(success = response) %>%
   nest(EncData = -subject) -> tidy.enc.df
 
-write_csv(x = tidy.enc.df, file = 'tidy_enc.csv')
-
 ## Ret + Enc
 
 matchEncRet <- function(EncData, RetData){
@@ -85,8 +83,6 @@ matchEncRet <- function(EncData, RetData){
     }
     encTrialNum[i] = index
   }
-  
-  print(length(encTrialNum))
   
   RetData %>%
     add_column(encTrialNum) -> x
@@ -105,13 +101,17 @@ joinedRetData.df %>%
 tidy.enc.df %>%
   unnest(EncData) -> tidy.enc.df
 
+write_csv(x = tidy.enc.df, file = 'tidy_enc.csv')
+
 findCorrectAnswer <- function(x){
-  browser()
   objOne <- x$objOne
   objTwo <- x$objTwo
+  key <- x$key_enc
   resp_opts <- x %>% select(resp_opt_1:resp_opt_6) %>% as.list()
-  correctResponse <- which(resp_opts %in% objOne | resp_opts %in% objTwo)
+  correctResponse <- which(resp_opts %in% objOne | resp_opts %in% objTwo | resp_opts %in% key)
   if(length(correctResponse) > 1){
+    correctResponse <- NA
+  } else if(length(correctResponse) == 0){
     correctResponse <- NA
   }
   return(correctResponse)
@@ -123,6 +123,9 @@ left_join(joinedRetData.df, tidy.enc.df, by = c('subject', 'encTrialNum'), suffi
   nest() %>%
   mutate(correctResponse = map_int(.x = data, .f = findCorrectAnswer)) %>%
   unnest(data) %>%
-  mutate(isCorrect = response == correctResponse) -> tidy.df
+  mutate(isCorrect = response == correctResponse) %>%
+  mutate(RetKeyType = case_when(key_ret %in% stim$people ~ 'famous person',
+                                key_ret %in% stim$place ~ 'everyday place',
+                                TRUE ~ 'object')) -> tidy.df
 
 write_csv(x = tidy.df, file = 'tidy_ret.csv')
