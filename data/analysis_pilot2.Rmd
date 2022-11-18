@@ -1,0 +1,427 @@
+---
+title: "Triads Pilot II"
+author: "Kyle Kurkela"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    df_print: paged
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggridges)
+library(lme4)
+df <- read_csv('tidy_ret.csv', col_types = 'dffdicccccccicccicdiilc')
+
+df %>%
+  unite(col = 'subject', all_of(c('subject', 'day'))) -> df
+
+df.enc <- read_csv('tidy_enc.csv', col_types = 'ficcccifdi')
+
+df.enc %>%
+  unite(col = 'subject', all_of(c('subject', 'day'))) -> df.enc
+  
+df.raw <- read_csv('raw.csv')
+```
+
+## How well could participants imagine the events?
+
+```{r}
+ggplot(df.enc, aes(x = success)) +
+  geom_histogram(bins = 30) +
+  labs(title = 'Overall Success Ratings Distribution', subtitle = 'How successful were you in imagining a scenario?', caption = '1 - Unsuccessful, 100 = Successful')
+```
+
+```{r, warning=FALSE}
+psych::describe(df.enc) %>%
+  filter(vars == 9)
+```
+
+```{r}
+ggplot(df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_'), aes(x = success, y = subject)) +
+  geom_density_ridges(
+    jittered_points = TRUE, scale = .95, rel_min_height = .01,
+    point_shape = "|", point_size = 3, size = 0.25,
+    position = position_points_jitter(height = 0)
+  ) +
+  labs(title = 'Individual Variability in the Use of the Success Scale', x = 'success (0 = unsuccessful, 100 = successful)', caption = 'dashes = trials') +
+  scale_x_continuous() +
+  facet_grid(~day, labeller = label_both)
+```
+
+## How long did participants take to respond during encoding?
+
+```{r}
+ggplot(df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_'), aes(x = rt, y = subject)) +
+  geom_density_ridges(
+    jittered_points = TRUE, scale = .95, rel_min_height = .01,
+    point_shape = "|", point_size = 3, size = 0.25,
+    position = position_points_jitter(height = 0)
+  ) +
+  labs(title = 'Individual Variability in the use of the success scale', subtitle = 'response times', x = 'rt (ms)', caption = 'dashes = trials') +
+  scale_x_continuous(breaks = seq(1000, 40000, 6000)) +
+  facet_grid(~day, labeller = label_both)
+```
+
+## How well did participants do on the experiment?
+
+```{r, warning=FALSE}
+df %>%
+  separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
+  group_by(subject, day) %>%
+  summarise(propCorrect = mean(isCorrect, na.rm = TRUE), .groups = 'drop') %>%
+  ggplot(aes(x = day, y = propCorrect)) +
+  geom_point(binaxis = 'y', stackdir = 'center') +
+  geom_line(aes(group = subject), linetype = 'dashed') +   
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
+  geom_hline(yintercept = 1/6, color = 'red') +
+  expand_limits(y = c(0,1)) +
+  labs(title = 'Overall Memory Performance', caption = 'red = chance (1/6 or ~17%), dots = subjects, crossbar = mean +/- se') +
+  theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
+```
+
+```{r}
+df %>%
+  summarise(mean(isCorrect, na.rm = TRUE))
+```
+
+Participants performed excellently on the experiment.
+
+## Does performance depend on the memory cue at retrieval?
+
+```{r}
+df %>% 
+  unite(col = 'KeyType', keyType_ret, keyType_enc) %>%
+  filter(KeyType != 'object_NA') -> df
+
+glmer(isCorrect ~ (1|subject), family = 'binomial', data = df) -> model.fit.0
+glmer(isCorrect ~ KeyType + (1|subject), family = 'binomial', data = df) -> model.fit.1
+```
+
+```{r}
+anova(model.fit.0, model.fit.1)
+```
+
+```{r}
+df %>%
+  separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
+  group_by(subject, day, KeyType) %>%
+  summarise(propCorrect = mean(isCorrect, na.rm = TRUE), .groups = 'drop') -> df.summarised
+
+ggplot(df.summarised, aes(x = KeyType, y = propCorrect)) +
+  geom_point(aes(color = subject)) +
+  geom_line(aes(group = subject, color = subject), linetype = 'dotted') +
+  geom_hline(yintercept = 1/6, color = 'red', linetype = 'dotted') +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
+  labs(title = 'Retrieval Success Depends on Type of Memory Cue',
+       y = 'Retrieval Success (Probability)',
+       x = 'Memory Cue Type',
+       caption = '') +
+  scale_x_discrete(labels = c('place', 'person', 'obj-place', 'obj-person')) +
+  facet_grid(~day, labeller = label_both)
+```
+
+## How long did participants take to respond at retrieval?
+
+```{r}
+df %>%
+  ggplot(aes(x = rt_ret)) +
+  geom_histogram(bins = 30) +
+  labs(x = 'rt (ms)') +
+  scale_x_continuous(breaks = seq(1000,100000,10000))
+```
+
+```{r, warning=FALSE}
+psych::describe(x = df) %>%
+  filter(vars == 3)
+```
+
+## How long did participants take to complete the experiment?
+
+```{r}
+df.raw %>%
+  group_by(subject, day) %>%
+  summarise(time_elapsed_ms = max(time_elapsed), .groups = 'drop') %>%
+  mutate(time_elapsed_s = time_elapsed_ms/1000,
+         time_elapsed_min = time_elapsed_s/60) %>%
+  ggplot(aes(x = day, y = time_elapsed_min)) +
+  geom_point() +
+  geom_line(aes(group = subject), linetype = 'dashed') +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
+  expand_limits(y = c(10,50)) +
+  labs(title = 'How Long Participants Took TO Complete the Experiment')
+```
+
+## Does successful imagination at encoding predict likelihood of successful memory at retrieval?
+
+```{r}
+glmer(isCorrect ~ (1|subject), data = df, family = 'binomial') -> model.fit.0
+glmer(isCorrect ~ success + (1|subject), data = df, family = 'binomial') -> model.fit.1
+```
+
+```{r}
+# likelihood ratio test of the `success` predictor
+anova(model.fit.0, model.fit.1)
+```
+
+```{r}
+df %>%
+  filter(!is.na(isCorrect)) -> df.filtered
+
+predict(model.fit.1, type = 'response') -> df.filtered$predictedProbCorrect
+predict(model.fit.1, type = 'response', re.form = NA) -> df.filtered$predictedProbCorrectFixed
+
+ggplot(df.filtered, aes(x = success, y = as.numeric(isCorrect))) +
+  geom_point(shape = '|', position = position_jitter(width = 0.25, height = 0)) +
+  geom_line(aes(group = subject, y = predictedProbCorrect, color = subject), alpha = 0.5) +  
+  geom_line(aes(y = predictedProbCorrectFixed), color = 'black', size = 2) +
+  geom_hline(yintercept = 1/6, color = 'red', linetype = 'dotted') +
+  labs(title = 'Success Ratings At Encoding Predict Retrieval Success',
+       y = 'Retrieval Success (Probability)',
+       x = 'Self-Reported Imaination Success at Encoding',
+       caption = '')
+```
+
+```{r}
+summary(model.fit.1)
+```
+
+## Does success rating depend on the key word?
+
+```{r}
+df.enc %>%
+  filter(!(keyType_enc == "")) -> df.enc
+
+# intercept only w/ random intercepts
+lmer(success ~ (1|subject), data = df.enc) -> model.fit.0
+
+# keyType w/ random intercepts
+lmer(success ~ keyType_enc + (1|subject), data = df.enc) -> model.fit.1
+
+# keyType w/ correlated random slope, random intercept
+lmer(success ~ keyType_enc + (keyType_enc|subject), data = df.enc) -> model.fit.2
+```
+
+```{r}
+# likelihood ratio tests comparing intercept only; keyType predictor; random slopes with keyType predictor
+anova(model.fit.0, model.fit.1, model.fit.2)
+```
+
+```{r}
+df.enc$predicted <- predict(model.fit.2)
+df.enc$predictedFixed <- predict(model.fit.2, re.form = NA)
+
+ggplot(df.enc, aes(x = keyType_enc, y = success)) +
+  geom_point(aes(y = predicted, color = subject)) +
+  geom_line(aes(y = predicted, color = subject, group = subject), alpha = 0.5, linetype = 'dashed') +
+  geom_point(aes(y = predictedFixed), color = 'red') +
+  geom_line(aes(y = predictedFixed), color = 'red', group = '') +
+  labs(title = 'Imagination Success Rating At Encoding Depends on the Key Word in Word Triads',
+       y = 'Predicted Imagination Success Rating')
+```
+
+```{r}
+summary(model.fit.1)
+```
+
+## Dependency
+
+```{r}
+sort_associations <- function(x){
+  if(x$KeyTypeRet == 'object'){
+    type <- 'object-object'
+  } else {
+    type <- str_extract(x$KeyTypeRet, '(person)|(place)')
+    x %>% 
+      select(starts_with('resp_opt')) %>%
+      as.list() -> resp_options
+    if(x$objOne %in% resp_options){
+      type <- str_c(type, '-objOne')
+    } else if(x$objTwo %in% resp_options){
+      type <- str_c(type, '-objTwo')
+    }
+  }
+  return(type)
+}
+
+df %>%
+  filter(!is.na(isCorrect)) %>%
+  separate(KeyType, into = c('KeyTypeRet', 'KeyTypeEnc'), sep = '_') %>%
+  filter(KeyTypeEnc == 'famous person') %>%
+  arrange(subject, encTrialNum) %>%
+  nest(data = all_of(c('resp_opt_1', 'resp_opt_2', 'resp_opt_3', 'resp_opt_4', 'resp_opt_5', 'resp_opt_6', 'objOne', 'objTwo', 'KeyTypeRet'))) %>%
+  mutate(associationType = map_chr(.x = data, .f = sort_associations)) %>%
+  pivot_wider(id_cols = all_of(c('encTrialNum', 'subject')), names_from = associationType, values_from = isCorrect) %>%
+  filter(!is.na(`person-objTwo`)) %>% 
+  filter(!is.na(`person-objOne`)) %>% 
+  filter(!is.na(`object-object`)) -> personTriads
+
+df %>%
+  filter(!is.na(isCorrect)) %>%
+  separate(KeyType, into = c('KeyTypeRet', 'KeyTypeEnc'), sep = '_') %>%
+  filter(KeyTypeEnc == 'everyday place') %>%
+  arrange(subject, encTrialNum) %>%
+  nest(data = all_of(c('resp_opt_1', 'resp_opt_2', 'resp_opt_3', 'resp_opt_4', 'resp_opt_5', 'resp_opt_6', 'objOne', 'objTwo', 'KeyTypeRet'))) %>%
+  mutate(associationType = map_chr(.x = data, .f = sort_associations)) %>%
+  pivot_wider(id_cols = all_of(c('encTrialNum', 'subject')), names_from = associationType, values_from = isCorrect)  %>%
+  filter(!is.na(`place-objTwo`)) %>% 
+  filter(!is.na(`place-objOne`)) %>% 
+  filter(!is.na(`object-object`)) -> placeTriads
+
+## Rose's Code
+
+subjects <- unique(personTriads$subject)
+numSubjs <- length(subjects)
+dependency <- data.frame(matrix(0, nrow = numSubjs*3, ncol = 3))
+names(dependency) <- c("SubID","Pair","Difference")
+row <- 0
+for (idx in 1:length(subjects)) {
+  
+    myData <- subset(personTriads, subject == subjects[idx])
+   
+    for (pair in 1:3) {
+      if (pair == 1) {
+        name = 'Person-Obj1_x_Person-Obj2'
+        curAcc <- cbind(myData$`person-objOne`, myData$`person-objTwo`)
+      } else if (pair == 2) {
+        name = 'Person-Obj1_x_Object-Object'
+        curAcc <- cbind(myData$`person-objOne`, myData$`object-object`)
+      } else if (pair == 3) {
+        name = 'Person-Obj2-Object-Object'
+        curAcc <- cbind(myData$`person-objTwo`, myData$`object-object`)
+      }
+      
+      row = row + 1
+      dependency$SubID[row]   = as.character(myData$subject[1])
+      dependency$Pair[row]    = name
+      data  = sum(!rowSums(curAcc) == 1)/nrow(curAcc) #actual dependency of the data (proportion of times both remembered or forgotten)
+      sumAcc <- colMeans(curAcc)
+      independent = (sumAcc[1]*sumAcc[2])+((1-sumAcc[1])*(1-sumAcc[2])) #dependency of data expected based on performance (assuming actually independent)
+      dependency$Difference[row] = data - independent #degree to which features are more/less dependent in memory than expected by chance (based on performance)
+     }
+  }#end of loop through subjects
+
+personDependency <- dependency
+
+subjects <- unique(placeTriads$subject)
+numSubjs <- length(subjects)
+dependency <- data.frame(matrix(0, nrow = numSubjs*3, ncol = 3))
+names(dependency) <- c("SubID","Pair","Difference")
+row <- 0
+for (idx in 1:length(subjects)) {
+  
+    myData <- subset(placeTriads, subject == subjects[idx])
+   
+    for (pair in 1:3) {
+      if (pair == 1) {
+        name = 'Place-Obj1_x_Place-Obj2'
+        curAcc <- cbind(myData$`place-objOne`, myData$`place-objTwo`)
+      } else if (pair == 2) {
+        name = 'Place-Obj1_x_Object-Object'
+        curAcc <- cbind(myData$`place-objOne`, myData$`object-object`)
+      } else if (pair == 3) {
+        name = 'Place-Obj2-Object-Object'
+        curAcc <- cbind(myData$`place-objTwo`, myData$`object-object`)
+      }
+      
+      row = row + 1
+      dependency$SubID[row]   = as.character(myData$subject[1])
+      dependency$Pair[row]    = name
+      data  = sum(!rowSums(curAcc) == 1)/nrow(curAcc) #actual dependency of the data (proportion of times both remembered or forgotten)
+      sumAcc <- colMeans(curAcc)
+      independent = (sumAcc[1]*sumAcc[2])+((1-sumAcc[1])*(1-sumAcc[2])) #dependency of data expected based on performance (assuming actually independent)
+      dependency$Difference[row] = data - independent #degree to which features are more/less dependent in memory than expected by chance (based on performance)
+     }
+  }#end of loop through subjects
+
+placeDependency <- dependency
+```
+
+```{r}
+# tidying
+bind_rows(placeDependency, personDependency, .id = 'keyType') %>%
+  mutate(keyType = factor(keyType, labels = c('place', 'person'))) -> dependencyRaw
+
+# summarizing
+dependencyRaw %>%
+  group_by(keyType, SubID) %>%
+  summarise(dependency = mean(Difference), .groups = 'drop') -> dependencySummarised
+```
+
+```{r}
+# plot!
+ggplot(dependencySummarised %>% separate(col = 'SubID', into = c('SubID', 'day'), sep = '_'), aes(x = keyType, y = dependency)) +
+  geom_point(aes(color = SubID)) +
+  geom_line(aes(group = SubID, color = SubID), linetype = 'dotted') +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
+  labs(title = 'Association Dependency Differs as a Function of Key Type', 
+       subtitle = 'Substantial Individual Differences Exist in Memory Dependency') +
+  facet_grid(~day, labeller = label_both)
+```
+
+```{r, warning=FALSE}
+# stats
+lmer(formula = Difference ~ (1|SubID), data = dependencyRaw) -> model.fit.0
+lmer(formula = Difference ~ keyType + (1|SubID), data = dependencyRaw) -> model.fit.1
+lmer(formula = Difference ~ keyType + (keyType|SubID), data = dependencyRaw) -> model.fit.2
+
+anova(model.fit.0, model.fit.1, model.fit.2)
+```
+
+## Are the people who have zero dependency in the graph above simply at ceiling for memory performance?
+
+```{r}
+# tidying
+
+# Dependency: long --> wide. One row per subject
+dependencySummarised %>% 
+  pivot_wider(names_from = keyType, values_from = dependency) -> tmp.Dependency
+
+# Memory Performance: long --> wide. One row per subject
+df %>%
+  separate(KeyType, into = c('RetKeyType', 'EncKeyType'), sep = '_') %>%
+  group_by(subject, EncKeyType) %>%
+  summarise(across(isCorrect, mean, na.rm = TRUE), .groups = 'drop') %>%
+  pivot_wider(names_from = EncKeyType, values_from = isCorrect) -> tmp.Performance
+
+left_join(tmp.Performance, tmp.Dependency, by = c('subject' = 'SubID')) %>%
+  rename(place_memory = `everyday place`, person_memory = `famous person`, place_dependency = place, person_dependency = person) -> tmp.Joined
+```
+
+```{r}
+# How correlated is everything?
+library(corrr)
+correlate(tmp.Joined %>% select(-subject), quiet = T)
+```
+
+```{r}
+# Plot
+ggplot(tmp.Joined, aes(x = place_memory, y = place_dependency)) +
+  geom_point(position = position_jitter()) +
+  geom_smooth(formula = y ~ x, method = 'lm', se = F) +
+  labs(title = 'People Who Show Little Memory Dependency Are At Performance Ceiling', subtitle = 'Place Triads', y = 'Place Dependency', x = 'Memory Performance on All Place Triad Associations')
+```
+
+```{r}
+# Plot
+ggplot(tmp.Joined, aes(x = person_memory, y = person_dependency)) +
+  geom_point(position = position_jitter()) +
+  geom_smooth(formula = y ~ x, method = 'lm', se = F) +
+  labs(title = 'People Who Show Little Memory Dependency Are At Performance Ceiling', 
+       subtitle = 'Person Triads', 
+       y = 'Person Dependency', 
+       x = 'Memory Performance on All Person Triad Associations')
+```
+
+## What did participants say in the new pilot during catch trials?
+
+```{r, warning=FALSE}
+files <- list.files(pattern = 'catch_trials.csv')
+df.catch <- map_dfr(files, read_csv, show_col_types = F) %>%
+      select(response, everything())
+df.catch
+```

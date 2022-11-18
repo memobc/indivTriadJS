@@ -11,21 +11,6 @@ write_csv(x = df, file = 'raw.csv')
 # person, place stimuli lists
 stim <- read_csv('../experiment_data.csv')
 
-## match enc--ret
-
-# addEncTrialNum <- function(data){
-#   data %>% 
-#     mutate(encTrialNum = rep(seq(1,24), each = 2)) -> tmp
-#   browser()
-# }
-# 
-# df.raw %>%
-#   filter(str_detect(internal_node_id, pattern = '0.0-7.0')) %>%
-#   select(where(~!all(is.na(.x)))) %>%
-#   nest(data = -subject) %>%
-#   mutate(data = map(data, addEncTrialNum))
-
-
 ## retrieval
 
 df %>%

@@ -162,7 +162,7 @@ d3.csv("day2_experiment_data.csv").then(function(data){
   timeline.push(peoplesurvey)
 
   // places
-  var places = data.map(x => pick(x, 'place'))
+  var places = data.filter(removeBlank).map(x => pick(x, 'place'))
   places = places.map(obj => ({...obj, prompt: obj.place, labels: places_likert_scale, required: true, name: obj.place}))
   places = places.map(obj => omit(obj, 'place'))
 
