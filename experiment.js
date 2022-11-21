@@ -33,6 +33,32 @@ SetEncInstr = function(){
 
   var text_box_example = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Please describe what you were imagining:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder=""></textarea></div></form>'
 
+  // A series of reusable html strings
+  var resp_opt_1 = 'Bowling Ball';
+  var resp_opt_2 = 'Screw';
+  var resp_opt_3 = 'Earrings';
+  var resp_opt_4 = 'Candle';
+  var resp_opt_5 = 'Button';
+  var resp_opt_6 = 'Apron';
+  var example_blank = '<div style="width: 55vmin; height:50vmin; font-size: 3vmin; position: relative; line-height: normal; margin:auto">'+
+                   '<div class="center">'+expKeyword+'</div>'+
+                   '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
+                   '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
+                   '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
+                   '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
+                   '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
+                   '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
+                   '</div>'
+  var example_correct = '<div style="width: 55vmin; height:50vmin; font-size: 3vmin; position: relative; line-height: normal; margin:auto">'+
+                   '<div class="center">'+expKeyword+'</div>'+
+                   '<div class="resp_opt_1"; style="background-color: powderblue">'+'1: '+resp_opt_1+'</div>'+
+                   '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
+                   '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
+                   '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
+                   '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
+                   '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
+                   '</div>'
+
   var instruct = {
       type: jsPsychInstructions,
       pages: [
@@ -44,6 +70,10 @@ SetEncInstr = function(){
           '<p style = "inline-size: 80%; margin: auto">Using your mouse, drag the slider to indicate how successful you were.</p>' + succss_example,
           '<p style = "inline-size: 80%; margin: auto">For some trials, you will be asked to report what you were imagining by typing text into a text box. Please be as detailed as possible.</p>' + text_box_example,
           '<p>You will be asked to recall the words on a later memory test.</p>',
+          '<p>Here is an example of how we will test your memory:</p>' + example_blank,
+          '<p>You will be presented with one of the words presented previously along with 6 response options.</p>' + example_blank,
+          '<p>Your task is to select the option that was presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
+          '<p>Please use the 1-6 keys at the top of the keyboard to indicate your response.<\p>' + example_correct,
           '<p>Click next when you are ready to begin the experiment.</p>'
       ],
       data: {phase: 'enc_instr'},
@@ -228,54 +258,6 @@ set_up_retrieval = function(){
   // randomly sort the ret_trials array
   ret_trials = jsPsych.randomization.sampleWithoutReplacement(ret_trials, ret_trials.length)
 
-}
-
-SetRetInstr = function(){
-  /* retrieval instructions */
-
-  // A series of reusable html strings
-  var expKeyword = 'Jennifer Aniston';
-  var resp_opt_1 = 'Bowling Ball';
-  var resp_opt_2 = 'Screw';
-  var resp_opt_3 = 'Earrings';
-  var resp_opt_4 = 'Candle';
-  var resp_opt_5 = 'Button';
-  var resp_opt_6 = 'Apron';
-  var example_blank = '<div style="width: 55vmin; height:50vmin; font-size: 3vmin; position: relative; line-height: normal; margin:auto">'+
-                   '<div class="center">'+expKeyword+'</div>'+
-                   '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
-                   '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
-                   '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
-                   '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
-                   '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
-                   '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
-                   '</div>'
-  var example_correct = '<div style="width: 55vmin; height:50vmin; font-size: 3vmin; position: relative; line-height: normal; margin:auto">'+
-                   '<div class="center">'+expKeyword+'</div>'+
-                   '<div class="resp_opt_1"; style="background-color: powderblue">'+'1: '+resp_opt_1+'</div>'+
-                   '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
-                   '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
-                   '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
-                   '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
-                   '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
-                   '</div>'
-
-  var instruct = {
-      type: jsPsychInstructions,
-      pages: [
-        '<p>We will now test your memory for the previously presented events.</p>',
-        '<p>Here is an example of how we will test your memory:</p>' + example_blank,
-        '<p>You will be presented with one of the words presented previously along with 6 response options.</p>' + example_blank,
-        '<p>Your task is to select the option that was presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
-        '<p>Please use the 1-6 keys at the top of the keyboard to indicate your response.<\p>' + example_correct,
-        '<p>Click next when you are ready to begin the experiment.</p>'
-      ],
-      data: {phase: 'ret_instr'},
-      post_trial_gap: 1500,
-      show_clickable_nav: true
-  }
-
-  return(instruct)
 }
 
 construct_retrieval_stimulus = function(){
