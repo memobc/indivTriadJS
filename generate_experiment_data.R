@@ -48,62 +48,7 @@ celeb.names %>%
 # places ------------------------------------------------------------------
 
 # body
-files <- list.files('All/', pattern = '*.jpg')
-
-# remove the tail end of the file name; find unique entries; split into
-# first and last names; make a data frame
-files %>%
-  str_remove(string = ., pattern = '[12].jpg') %>%
-  unique() -> place.names
-
-# fix select names by hand
-case_when(place.names == 'Winecellar' ~ 'Wine Cellar',
-          place.names == 'Waitingroom' ~ 'Waiting Room',
-          place.names == 'Windfarm' ~ 'Wind Farm',
-          place.names == 'Stonehouse' ~ 'Stone House',
-          place.names == 'Powerstation' ~ 'Power Station',
-          place.names == 'Parking' ~ 'Parking Lot',
-          place.names == 'RedDoor' ~ 'Red Door',
-          place.names == 'Mri' ~ 'MRI',
-          place.names == 'IndoorTennis' ~ 'Indoor Tennis Court',
-          place.names == 'IndoorPool' ~ 'Indoor Pool',
-          place.names == 'Icerink' ~ 'Ice Rink',
-          place.names == 'Greenhouse' ~ 'Green House',
-          place.names == 'Ferriswheel' ~ 'Ferris Wheel',
-          place.names == 'DiningRoom' ~ 'Dining Room',
-          place.names == 'Checkin' ~ 'Check-in',
-          place.names == 'Basketball' ~ 'Basketball Court',
-          place.names == 'Bowling' ~ 'Bowling Alley',
-          place.names == 'Conference' ~ 'Conference Room',
-          place.names == 'Cruise' ~ 'Cruise Ship',
-          place.names == 'Golf' ~ 'Golf Course',
-          place.names == 'Groceries' ~ 'Grocery Store',
-          place.names == 'Lecture' ~ 'Lecture Hall',
-          place.names == 'Living' ~ 'Living Room',
-          place.names == 'Lockers' ~ 'Locker Room',
-          place.names == 'Tennis' ~ 'Tennis Court',
-          place.names == 'Bed' ~ 'Bedroom',
-          place.names == 'Bath' ~ 'Bathroom',
-          TRUE ~ place.names) -> place.names
-
-# remove select places by hand
-place.names %>%
-  str_subset(., 'Balloon', negate = TRUE) %>%
-  str_subset(., 'Camping', negate = TRUE) %>%
-  str_subset(., 'Check-in', negate = TRUE) %>%
-  str_subset(., 'Computer', negate = TRUE) %>%
-  str_subset(., 'Crane', negate = TRUE) %>%
-  str_subset(., 'Dance', negate = TRUE) %>%
-  str_subset(., 'Entrance', negate = TRUE) %>%
-  str_subset(., 'Lifeguard', negate = TRUE) %>%
-  str_subset(., 'Racecourse', negate = TRUE) %>%
-  str_subset(., 'Red Door', negate = TRUE) %>%
-  str_subset(., 'Path', negate = TRUE) %>%
-  str_subset(., 'Sail', negate = TRUE) %>%
-  str_subset(., 'Ski', negate = TRUE) %>%
-  str_subset(., 'Surf', negate = TRUE) %>%
-  str_subset(., 'Winter', negate = TRUE) %>%
-  str_subset(., 'Aisle', negate = TRUE) -> place.names
+place.names <- readxl::read_excel(path = 'famous_places.xlsx')
 
 # objects -----------------------------------------------------------------
 
@@ -175,12 +120,12 @@ place.names %>%
   sample_n(size = 26) -> day2
 
 day1 %>%
-  rename(place = value) %>%
+  rename(place = `Unique Places`) %>%
   add_row(place = NA) %>% 
   add_row(place = NA) -> day1.place
 
 day2 %>%
-  rename(place = value) %>%
+  rename(place = `Unique Places`) %>%
   add_row(place = NA) %>% 
   add_row(place = NA) -> day2.place
 

@@ -1,29 +1,29 @@
 people,place,index,first,second
-Stephen Curry,Bikerack,0,paint brush,compass
-Steve Jobs,Diner,1,wrench,rubik cube
-Liam Neeson,Golf Course,2,candle,screw
-Sean Connery,Sunflowers,3,cigarette,key
-Charli Damelio,Basketball Court,4,staples,match
-John Krasinski,Track,5,tennis ball,dart board
-Ariana,Waiting Room,6,toothbrush,brick
-Beyonce,Indoor Tennis Court,7,toolbox,book
-Leonardo Dicaprio,Living Room,8,bird house,nutcracker
-Sandra Oh,Field,9,anchor,dice
-Emma Watson,Lab,10,nunchuks,skateboard
-Idris Elba,Gym,11,button,lawn mower
-Nelson Mandela,Bakery,12,scissors,trampoline
-Melissa McCarthy,Beach,13,calculator,envelope
-Steve Carell,Canyon,14,toilet paper,football
-Samuel L. Jackson,Carousel,15,blender,handcuffs
-Scarlett Johansson,Classroom,16,swing,dog house
-Kevin Hart,Kitchen,17,locker,sewing machine
-John F. Kennedy,Stream,18,hula hoop,ladder
-Octavia Spencer,Racetrack,19,toaster,bowling pin
-Bruce Willis,Rapids,20,scarf,violin
-Halle Berry,Dentist,21,lighthouse,basketball
-Reese Witherspoon,Cave,22,pool table,bow
-Denzel Washington,Forest,23,banjo,wheel barrow
-Taylor Swift,Highway,24,drum sticks,soccer ball
-Zendaya,Church,25,lipstick,rake
+Stephen Curry,"Buckingham Palace, London",0,paint brush,compass
+Steve Jobs,"The Gateway Arch, St. Louis",1,wrench,rubik cube
+Liam Neeson,"The Great Buddha, Japan",2,candle,screw
+Sean Connery,"Windsor Castle, United Kingdon",3,cigarette,key
+Charli Damelio,The Blue Domes of Santorini,4,staples,match
+John Krasinski,The Las Vegas Strip,5,tennis ball,dart board
+Ariana,"Notre-Dame, Paris",6,toothbrush,brick
+Beyonce,"The Louvre, Paris",7,toolbox,book
+Leonardo Dicaprio,"The Palm Islands, Dubai",8,bird house,nutcracker
+Sandra Oh,"The Grand Canyon, Arizona",9,anchor,dice
+Emma Watson,"Mount Everest, Nepal",10,nunchuks,skateboard
+Idris Elba,"Hagia Sophia, Istanbul",11,button,lawn mower
+Nelson Mandela,"The Bank of England, London",12,scissors,trampoline
+Melissa McCarthy,"The British Museum, London",13,calculator,envelope
+Steve Carell,"Carnegie Hall, New York",14,toilet paper,football
+Samuel L. Jackson,"Central Park, New York",15,blender,handcuffs
+Scarlett Johansson,"Easter Island, Chile",16,swing,dog house
+Kevin Hart,"Mecca, Saudi Arabia",17,locker,sewing machine
+John F. Kennedy,"Westminster Abbey, London",18,hula hoop,ladder
+Octavia Spencer,"Times Square, New York",19,toaster,bowling pin
+Bruce Willis,"Tower Bridge, London",20,scarf,violin
+Halle Berry,"Fenway Park, Boston",21,lighthouse,basketball
+Reese Witherspoon,"Cristo Redentor, Rio de Janeiro",22,pool table,bow
+Denzel Washington,"La Grande Arche, Paris",23,banjo,wheel barrow
+Taylor Swift,"The Kremlin, Moscow",24,drum sticks,soccer ball
+Zendaya,"The CN Tower, Toronto",25,lipstick,rake
 ,,26,ruler,helicopter
 ,,27,bumper car,iron

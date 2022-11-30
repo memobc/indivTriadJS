@@ -7,3 +7,4 @@ data/*.csv
 data/*.html
 *.Rhistory
 data/pilot1/*
+*.xlsx
