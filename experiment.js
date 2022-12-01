@@ -261,9 +261,30 @@ set_up_retrieval = function(){
 
 }
 
+mock_retrieval_trials = function(){
+  ret_trials.push({
+    key: 'The Washington Monument, Washington D.C.',
+    resp_opt_1: 'sewing machine',
+    resp_opt_2: 'measuring cup',
+    resp_opt_3: 'cash register',
+    resp_opt_4: 'dream catcher',
+    resp_opt_5: 'bowling ball',
+    resp_opt_6: 'light switch'})
+
+    ret_trials.push({
+      key: 'Oprah',
+      resp_opt_1: 'cd',
+      resp_opt_2: 'key',
+      resp_opt_3: 'bow',
+      resp_opt_4: 'ring',
+      resp_opt_5: 'kite',
+      resp_opt_6: 'dice'})
+
+}
+
 construct_retrieval_stimulus = function(){
   cc=++cc;
-  console.log(cc)
+
   var keyWord = ret_trials[cc].key;
   var resp_opt_1 = ret_trials[cc].resp_opt_1;
   var resp_opt_2 = ret_trials[cc].resp_opt_2;
@@ -272,7 +293,7 @@ construct_retrieval_stimulus = function(){
   var resp_opt_5 = ret_trials[cc].resp_opt_5;
   var resp_opt_6 = ret_trials[cc].resp_opt_6;
 
-  var html = '<div style="width: 90vmin; height:80vmin; font-size: 4vmin; position: relative; line-height: normal;">'+
+  var html = '<div class="outer_wrap">'+
              '<div class="center">'+keyWord+'</div>'+
              '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
              '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+

@@ -17,11 +17,19 @@
     left: 10%;
   }
   /* RETRIEVAL */
+  .outer_wrap {
+    width: 120vmin;
+    height: 90vmin;
+    font-size: 4vmin;
+    position: relative;
+    line-height: normal;
+  }
   .center {
     position: absolute;
-    top: 48%;
-    left: 40%;
-    inline-size: 20%;
+    top: 50%;
+    left: 50%;
+    inline-size: 25%;
+    transform: translate(-50%, -50%);
   }
   .resp_opt_1 {
     position: absolute;
