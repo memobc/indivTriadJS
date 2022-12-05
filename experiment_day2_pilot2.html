@@ -21,7 +21,7 @@
 
 // initialize experiment
 var jsPsych = initJsPsych({
-  on_finish: finish_experiment_dayOne,
+  on_finish: finish_experiment_dayTwo,
   show_progress_bar: true,
   auto_update_progress_bar: false
 });
@@ -69,17 +69,9 @@ var timeline = [];
 // Welcome Message
 var welcome = {
     type: jsPsychHtmlKeyboardResponse,
-    stimulus: "Welcome to the experiment. Press any key to begin.",
+    stimulus: "Welcome to Part 2 of the experiment. Press any key to begin.",
     data: {phase: 'welcome_screen'},
   };
-
-// Consent Form
-var consent = {
-  type: jsPsychExternalHtml,
-  url: "consents/SONA_Neut_twoday.html",
-  cont_btn: "agree",
-  data: {phase: 'consent'}
-};
 
 var check_buffer = function(elem) {
   var answer_q1 = document.getElementById('jspsych-survey-multi-choice-response-0-0').checked | document.getElementById('jspsych-survey-multi-choice-response-0-1').checked | document.getElementById('jspsych-survey-multi-choice-response-0-2').checked | document.getElementById('jspsych-survey-multi-choice-response-0-3').checked
@@ -97,7 +89,7 @@ var check_buffer = function(elem) {
 
 var buffer_task = {
   type: jsPsychExternalHtml,
-  url: "SAT_reading_passage.html",
+  url: "SAT_reading_passage2.html",
   cont_btn: "start",
   check_fn: check_buffer,
   data: {
@@ -122,16 +114,6 @@ var places_likert_scale = [
   "",
   "Very Vividly"
 ];
-
-// Demographics Questionnaire
-var demographics = {
-  type: jsPsychSurveyText,
-  questions: [{prompt: "What is your age?<br>(in years)"},
-              {prompt: "What is your gender?<br>(male, female, or other)"},
-              {prompt: "At what age did you first learn English?<br>(native OR in years)"}],
-  preamble: 'Demographic Questionnaire',
-  data: {phase: 'demographics'}
-};
 
 // Force Fullscreen
 var fullscreen_up = {
@@ -159,15 +141,11 @@ var topTwelvePlaces = [];
 
 // d3 is a part of the D3.js JavasScript library. Used here to read in a csv files
 // from the disk
-d3.csv("day1_experiment_data.csv").then(function(data){
+d3.csv("day2_experiment_data.csv").then(function(data){
 
   timeline.push(welcome)
 
   timeline.push(fullscreen_up);
-
-  timeline.push(consent)
-
-  timeline.push(demographics)
 
   // people object array
   function removeBlank(value){
