@@ -8,3 +8,4 @@ data/*.html
 *.Rhistory
 data/pilot1/*
 *.xlsx
+data/pilot2/*
