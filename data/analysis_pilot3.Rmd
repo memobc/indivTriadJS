@@ -20,12 +20,12 @@ df <- read_csv('tidy_ret.csv', col_types = 'dddfcccifdddidicdcccccccdlf')
 df %>%
   unite(col = 'subject', all_of(c('subject', 'day'))) -> df
 
-df.enc <- read_csv('tidy_enc.csv', col_types = 'ficcccifdi')
+df.enc <- read_csv('tidy_enc.csv', col_types = 'ddffcccifdddd')
 
 df.enc %>%
   unite(col = 'subject', all_of(c('subject', 'day'))) -> df.enc
   
-df.raw <- read_csv('raw.csv')
+df.raw <- read_csv('raw.csv', show_col_types = FALSE)
 ```
 
 ## How well could participants imagine the events?
@@ -76,7 +76,7 @@ df %>%
   summarise(propCorrect = mean(isCorrect, na.rm = TRUE), .groups = 'drop') %>%
   ggplot(aes(x = day, y = propCorrect)) +
   geom_point(binaxis = 'y', stackdir = 'center') +
-  geom_line(aes(group = subject), linetype = 'dashed') +   
+  geom_line(aes(group = subject), linetype = 'dashed') + 
   stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
   geom_hline(yintercept = 1/6, color = 'red') +
   expand_limits(y = c(0,1)) +
@@ -94,8 +94,9 @@ Participants performed excellently on the experiment.
 ## Does performance depend on the memory cue at retrieval?
 
 ```{r}
-df %>% 
-  unite(col = 'KeyType', keyType_ret, keyType_enc) %>%
+df %>%
+  filter(!is.na(rt_ret)) %>%
+  unite(col = 'KeyType', RetKeyType, keyType) %>%
   filter(KeyType != 'object_NA') -> df
 
 glmer(isCorrect ~ (1|subject), family = 'binomial', data = df) -> model.fit.0
@@ -137,7 +138,7 @@ df %>%
 
 ```{r, warning=FALSE}
 psych::describe(x = df) %>%
-  filter(vars == 3)
+  filter(vars == 13)
 ```
 
 ## How long did participants take to complete the experiment?
@@ -193,17 +194,14 @@ summary(model.fit.1)
 ## Does success rating depend on the key word?
 
 ```{r}
-df.enc %>%
-  filter(!(keyType_enc == "")) -> df.enc
-
 # intercept only w/ random intercepts
 lmer(success ~ (1|subject), data = df.enc) -> model.fit.0
 
 # keyType w/ random intercepts
-lmer(success ~ keyType_enc + (1|subject), data = df.enc) -> model.fit.1
+lmer(success ~ keyType + (1|subject), data = df.enc) -> model.fit.1
 
 # keyType w/ correlated random slope, random intercept
-lmer(success ~ keyType_enc + (keyType_enc|subject), data = df.enc) -> model.fit.2
+lmer(success ~ keyType + (keyType|subject), data = df.enc) -> model.fit.2
 ```
 
 ```{r}
@@ -215,7 +213,7 @@ anova(model.fit.0, model.fit.1, model.fit.2)
 df.enc$predicted <- predict(model.fit.2)
 df.enc$predictedFixed <- predict(model.fit.2, re.form = NA)
 
-ggplot(df.enc, aes(x = keyType_enc, y = success)) +
+ggplot(df.enc, aes(x = keyType, y = success)) +
   geom_point(aes(y = predicted, color = subject)) +
   geom_line(aes(y = predicted, color = subject, group = subject), alpha = 0.5, linetype = 'dashed') +
   geom_point(aes(y = predictedFixed), color = 'red') +
@@ -451,3 +449,13 @@ ggplot(data = df, mapping = aes(x = lagTime, y = as.numeric(isCorrect))) +
   geom_line(aes(y = predicted, group = subject)) +
   labs(x = 'Lag Time (min)', y = 'isCorrect')
 ```
+
+```{r, warning=FALSE}
+df.raw %>%
+  mutate(rt = as.double(rt)) %>%
+  filter(phase == 'buffer_task') %>%
+  mutate(rt = rt / 1000 / 60) %>%
+  ggplot(data = ., aes(x = rt)) +
+  geom_dotplot()
+```
+

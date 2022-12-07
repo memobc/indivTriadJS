@@ -53,13 +53,14 @@ left_join(tidy.enc.df, onlyRetData.df, by = c("subject", "day", "trial_index" = 
 
 # calculate isCorrect and correctResponse
 joinedRetData.df %>%
+  filter(!is.na(rt_ret)) %>%
   group_by(subject, trial_index_ret) %>%
   nest() %>%
   mutate(correctResponse = map_int(.x = data, .f = findCorrectAnswer)) %>%
   unnest(data) %>%
   mutate(isCorrect = response == correctResponse) %>%
   mutate(RetKeyType = case_when(key_ret %in% stim$people ~ 'famous person',
-                                key_ret %in% stim$place ~ 'everyday place',
+                                key_ret %in% stim$place ~ 'famous place',
                                 TRUE ~ 'object')) %>% 
   ungroup() -> tidy.df
 
