@@ -347,15 +347,11 @@ finish_experiment_dayOne = function(){
     var farewell_paragraph = document.createElement('p');
     var farewell_text = document.createTextNode("Thank you for participating! The link to complete Part 2 of the experiment will be available on SONA in 24 hours. You will then have 24 hours to complete Part 2.");
     farewell_paragraph.appendChild(farewell_text);
-    var followup_paragraph = document.createElement('p');
-    var followup_text = document.createTextNode("Credit for the experiment will be given at the end of Part 2. If you have an questions or concerns please email the experimenter at kurkela@bc.edu.")
-    followup_paragraph.appendChild(followup_text)
-    // var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
-    // a.appendChild(linkText);
-    // a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1296&credit_token=4e26aa97c80e4ed498758f301ff269aa&survey_code=" + urlvar.subject;
+    var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
+    a.appendChild(linkText);
+    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1296&credit_token=4e26aa97c80e4ed498758f301ff269aa&survey_code=" + urlvar.subject;
     el.appendChild(farewell_paragraph);
-    el.appendChild(followup_paragraph)
-    // el.appendChild(a);
+    el.appendChild(a);
 
 }
 
@@ -378,34 +374,26 @@ finish_experiment_dayTwo = function(){
     var farewell_text = document.createTextNode("Thank you for participating!");
     farewell_paragraph.appendChild(farewell_text);
 
-    var linkText = document.createTextNode("Follow This Link To Get SONA Credit for Part 1");
+    var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
     a.appendChild(linkText);
-    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1296&credit_token=4e26aa97c80e4ed498758f301ff269aa&survey_code=" + urlvar.subject;
-
-    var blankP = document.createElement('p');
-
-    var linkText2 = document.createTextNode("Follow This Link To Get SONA Credit for Part 2");
-    b.appendChild(linkText2);
-    b.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1297&credit_token=a2cfc2ea894e46689484c27d86ed1642&survey_code=" + urlvar.subject;
+    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1297&credit_token=a2cfc2ea894e46689484c27d86ed1642&survey_code=" + urlvar.subject;
 
     el.appendChild(farewell_paragraph);
     el.appendChild(a);
-    el.appendChild(blankP);
-    el.appendChild(b);
 
 }
 
 // jsPsych savedata function
 function saveData(filename, filedata){
    $.ajax({
-type:'post',
-      cache: false,
-      url: 'save_data.php', // this is the path to the above PHP script
-      data: {filename: filename, filedata: filedata},
-      success: function(data) {
-        if (data == "ok") {
-          console.log("Success!")
-        }
-}
+    type:'post',
+          cache: false,
+          url: 'save_data.php', // this is the path to the above PHP script
+          data: {filename: filename, filedata: filedata},
+          success: function(data) {
+            if (data == "ok") {
+              console.log("Success!")
+            }
+    }
    });
  }
