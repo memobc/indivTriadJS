@@ -34,30 +34,26 @@ SetEncInstr = function(){
   var text_box_example = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Please describe what you were imagining:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder=""></textarea></div></form>'
 
   // A series of reusable html strings
-  var resp_opt_1 = 'Bowling Ball';
-  var resp_opt_2 = 'Screw';
-  var resp_opt_3 = 'Earrings';
-  var resp_opt_4 = 'Candle';
-  var resp_opt_5 = 'Button';
-  var resp_opt_6 = 'Apron';
-  var example_blank = '<div style="width: 55vmin; height:50vmin; font-size: 3vmin; position: relative; line-height: normal; margin:auto">'+
-                   '<div class="center">'+expKeyword+'</div>'+
-                   '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
-                   '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
-                   '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
-                   '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
-                   '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
-                   '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
-                   '</div>'
-  var example_correct = '<div style="width: 55vmin; height:50vmin; font-size: 3vmin; position: relative; line-height: normal; margin:auto">'+
-                   '<div class="center">'+expKeyword+'</div>'+
-                   '<div class="resp_opt_1"; style="background-color: powderblue">'+'1: '+resp_opt_1+'</div>'+
-                   '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
-                   '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
-                   '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
-                   '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
-                   '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
-                   '</div>'
+
+var example_blank = '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
+                        '<p class="jspsych-survey-text">Jennifer Anniston</p>'+
+                        '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="">'+
+                      '</div>'+
+                      '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
+                        '<p class="jspsych-survey-text"></p>'+
+                        '<input type="text" id="input-1" name="#jspsych-survey-text-response-1" data-name="" size="40" placeholder="">'+
+                      '</div>'+
+                      '<input type="submit" value="Continue">'
+
+  var example_correct =  '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
+                            '<p class="jspsych-survey-text">Jennifer Anniston</p>'+
+                            '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="" placeholder="Bowling Ball">'+
+                          '</div>'+
+                          '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
+                            '<p class="jspsych-survey-text"></p>'+
+                            '<input type="text" id="input-1" name="#jspsych-survey-text-response-1" data-name="" size="40" placeholder="Hockey Stick">'+
+                          '</div>'+
+                          '<input type="submit" value="Continue">'
 
   var instruct = {
       type: jsPsychInstructions,
@@ -72,9 +68,10 @@ SetEncInstr = function(){
           '<p>You will be asked to recall the words on a later memory test.</p>',
           '<p>After studying the words, you will be asked to complete a short reading comprehension task. You will be presented with a short passage to read and you will be asked to answer a couple of questions about the passage.</p>',
           '<p>Here is an example of how we will test your memory:</p>' + example_blank,
-          '<p>You will be presented with one of the words presented previously along with 6 response options.</p>' + example_blank,
-          '<p>Your task is to select the option that was presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
-          '<p>Please use the 1-6 keys at the top of the keyboard to indicate your response.<\p>' + example_correct,
+          '<p>You will be presented with one of the words presented previously along with two blank boxes.</p>' + example_blank,
+          '<p>Your task is to remember the items that were presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
+          '<p>Leave the boxes blank if you cannot remember the other items. If you can only remember one of the two items, fill that one in.<\p>' + example_correct,
+          '<p>You will click the "submit" button at the bottom of the page when you want to submit your answers.<\p>' + example_correct,
           '<p>Click next when you are ready to begin the experiment.</p>'
       ],
       data: {phase: 'enc_instr'},
@@ -124,39 +121,14 @@ set_up_retrieval = function(){
   var objTwoList = enc_trial_data.map(x => x.objTwo);
   var allOptions = objOneList.concat(objTwoList);
 
-  // for key -- object one
+  // for key
   for (let i = 0; i < enc_trial_data.length; i++) {
 
     // this key
     var thisKey = enc_trial_data[i].key;
 
-    // this correct answer
-    var correct = enc_trial_data[i].objOne;
-
-    // the other answer
-    var other_correct = enc_trial_data[i].objTwo;
-
-    // remove the correct answer and the other correct answer from the bank
-    // of possible lures
-    var possible_lures = [];
-    possible_lures = remove(allOptions, correct);
-    possible_lures = remove(possible_lures, other_correct);
-
-    // Randomly Pick 5 Lures
-    var these_lures = jsPsych.randomization.sampleWithoutReplacement(possible_lures, 5);
-
-    // concatenate the correct answer and the lures. Randomize their order
-    var all_resp_options = these_lures.concat(correct);
-    randomized_resp_options = jsPsych.randomization.sampleWithoutReplacement(all_resp_options, 6);
-
     var this_trial = {
       key: thisKey,
-      resp_opt_1: randomized_resp_options[0],
-      resp_opt_2: randomized_resp_options[1],
-      resp_opt_3: randomized_resp_options[2],
-      resp_opt_4: randomized_resp_options[3],
-      resp_opt_5: randomized_resp_options[4],
-      resp_opt_6: randomized_resp_options[5],
       enc_trial_index: enc_trial_data[i].trial_index
     }
 
@@ -164,39 +136,14 @@ set_up_retrieval = function(){
 
   }
 
-  // for key -- object two
+  // for object one
   for (let i = 0; i < enc_trial_data.length; i++) {
 
-    // this key
-    var thisKey = enc_trial_data[i].key;
-
-    // this correct answer
-    var correct = enc_trial_data[i].objTwo;
-
-    // the other answer
-    var other_correct = enc_trial_data[i].objOne;
-
-    // remove the correct answer and the other correct answer from the bank
-    // of possible lures
-    var possible_lures = [];
-    possible_lures = remove(allOptions, correct);
-    possible_lures = remove(possible_lures, other_correct);
-
-    // Randomly Pick 5 Lures
-    var these_lures = jsPsych.randomization.sampleWithoutReplacement(possible_lures, 5);
-
-    // concatenate the correct answer and the lures. Randomize their order
-    var all_resp_options = these_lures.concat(correct);
-    randomized_resp_options = jsPsych.randomization.sampleWithoutReplacement(all_resp_options, 6);
+    // object One
+    var objOne = enc_trial_data[i].objOne;
 
     var this_trial = {
-      key: thisKey,
-      resp_opt_1: randomized_resp_options[0],
-      resp_opt_2: randomized_resp_options[1],
-      resp_opt_3: randomized_resp_options[2],
-      resp_opt_4: randomized_resp_options[3],
-      resp_opt_5: randomized_resp_options[4],
-      resp_opt_6: randomized_resp_options[5],
+      key: objOne,
       enc_trial_index: enc_trial_data[i].trial_index
     }
 
@@ -204,51 +151,14 @@ set_up_retrieval = function(){
 
   }
 
-  // for objOne -- objTwo
+  // for object Two
   for (let i = 0; i < enc_trial_data.length; i++) {
 
-    // randomly select either the first or second object as the cue
-    var OneOrTwo = [1, 2];
-    var randSelection = jsPsych.randomization.sampleWithoutReplacement(OneOrTwo, 1);
-
-    if(randSelection == 1){
-
-      // this key
-      var thisKey = enc_trial_data[i].objOne;
-
-      // the correct answer
-      var correct = enc_trial_data[i].objTwo;
-
-    } else {
-
-      // this key
-      var thisKey = enc_trial_data[i].objTwo;
-
-      // the correct answer
-      var correct = enc_trial_data[i].objOne;
-
-    }
-
-    // remove the correct answer and the key from the bank of possible lures
-    var possible_lures = [];
-    possible_lures = remove(allOptions, correct);
-    possible_lures = remove(possible_lures, thisKey);
-
-    // Randomly Pick 5 Lures
-    var these_lures = jsPsych.randomization.sampleWithoutReplacement(possible_lures, 5);
-
-    // concatenate the correct answer and the lures. Randomize their order
-    var all_resp_options = these_lures.concat(correct);
-    randomized_resp_options = jsPsych.randomization.sampleWithoutReplacement(all_resp_options, 6);
+    // this key
+    var objTwo = enc_trial_data[i].objTwo;
 
     var this_trial = {
-      key: thisKey,
-      resp_opt_1: randomized_resp_options[0],
-      resp_opt_2: randomized_resp_options[1],
-      resp_opt_3: randomized_resp_options[2],
-      resp_opt_4: randomized_resp_options[3],
-      resp_opt_5: randomized_resp_options[4],
-      resp_opt_6: randomized_resp_options[5],
+      key: objTwo,
       enc_trial_index: enc_trial_data[i].trial_index
     }
 

@@ -298,17 +298,28 @@ d3.csv("day1_experiment_data.csv").then(function(data){
   timeline.push(enc_trial_procedure)
 
   // buffer task
-  timeline.push(buffer_task)
+  // timeline.push(buffer_task)
 
   // retrieval
   var ret_trial = {
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: construct_retrieval_stimulus,
-      choices: ['1','2','3','4','5','6'],
-      trial_duration: null,
-      stimulus_duration: null,
-      response_ends_trial: true,
-      post_trial_gap: 1000,
+      type: jsPsychSurveyText,
+      questions: [
+      {
+        prompt: function(){
+          cc=++cc;
+          return "What items went with "+ret_trials[cc].key+" ?"
+        },
+        rows: 5,
+        required: false
+      },
+      {
+        prompt: '',
+        rows: 5,
+        require: false
+
+      }
+      ],
+      post_trial_gap: 500,
       on_finish: function(){
         // at the end of each trial, update the progress bar
         // based on the current value and the proportion to update for each trial
