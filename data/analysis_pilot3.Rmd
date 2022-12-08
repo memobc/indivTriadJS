@@ -15,7 +15,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggridges)
 library(lme4)
-df <- read_csv('tidy_ret.csv', col_types = 'dddfcccifdddidicdcccccccdlf')
+
+source('sort_associations.R')
+
+df <- read_csv('tidy_ret.csv', show_col_types = FALSE)
 
 df %>%
   unite(col = 'subject', all_of(c('subject', 'day'))) -> df
@@ -41,7 +44,7 @@ psych::describe(df.enc) %>%
   filter(vars == 9)
 ```
 
-```{r}
+```{r, message=FALSE}
 ggplot(df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_'), aes(x = success, y = subject)) +
   geom_density_ridges(
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
@@ -55,7 +58,7 @@ ggplot(df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_
 
 ## How long did participants take to respond during encoding?
 
-```{r}
+```{r, message=FALSE}
 ggplot(df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_'), aes(x = rt, y = subject)) +
   geom_density_ridges(
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
@@ -95,12 +98,11 @@ Participants performed excellently on the experiment.
 
 ```{r}
 df %>%
-  filter(!is.na(rt_ret)) %>%
   unite(col = 'KeyType', RetKeyType, keyType) %>%
-  filter(KeyType != 'object_NA') -> df
+  filter(KeyType != 'object_NA') -> df.tmp
 
-glmer(isCorrect ~ (1|subject), family = 'binomial', data = df) -> model.fit.0
-glmer(isCorrect ~ KeyType + (1|subject), family = 'binomial', data = df) -> model.fit.1
+glmer(isCorrect ~ (1|subject), family = 'binomial', data = df.tmp) -> model.fit.0
+glmer(isCorrect ~ KeyType + (1|subject), family = 'binomial', data = df.tmp) -> model.fit.1
 ```
 
 ```{r}
@@ -108,7 +110,7 @@ anova(model.fit.0, model.fit.1)
 ```
 
 ```{r}
-df %>%
+df.tmp %>%
   separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
   group_by(subject, day, KeyType) %>%
   summarise(propCorrect = mean(isCorrect, na.rm = TRUE), .groups = 'drop') -> df.summarised
@@ -154,7 +156,7 @@ df.raw %>%
   geom_line(aes(group = subject), linetype = 'dashed') +
   stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
   expand_limits(y = c(10,50)) +
-  labs(title = 'How Long Participants Took TO Complete the Experiment')
+  labs(title = 'How Long Participants Took To Complete the Experiment', y = 'Time Elapsed (min)', x = 'Day')
 ```
 
 ## Does successful imagination at encoding predict likelihood of successful memory at retrieval?
@@ -229,53 +231,26 @@ summary(model.fit.1)
 ## Dependency
 
 ```{r}
-sort_associations <- function(x){
-  if(x$KeyTypeRet == 'object'){
-    type <- 'object-object'
-  } else {
-    type <- str_extract(x$KeyTypeRet, '(person)|(place)')
-    x %>% 
-      select(starts_with('resp_opt')) %>%
-      as.list() -> resp_options
-    if(x$objOne %in% resp_options){
-      type <- str_c(type, '-objOne')
-    } else if(x$objTwo %in% resp_options){
-      type <- str_c(type, '-objTwo')
-    }
-  }
-  return(type)
-}
+df %>%
+  filter(keyType == 'famous person') %>%
+  arrange(subject, encTrialNum) %>%
+  nest(data = c(starts_with('resp_'), all_of(c('objOne', 'objTwo', 'RetKeyType')))) %>%
+  mutate(associationType = map_chr(.x = data, .f = sort_associations)) %>%
+  pivot_wider(id_cols = all_of(c('encTrialNum', 'subject')), names_from = associationType, values_from = isCorrect) -> personTriads
 
 df %>%
-  filter(!is.na(isCorrect)) %>%
-  separate(KeyType, into = c('KeyTypeRet', 'KeyTypeEnc'), sep = '_') %>%
-  filter(KeyTypeEnc == 'famous person') %>%
+  filter(keyType == 'famous place') %>%
   arrange(subject, encTrialNum) %>%
-  nest(data = all_of(c('resp_opt_1', 'resp_opt_2', 'resp_opt_3', 'resp_opt_4', 'resp_opt_5', 'resp_opt_6', 'objOne', 'objTwo', 'KeyTypeRet'))) %>%
+  nest(data = c(starts_with('resp_'), all_of(c('objOne', 'objTwo', 'RetKeyType')))) %>%
   mutate(associationType = map_chr(.x = data, .f = sort_associations)) %>%
-  pivot_wider(id_cols = all_of(c('encTrialNum', 'subject')), names_from = associationType, values_from = isCorrect) %>%
-  filter(!is.na(`person-objTwo`)) %>% 
-  filter(!is.na(`person-objOne`)) %>% 
-  filter(!is.na(`object-object`)) -> personTriads
-
-df %>%
-  filter(!is.na(isCorrect)) %>%
-  separate(KeyType, into = c('KeyTypeRet', 'KeyTypeEnc'), sep = '_') %>%
-  filter(KeyTypeEnc == 'everyday place') %>%
-  arrange(subject, encTrialNum) %>%
-  nest(data = all_of(c('resp_opt_1', 'resp_opt_2', 'resp_opt_3', 'resp_opt_4', 'resp_opt_5', 'resp_opt_6', 'objOne', 'objTwo', 'KeyTypeRet'))) %>%
-  mutate(associationType = map_chr(.x = data, .f = sort_associations)) %>%
-  pivot_wider(id_cols = all_of(c('encTrialNum', 'subject')), names_from = associationType, values_from = isCorrect)  %>%
-  filter(!is.na(`place-objTwo`)) %>% 
-  filter(!is.na(`place-objOne`)) %>% 
-  filter(!is.na(`object-object`)) -> placeTriads
+  pivot_wider(id_cols = all_of(c('encTrialNum', 'subject')), names_from = associationType, values_from = isCorrect) -> placeTriads
 
 ## Rose's Code
 
 subjects <- unique(personTriads$subject)
 numSubjs <- length(subjects)
 dependency <- data.frame(matrix(0, nrow = numSubjs*3, ncol = 3))
-names(dependency) <- c("SubID","Pair","Difference")
+names(dependency) <- c("SubID", "Pair", "Difference")
 row <- 0
 for (idx in 1:length(subjects)) {
   
@@ -381,13 +356,15 @@ dependencySummarised %>%
 
 # Memory Performance: long --> wide. One row per subject
 df %>%
-  separate(KeyType, into = c('RetKeyType', 'EncKeyType'), sep = '_') %>%
-  group_by(subject, EncKeyType) %>%
+  group_by(subject, keyType) %>%
   summarise(across(isCorrect, mean, na.rm = TRUE), .groups = 'drop') %>%
-  pivot_wider(names_from = EncKeyType, values_from = isCorrect) -> tmp.Performance
+  pivot_wider(names_from = keyType, values_from = isCorrect) -> tmp.Performance
 
 left_join(tmp.Performance, tmp.Dependency, by = c('subject' = 'SubID')) %>%
-  rename(place_memory = `everyday place`, person_memory = `famous person`, place_dependency = place, person_dependency = person) -> tmp.Joined
+  rename(place_memory = `famous place`, 
+         person_memory = `famous person`, 
+         place_dependency = place, 
+         person_dependency = person) -> tmp.Joined
 ```
 
 ```{r}
@@ -418,22 +395,43 @@ ggplot(tmp.Joined, aes(x = person_memory, y = person_dependency)) +
 ## What did participants say in the new pilot during catch trials?
 
 ```{r, warning=FALSE}
-files <- list.files(pattern = 'catch_trials.csv')
-df.catch <- map_dfr(files, read_csv, show_col_types = F) %>%
-      select(response, everything())
-df.catch
+df.raw %>%
+  filter(phase == 'enc' & trial_type == 'survey-text') %>%
+  select(response, subject, day, rt, encTrialNum)
 ```
 
 ## Does lag time predict memory?
-
-Does the time in between original encoding and later retrieval predict probability of retrieval?
 
 ```{r}
 # calculate lag time
 df %>%
   mutate(lagTime = (time_elapsed - time_elapsed_triadPresentation) / 1000 / 60) %>%
   filter(!is.na(isCorrect)) -> df
+```
 
+
+What was the average time between encoding and retrieval?
+
+```{r message=FALSE}
+df %>%
+  separate(subject, into = c('subject', 'day')) %>%
+  ggplot(aes(x = lagTime, y = subject)) +
+    geom_density_ridges(
+      jittered_points = TRUE, scale = .95, rel_min_height = .01,
+      point_shape = "|", point_size = 3, size = 0.25,
+      position = position_points_jitter(height = 0)
+    ) +
+  facet_grid(~day, labeller = label_both) +
+  labs(title = 'Distribution of Lag Times',
+       subtitle = 'There was a random distribution of lag times, centered around 10 minutes or so',
+       caption = 'Lag Time = time between original encoding and retrieval', 
+       x = 'Lag Time (minutes)')
+```
+
+
+Does the time in between original encoding and later retrieval predict probability of retrieval?
+
+```{r, message=FALSE}
 glmer(data = df, isCorrect ~ 1 + (1|subject), family = 'binomial') -> model.fit.0
 glmer(data = df, isCorrect ~ lagTime + (1|subject), family = 'binomial') -> model.fit.1
 glmer(data = df, isCorrect ~ lagTime + (lagTime|subject), family = 'binomial') -> model.fit.2
@@ -442,20 +440,32 @@ anova(model.fit.0, model.fit.1, model.fit.2)
 ```
 
 ```{r}
-df$predicted <- predict(model.fit.2, type = 'response')
+df$predicted <- predict(model.fit.1, type = 'response')
+df$predictedFix <- predict(model.fit.1, type = 'response', re.form = NA)
 
 ggplot(data = df, mapping = aes(x = lagTime, y = as.numeric(isCorrect))) +
   geom_point() +
-  geom_line(aes(y = predicted, group = subject)) +
-  labs(x = 'Lag Time (min)', y = 'isCorrect')
+  geom_line(aes(y = predicted, group = subject, color = subject)) +
+  geom_line(aes(y = predictedFix), size = 1) +
+  labs(x = 'Lag Time (min)', y = 'isCorrect') +
+  labs(title = 'Does Lag Time Predict Memory?',
+       subtitle = 'Yes.',
+       y = 'Is Response Correct?', x = 'Lag Time (minutes)')
 ```
+
+## How Long did Participants Take to Complete the Buffer Task?
 
 ```{r, warning=FALSE}
 df.raw %>%
   mutate(rt = as.double(rt)) %>%
   filter(phase == 'buffer_task') %>%
   mutate(rt = rt / 1000 / 60) %>%
-  ggplot(data = ., aes(x = rt)) +
-  geom_dotplot()
+  ggplot(data = ., aes(x = day, y = rt, color = factor(subject))) +
+  geom_point() +
+  geom_line(aes(group = subject, color = factor(subject)), linetype = 'dotted') +
+  labs(color = 'Subject', x = 'Day', y = 'Time to Complete Buffer Task (minutes)', 
+       title = 'Buffer Task Completion Time',
+       subtitle = 'Participants Completed the Buffer Task Surprisingly Quickly') +
+  expand_limits(y = c(.5,3.5)) +
+  scale_y_continuous(breaks = seq(0.5,3.5, 0.5))
 ```
-
