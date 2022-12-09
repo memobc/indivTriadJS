@@ -66,7 +66,6 @@ var example_blank = '<div id="jspsych-survey-text-0" class="jspsych-survey-text-
           '<p style = "inline-size: 80%; margin: auto">Using your mouse, drag the slider to indicate how successful you were.</p>' + succss_example,
           '<p style = "inline-size: 80%; margin: auto">For some trials, you will be asked to report what you were imagining by typing text into a text box. Please be as detailed as possible.</p>' + text_box_example,
           '<p>You will be asked to recall the words on a later memory test.</p>',
-          '<p>After studying the words, you will be asked to complete a short reading comprehension task. You will be presented with a short passage to read and you will be asked to answer a couple of questions about the passage.</p>',
           '<p>Here is an example of how we will test your memory:</p>' + example_blank,
           '<p>You will be presented with one of the words presented previously along with two blank boxes.</p>' + example_blank,
           '<p>Your task is to remember the items that were presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
