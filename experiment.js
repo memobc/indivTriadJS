@@ -36,7 +36,7 @@ SetEncInstr = function(){
   // A series of reusable html strings
 
 var example_blank = '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
-                        '<p class="jspsych-survey-text">Jennifer Anniston</p>'+
+                        '<p class="jspsych-survey-text">What items went with <b>Jennifer Anniston</b>?</p>'+
                         '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="">'+
                       '</div>'+
                       '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
@@ -46,7 +46,7 @@ var example_blank = '<div id="jspsych-survey-text-0" class="jspsych-survey-text-
                       '<input type="submit" value="Continue">'
 
   var example_correct =  '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
-                            '<p class="jspsych-survey-text">Jennifer Anniston</p>'+
+                            '<p class="jspsych-survey-text">What items went with <b>Jennifer Anniston</b>?</p>'+
                             '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="" placeholder="Bowling Ball">'+
                           '</div>'+
                           '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+

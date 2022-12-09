@@ -307,7 +307,7 @@ d3.csv("day1_experiment_data.csv").then(function(data){
       {
         prompt: function(){
           cc=++cc;
-          return "What items went with "+ret_trials[cc].key+" ?"
+          return "What items went with <b>"+ret_trials[cc].key+"</b> ?"
         },
         rows: 5,
         required: false
