@@ -105,22 +105,13 @@ var buffer_task = {
   }
 };
 
-var people_likert_scale = [
+var likert_scale = [
   "Unfamiliar",
   "",
   "",
   "",
   "",
   "Very Familiar"
-];
-
-var places_likert_scale = [
-  "Not at all",
-  "",
-  "",
-  "",
-  "",
-  "Very Vividly"
 ];
 
 // Demographics Questionnaire
@@ -170,7 +161,7 @@ d3.csv("day2_experiment_data.csv").then(function(data){
     return !value.people == ''
   }
   var people = data.filter(removeBlank).map(x => pick(x, 'people'))
-  people = people.map(obj => ({...obj, prompt: obj.people, labels: people_likert_scale, required: true, name: obj.people}))
+  people = people.map(obj => ({...obj, prompt: obj.people, labels: likert_scale, required: true, name: obj.people}))
   people = people.map(obj => omit(obj, 'people'))
 
   var peoplesurvey = {
@@ -186,12 +177,12 @@ d3.csv("day2_experiment_data.csv").then(function(data){
 
   // places
   var places = data.filter(removeBlank).map(x => pick(x, 'place'))
-  places = places.map(obj => ({...obj, prompt: obj.place, labels: places_likert_scale, required: true, name: obj.place}))
+  places = places.map(obj => ({...obj, prompt: obj.place, labels: likert_scale, required: true, name: obj.place}))
   places = places.map(obj => omit(obj, 'place'))
 
   var placessurvey = {
     type: jsPsychSurveyLikert,
-    preamble: "<p>How vividly can you imagine each of these places?</p>",
+    preamble: "<p>How vividly familiar are you with the following places?</p>",
     questions: places,
     data: {phase: 'place_ratings'},
     button_label: 'continue',
