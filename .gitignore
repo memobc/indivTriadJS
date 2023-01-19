@@ -6,8 +6,10 @@ BOSS_norms_maureen_condensed.csv
 data/*.csv
 data/*.html
 *.Rhistory
-data/pilot1/*
+data/pilot1/*.csv
 *.xlsx
-data/pilot2/*
-data/pilot3/*
+data/pilot2/*.csv
+data/pilot3/*.csv
+data/pilot4/*.csv
 data/*.png
+*.png
