@@ -1,5 +1,5 @@
 ---
-title: "Triads Pilot II"
+title: "Triads Pilot I"
 author: "Kyle Kurkela"
 date: "`r Sys.Date()`"
 output: 
@@ -16,19 +16,13 @@ library(tidyverse)
 library(ggridges)
 library(lme4)
 
-colSpec <- cols(subject = col_factor())
+customColSpec <- cols(subject = col_factor())
 
-df <- read_csv('tidy_ret.csv', col_types = colSpec)
+df <- read_csv('tidy_ret.csv', col_types = customColSpec)
 
-df %>%
-  unite(col = 'subject', all_of(c('subject', 'day'))) -> df
+df.enc <- read_csv('tidy_enc.csv', col_types = customColSpec)
 
-df.enc <- read_csv('tidy_enc.csv', col_types = colSpec)
-
-df.enc %>%
-  unite(col = 'subject', all_of(c('subject', 'day'))) -> df.enc
-  
-df.raw <- read_csv('raw_concatenated.csv', col_types = colSpec)
+df.raw <- read_csv('raw_concatenated.csv')
 ```
 
 ## How well could participants imagine the events?
@@ -49,50 +43,44 @@ psych::describe(df.enc) %>%
 ```
 
 ```{r}
-df.enc %>% 
-  separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
-  ggplot(aes(x = success, y = subject)) +
+ggplot(df.enc, aes(x = success, y = subject)) +
   geom_density_ridges(
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
     point_shape = "|", point_size = 3, size = 0.25,
     position = position_points_jitter(height = 0)
   ) +
-  labs(title = 'Individual Variability in the Use of the Success Scale', x = 'success (0 = unsuccessful, 100 = successful)', caption = 'dashes = trials') +
-  scale_x_continuous() +
-  facet_grid(~day, labeller = label_both)
+  labs(title = 'Individual Variability in the Use of the Success Scale', 
+       x = 'success (0 = unsuccessful, 100 = successful)', 
+       caption = 'dashes = trials')
 ```
 
 ## How long did participants take to respond during encoding?
 
 ```{r}
-df.enc %>% 
-  separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
-  ggplot(aes(x = rt, y = subject)) +
+ggplot(df.enc, aes(x = rt, y = subject)) +
   geom_density_ridges(
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
     point_shape = "|", point_size = 3, size = 0.25,
     position = position_points_jitter(height = 0)
   ) +
   labs(title = 'Individual Variability in the use of the success scale', subtitle = 'response times', x = 'rt (ms)', caption = 'dashes = trials') +
-  scale_x_continuous(breaks = seq(1000, 40000, 6000)) +
-  facet_grid(~day, labeller = label_both)
+  scale_x_continuous(breaks = seq(1000, 40000, 6000))
 ```
 
 ## How well did participants do on the experiment?
 
 ```{r, warning=FALSE}
 df %>%
-  separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
-  group_by(subject, day) %>%
-  summarise(propCorrect = mean(isCorrect, na.rm = TRUE), .groups = 'drop') %>%
-  ggplot(aes(x = day, y = propCorrect)) +
+  group_by(subject) %>%
+  summarise(propCorrect = mean(isCorrect, na.rm = TRUE), .groups = 'drop') -> propCorrectSummarised
+
+ggplot(data = propCorrectSummarised, aes(x = '', y = propCorrect)) +
   geom_point(binaxis = 'y', stackdir = 'center') +
-  geom_line(aes(group = subject), linetype = 'dashed') +   
   stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
   geom_hline(yintercept = 1/6, color = 'red') +
   expand_limits(y = c(0,1)) +
   labs(title = 'Overall Memory Performance', caption = 'red = chance (1/6 or ~17%), dots = subjects, crossbar = mean +/- se') +
-  theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
+  theme(axis.ticks.x = element_blank(), axis.text.x = element_blank(), aspect.ratio = 1)
 ```
 
 ```{r}
@@ -123,13 +111,12 @@ psych::describe(x = df) %>%
 
 ```{r}
 df.raw %>%
-  group_by(subject, day) %>%
+  group_by(subject) %>%
   summarise(time_elapsed_ms = max(time_elapsed), .groups = 'drop') %>%
   mutate(time_elapsed_s = time_elapsed_ms/1000,
          time_elapsed_min = time_elapsed_s/60) %>%
-  ggplot(aes(x = day, y = time_elapsed_min)) +
+  ggplot(aes(x = '', y = time_elapsed_min)) +
   geom_point() +
-  geom_line(aes(group = subject), linetype = 'dashed') +
   stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
   expand_limits(y = c(10,50)) +
   labs(title = 'How Long Participants Took TO Complete the Experiment')
@@ -167,12 +154,4 @@ ggplot(df.filtered, aes(x = success, y = as.numeric(isCorrect))) +
 
 ```{r}
 summary(model.fit.1)
-```
-
-## What did participants say in the new pilot during catch trials?
-
-```{r, warning=FALSE}
-df.raw %>% 
-  filter(phase == 'enc' & trial_type == 'survey-text') %>%
-  select(subject, response)
 ```

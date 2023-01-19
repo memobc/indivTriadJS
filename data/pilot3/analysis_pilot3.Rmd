@@ -16,19 +16,21 @@ library(tidyverse)
 library(ggridges)
 library(lme4)
 
-source('sort_associations.R')
+source('../sort_associations.R')
 
-df <- read_csv('tidy_ret.csv', show_col_types = FALSE)
+colSpec <- cols(subject = col_factor())
+
+df <- read_csv('tidy_ret.csv', show_col_types = FALSE, col_types = colSpec)
 
 df %>%
   unite(col = 'subject', all_of(c('subject', 'day'))) -> df
 
-df.enc <- read_csv('tidy_enc.csv', col_types = 'ddffcccifdddd')
+df.enc <- read_csv('tidy_enc.csv', col_types = colSpec)
 
 df.enc %>%
   unite(col = 'subject', all_of(c('subject', 'day'))) -> df.enc
   
-df.raw <- read_csv('raw.csv', show_col_types = FALSE)
+df.raw <- read_csv('raw_concatenated.csv', show_col_types = FALSE, col_types = colSpec)
 ```
 
 ## How well could participants imagine the events?
@@ -36,22 +38,29 @@ df.raw <- read_csv('raw.csv', show_col_types = FALSE)
 ```{r}
 ggplot(df.enc, aes(x = success)) +
   geom_histogram(bins = 30) +
-  labs(title = 'Overall Success Ratings Distribution', subtitle = 'How successful were you in imagining a scenario?', caption = '1 - Unsuccessful, 100 = Successful')
+  labs(title = 'Overall Success Ratings Distribution',
+       subtitle = 'How successful were you in imagining a scenario?',
+       caption = '1 - Unsuccessful, 100 = Successful')
 ```
 
 ```{r, warning=FALSE}
 psych::describe(df.enc) %>%
-  filter(vars == 9)
+  as_tibble(rownames = 'varName') %>%
+  filter(varName == 'success') %>%
+  select(-vars)
 ```
 
 ```{r, message=FALSE}
-ggplot(df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_'), aes(x = success, y = subject)) +
+df.enc %>% 
+  separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
+  ggplot(aes(x = success, y = subject)) +
   geom_density_ridges(
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
     point_shape = "|", point_size = 3, size = 0.25,
     position = position_points_jitter(height = 0)
   ) +
-  labs(title = 'Individual Variability in the Use of the Success Scale', x = 'success (0 = unsuccessful, 100 = successful)', caption = 'dashes = trials') +
+  labs(title = 'Individual Variability in the Use of the Success Scale', x = 'success (0 = unsuccessful, 100 = successful)', 
+       caption = 'dashes = trials') +
   scale_x_continuous() +
   facet_grid(~day, labeller = label_both)
 ```
@@ -59,13 +68,17 @@ ggplot(df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_
 ## How long did participants take to respond during encoding?
 
 ```{r, message=FALSE}
-ggplot(df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_'), aes(x = rt, y = subject)) +
+df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%  
+  ggplot(aes(x = rt, y = subject)) +
   geom_density_ridges(
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
     point_shape = "|", point_size = 3, size = 0.25,
     position = position_points_jitter(height = 0)
   ) +
-  labs(title = 'Individual Variability in the use of the success scale', subtitle = 'response times', x = 'rt (ms)', caption = 'dashes = trials') +
+  labs(title = 'Individual Variability in the use of the success scale', 
+       subtitle = 'response times', 
+       x = 'rt (ms)', 
+       caption = 'dashes = trials') +
   scale_x_continuous(breaks = seq(1000, 40000, 6000)) +
   facet_grid(~day, labeller = label_both)
 ```
@@ -140,7 +153,9 @@ df %>%
 
 ```{r, warning=FALSE}
 psych::describe(x = df) %>%
-  filter(vars == 13)
+  as_tibble(rownames = 'varName') %>%
+  filter(varName == 'rt_ret') %>%
+  select(-vars)
 ```
 
 ## How long did participants take to complete the experiment?
@@ -233,17 +248,17 @@ summary(model.fit.1)
 ```{r}
 df %>%
   filter(keyType == 'famous person') %>%
-  arrange(subject, encTrialNum) %>%
+  arrange(subject, trial_num_enc) %>%
   nest(data = c(starts_with('resp_'), all_of(c('objOne', 'objTwo', 'RetKeyType')))) %>%
   mutate(associationType = map_chr(.x = data, .f = sort_associations)) %>%
-  pivot_wider(id_cols = all_of(c('encTrialNum', 'subject')), names_from = associationType, values_from = isCorrect) -> personTriads
+  pivot_wider(id_cols = all_of(c('trial_num_enc', 'subject')), names_from = associationType, values_from = isCorrect) -> personTriads
 
 df %>%
   filter(keyType == 'famous place') %>%
-  arrange(subject, encTrialNum) %>%
+  arrange(subject, trial_num_enc) %>%
   nest(data = c(starts_with('resp_'), all_of(c('objOne', 'objTwo', 'RetKeyType')))) %>%
   mutate(associationType = map_chr(.x = data, .f = sort_associations)) %>%
-  pivot_wider(id_cols = all_of(c('encTrialNum', 'subject')), names_from = associationType, values_from = isCorrect) -> placeTriads
+  pivot_wider(id_cols = all_of(c('trial_num_enc', 'subject')), names_from = associationType, values_from = isCorrect) -> placeTriads
 
 ## Rose's Code
 
@@ -408,7 +423,6 @@ df %>%
   mutate(lagTime = (time_elapsed - time_elapsed_triadPresentation) / 1000 / 60) %>%
   filter(!is.na(isCorrect)) -> df
 ```
-
 
 What was the average time between encoding and retrieval?
 
