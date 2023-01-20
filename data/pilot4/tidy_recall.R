@@ -3,16 +3,16 @@
 # requirements
 library(tidyverse)
 source('findCorrectAnswer.R')
+source('independentModel.R')
 
 # load data
-data.files <- list.files(pattern = '.*experiment_data.csv')
-df <- map_dfr(.x = data.files, .f = read_csv)
-write_csv(x = df, file = 'raw.csv')
+data.files <- list.files(pattern = '.*experiment_data.csv', path = 'pilot4', full.names = TRUE)
+df <- map_dfr(.x = data.files, .f = read_csv, col_type = cols(subject = col_factor()))
+write_csv(x = df, file = 'pilot4/raw_concatenated.csv')
 
 # person, place stimuli lists from day 1 and day 2
 stim <- read_csv('../day1_experiment_data.csv')
 stim <- bind_rows(stim, read_csv('../day2_experiment_data.csv'), .id = 'day')
-
 
 # Familiarity Ratings -----------------------------------------------------
 
@@ -103,7 +103,7 @@ lme4::lmer(data = tidy.enc.df, formula = success ~ 1 + (1|subject)) -> model.fit
 lme4::lmer(data = tidy.enc.df, formula = success ~ keyType_enc + (1|subject)) -> model.fit.1
 anova(model.fit.0, model.fit.1)
 
-write_csv(x = tidy.enc.df, file = 'tidy_enc.csv')
+write_csv(x = tidy.enc.df, file = 'pilot4/tidy_enc.csv')
 
 # retrieval ---------------------------------------------------------------
 
@@ -264,7 +264,6 @@ bind_rows(objOne.AbAc, objTwo.AbAc, key.AbAc, objOne.BaCa, objTwo.BaCa, key.BaCa
   group_by(subject, day, keyType_enc) %>%
   summarise(across(joinedRetrieval, mean), .groups = 'drop') -> dependancy.df
 
-
 # Independent Model
 
 joined.df %>% 
@@ -330,8 +329,15 @@ overallPerformance.data %>%
   geom_line(aes(group = subject), linetype = 'dotted') +
   stat_summary(aes(color = NULL), geom = 'crossbar', width = 0.2, fun.data = 'mean_se') +
   facet_grid(~day, labeller = label_both) +
-  theme(axis.text.x = element_text(angle = 90)) +
-  labs(title = 'Overall Performance on Cued Recall Pilot', subtitle = 'People did significantly better on famous person triads', color = 'subject', x = 'Triad Type', y = 'Prop Correct using `agrep`')
+  theme(axis.text.x = element_text(angle = 90), aspect.ratio = 1) +
+  scale_color_discrete(labels = str_pad(seq(1,14,1), width = 3, pad = '0')) +
+  labs(title = 'Overall Performance on Cued Recall Pilot',
+       subtitle = 'People did significantly better on famous person triads',
+       color = 'subject',
+       x = 'Triad Type',
+       y = 'Prop Correct using `agrep`') -> plot1
+
+ggsave(filename = '', plot = plot1)
 
 library(lme4)
 
@@ -377,7 +383,7 @@ final.dependancy %>%
   pivot_wider(values_from = diff, names_from = c(day, keyType_enc)) %>%
   filter(across(.fns = ~!is.na(.x))) -> final.data
 
-final.data
+final.data %>%
   select(-subject) %>%
   corrr::correlate()
 

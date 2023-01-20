@@ -88,16 +88,18 @@ df.enc %>% separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
 ```{r, warning=FALSE}
 df %>%
   separate(col = 'subject', into = c('subject', 'day'), sep = '_') %>%
-  group_by(subject, day) %>%
+  group_by(subject, day, keyType) %>%
   summarise(propCorrect = mean(isCorrect, na.rm = TRUE), .groups = 'drop') %>%
-  ggplot(aes(x = day, y = propCorrect)) +
+  ggplot(aes(x = keyType, y = propCorrect)) +
   geom_point(binaxis = 'y', stackdir = 'center') +
   geom_line(aes(group = subject), linetype = 'dashed') + 
   stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
   geom_hline(yintercept = 1/6, color = 'red') +
   expand_limits(y = c(0,1)) +
-  labs(title = 'Overall Memory Performance', caption = 'red = chance (1/6 or ~17%), dots = subjects, crossbar = mean +/- se') +
-  theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
+  facet_grid(~day, labeller = label_both) +
+  theme(aspect.ratio = 1) -> plot1
+
+ggsave(filename = 'plot1.png', path = 'pilot3/plot1.png', width = , height = )
 ```
 
 ```{r}

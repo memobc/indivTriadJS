@@ -9,6 +9,12 @@ data.files <- list.files(path = 'pilot1', pattern = '.*experiment_data.csv', ful
 df <- map_dfr(.x = data.files, .f = read_csv)
 write_csv(x = df, file = 'pilot1/raw_concatenated.csv')
 
+people <- read_csv('../stim/famous_people.csv') %>%
+        mutate(last = str_replace_na(last, '')) %>%
+        transmute(name = str_c(first, last, sep = ' ')) %>%
+        mutate(name = str_trim(name))
+places <- read_csv('../stim/common_places.csv')
+
 # retrieval ---------------------------------------------------------------
 
 df %>%
