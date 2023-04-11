@@ -8,7 +8,7 @@ source('toolbox/findCorrectAnswer.R')
 
 # load data ---------------------------------------------------------------
 
-data.files <- list.files(path = 'pilot1', pattern = '.*experiment_data.csv', full.names = T)
+data.files <- list.files(path = '/Volumes/memolab/Data/TRIADs/pilot1/', pattern = '.*experiment_data.csv', full.names = T)
 df         <- map_dfr(.x = data.files, .f = read_csv)
 write_csv(x = df, file = 'pilot1/1_raw_concatenated.csv')
 
