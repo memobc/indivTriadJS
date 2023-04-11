@@ -18,12 +18,16 @@ library(lme4)
 
 customColSpec <- cols(subject = col_factor())
 
-df <- read_csv('tidy_ret.csv', col_types = customColSpec)
+df <- read_csv('1_tidy_ret.csv', col_types = customColSpec)
 
-df.enc <- read_csv('tidy_enc.csv', col_types = customColSpec)
+df.enc <- read_csv('1_tidy_enc.csv', col_types = customColSpec)
 
-df.raw <- read_csv('raw_concatenated.csv')
+df.raw <- read_csv('1_raw_concatenated.csv')
 ```
+
+What was Pilot 1?
+
+Pilot 1 was a version of the TRIADs experiment that took place in a single 30 minute session. The stimuli consisted of common, everyday places and famous people. The retrieval task was a 6 alternative forced choice recognition. Below are the results:
 
 ## How well could participants imagine the events?
 

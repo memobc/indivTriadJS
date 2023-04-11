@@ -33,6 +33,8 @@ df.enc %>%
 df.raw <- read_csv('raw_concatenated.csv', show_col_types = FALSE, col_types = colSpec)
 ```
 
+What is the deal with pilot 3? Pilot 3 is the same as pilot 2 except it takes place over the course of two days. The results are as follows:  
+
 ## How well could participants imagine the events?
 
 ```{r}

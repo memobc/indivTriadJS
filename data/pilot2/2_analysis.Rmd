@@ -31,6 +31,8 @@ df.enc %>%
 df.raw <- read_csv('raw_concatenated.csv', col_types = colSpec)
 ```
 
+What is the deal with pilot 2? Pilot 2 had everything that Pilot 1, except that it contained a buffer task consisting of a short SAT style short reading task. This task asked participants to read a short passage and then answer 3-5 multiple choice questions. The idea was that we wanted to hurt performance by 1.) putting some time distance between encoding and retrieval and 2.) introducing some interference. The results of this pilot are below:  
+
 ## How well could participants imagine the events?
 
 ```{r}
