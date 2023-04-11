@@ -7,9 +7,13 @@ data/*.csv
 data/*.html
 *.Rhistory
 data/pilot1/*.csv
+data/pilot1/*.html
 *.xlsx
 data/pilot2/*.csv
+data/pilot2*.html
 data/pilot3/*.csv
+data/pilot3/*.html
 data/pilot4/*.csv
+data/pilot4/*.html
 data/*.png
 *.png
