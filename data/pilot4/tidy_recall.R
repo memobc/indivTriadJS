@@ -1,13 +1,17 @@
 # tidy the triads data
 
-# requirements
+# requirements ------------------------------------------------------------
+
 library(tidyverse)
+library(patchwork)
 source('findCorrectAnswer.R')
 source('independentModel.R')
 
+# load data ---------------------------------------------------------------
+
 # load data
 data.files <- list.files(pattern = '.*experiment_data.csv', path = 'pilot4', full.names = TRUE)
-df <- map_dfr(.x = data.files, .f = read_csv, col_type = cols(subject = col_factor()))
+df         <- map_dfr(.x = data.files, .f = read_csv, col_type = cols(subject = col_factor()))
 write_csv(x = df, file = 'pilot4/raw_concatenated.csv')
 
 # person, place stimuli lists from day 1 and day 2
@@ -15,6 +19,7 @@ stim <- read_csv('../day1_experiment_data.csv')
 stim <- bind_rows(stim, read_csv('../day2_experiment_data.csv'), .id = 'day')
 
 # Familiarity Ratings -----------------------------------------------------
+# How familiar were individuals with our stimuli?
 
 # people
 
@@ -23,7 +28,7 @@ df %>%
   select(where(~!all(is.na(.x)))) %>%
   mutate(ratings = map(response, ~jsonlite::fromJSON(.x) %>% as_tibble())) %>%
   unnest(ratings) %>%
-  pivot_longer(`Robert Pattinson`:`Scarlett Johansson`, names_to = 'celeb', values_to = 'rating') %>%
+  pivot_longer(matches('^[A-Z]', ignore.case = FALSE), names_to = 'celeb', values_to = 'rating') %>%
   filter(!is.na(rating)) %>%
   select(subject, day, celeb, rating) -> peopleRatings
 
@@ -31,17 +36,23 @@ peopleRatings %>%
   mutate(celeb = factor(celeb), celeb = fct_reorder(.f = celeb, .x = rating, .fun = mean, .desc = T)) %>%
   ggplot(aes(x = celeb, y = rating)) +
   stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se) +
+  theme_light() +
   theme(axis.text.x = element_text(angle = 90)) +
-  labs(title = 'Celeb Familarity Ratings', subtitle = 'Descending by Average Rating')
+  scale_y_continuous(limits = c(0,5)) +
+  labs(title = 'Famous People Familarity Ratings', subtitle = 'Descending by Average Rating') -> panelA
 
 peopleRatings %>%
   mutate(celeb = factor(celeb), celeb = fct_reorder(.f = celeb, .x = rating, .fun = sd, .desc = T)) %>%
   ggplot(aes(x = celeb, y = rating)) +
   stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se) +
+  theme_light() +
   theme(axis.text.x = element_text(angle = 90)) +
-  labs(title = 'Celeb Familarity Ratings', subtitle = 'Descending by Rating Variation')
+  scale_y_continuous(limits = c(0,5)) +
+  labs(title = 'Famous People Familarity Ratings', subtitle = 'Descending by Rating Variation') -> panelB
 
-# place
+panelA + panelB
+
+# places
 
 df %>%
   filter(phase == 'place_ratings') %>%
@@ -57,15 +68,16 @@ placeRatings %>%
   ggplot(aes(x = place, y = rating)) +
   stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se) +
   theme(axis.text.x = element_text(angle = 90)) +
-  labs(title = 'Place Familarity Ratings', subtitle = 'Descending by Average Rating')
+  labs(title = 'Place Familarity Ratings', subtitle = 'Descending by Average Rating') -> panelA
 
 placeRatings %>%
   mutate(place = factor(place), place = fct_reorder(.f = place, .x = rating, .fun = sd, .desc = T)) %>%
   ggplot(aes(x = place, y = rating)) +
   stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se) +
   theme(axis.text.x = element_text(angle = 90)) +
-  labs(title = 'Place Familarity Ratings', subtitle = 'Descending by Rating Variation')
+  labs(title = 'Place Familarity Ratings', subtitle = 'Descending by Rating Variation') -> panelB
 
+panelA + panelB
 
 # encoding ----------------------------------------------------------------
 
@@ -200,7 +212,7 @@ source('grade_cuedRecall.R')
 
 joined.df %>%
   separate(col = keyType, into = c('keyType_ret', 'keyType_enc'), sep = '_') %>%
-  nest(data = c(Q0, Q1, key_ret, objOne, objTwo, key_enc)) %>%
+  nest(data = c(Q0, Q1, key_ret, objOne, objTwo, key_enc, keyType_enc)) %>%
   mutate(isCorrect = map(data, grade_cuedRecall)) %>%
   unnest(cols = c(data, isCorrect)) %>%
   mutate(objOneCorrect = factor(objOneCorrect, levels = c(TRUE, FALSE)),
@@ -321,6 +333,28 @@ joined.df %>%
   group_by(subject, day, keyType_enc) %>%
   summarise(across(objOneCorrect:keyCorrect, sum, na.rm = TRUE), .groups = 'drop') %>%
   rowwise() %>%
+  mutate(totalCorrect = sum(c_across(ends_with('Correct'))), propCorrect = totalCorrect / 72) %>%
+  group_by(subject) %>%
+  summarise(across(propCorrect, mean)) -> tmp
+
+tmp %>%
+  psych::describe() %>%
+  filter(vars == 2)
+
+ggplot(tmp, aes(x = '', y = propCorrect)) +
+  geom_dotplot(binaxis = 'y', stackdir = 'center', dotsize = .5) +
+  stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se) +
+  expand_limits(y = c(0,1)) +
+  labs(title = 'Pilot Data', subtitle = 'n = 14', y = 'Proportion Cued Recall Responses Answered Correctly') +
+  theme(aspect.ratio = 1, axis.title.x = element_blank(), axis.ticks.x = element_blank()) -> plot1
+
+ggsave(plot = plot1, filename = 'pilotdataplot.png', width = 6.5, height = 4.5)
+
+joined.df %>%
+  mutate(across(objOneCorrect:keyCorrect, as.logical)) %>%
+  group_by(subject, day, keyType_enc) %>%
+  summarise(across(objOneCorrect:keyCorrect, sum, na.rm = TRUE), .groups = 'drop') %>%
+  rowwise() %>%
   mutate(totalCorrect = sum(c_across(ends_with('Correct'))), propCorrect = totalCorrect / 72) -> overallPerformance.data
 
 overallPerformance.data %>%
@@ -383,11 +417,104 @@ final.dependancy %>%
   pivot_wider(values_from = diff, names_from = c(day, keyType_enc)) %>%
   filter(across(.fns = ~!is.na(.x))) -> final.data
 
+final.dependancy %>% 
+  mutate(diff = joinedRetrieval.data - joinedRetrieval.indep) %>%
+  select(-joinedRetrieval.data, -joinedRetrieval.indep) %>% 
+  pivot_wider(names_from = keyType_enc, values_from = diff) %>% 
+  ggplot(aes(x = `famous person`, y = `famous place`)) + geom_point(aes(color = subject)) + 
+  geom_abline(intercept = 0, slope = 1, color = 'black', linetype = 'dotted') +
+  geom_line(aes(color = subject)) +
+  scale_color_discrete(labels = str_pad(seq(1,14,1), width = 3, pad = '0')) +
+  expand_limits(x = c(NA,0.4), y = c(NA,0.4)) +
+  labs(x = 'Famous Person Dependency', 
+       y = 'Famous Place Dependency',
+       title = 'Pilot Data',
+       subtitle = 'n = 14') +
+  theme(aspect.ratio = 1) -> plot1
+
+ggsave(filename = 'Figure8.png', plot = plot1, width = 6.5, height = 4.5)
+
+# a t-test solution? We do NOT want a significant result. We want a test on the variability?
+final.dependancy %>% 
+  mutate(diff = joinedRetrieval.data - joinedRetrieval.indep) %>%
+  select(-joinedRetrieval.data, -joinedRetrieval.indep) %>%
+  group_by(subject, keyType_enc) %>%
+  summarise(across(diff, mean)) %>%
+  pivot_wider(names_from = keyType_enc, values_from = diff) %>%
+  # correction
+  mutate(`famous person` = `famous person` + 1, `famous place` = `famous place` + 1) %>%
+  mutate(ratio = `famous person`/`famous place`) %>%
+  ungroup() %>%
+  t.test(formula = ratio~1, data = ., mu = 1)
+  
+
+ggplot(aes(x = `famous person`, y = `famous place`)) + geom_point(aes(color = subject)) + 
+  geom_abline(intercept = 0, slope = 1, color = 'black', linetype = 'dotted')
+
+final.dependancy %>% 
+  mutate(diff = joinedRetrieval.data - joinedRetrieval.indep) %>%
+  select(-joinedRetrieval.data, -joinedRetrieval.indep) %>%
+  group_by(subject, keyType_enc) %>%
+  summarise(across(diff, mean)) %>%
+  group_by(subject) %>%
+  mutate(diff = diff - mean(diff)) %>%
+  pivot_wider(names_from = keyType_enc, values_from = diff) %>% 
+  ggplot(aes(x = `famous person`, y = `famous place`)) + geom_point(aes(color = subject)) + 
+  geom_abline(intercept = 0, slope = 1, color = 'black', linetype = 'dotted')
+
+final.data %>%
+  pull(subject) -> Ss_with_both_days
+
+final.dependancy %>%
+  mutate(diff = joinedRetrieval.data - joinedRetrieval.indep) %>%
+  filter(subject %in% Ss_with_both_days) %>%
+  group_by(subject) %>%
+  mutate(diff = diff - mean(diff)) %>%
+  mutate(keyType_enc = factor(keyType_enc, levels = c('famous person', 'famous place'))) -> tmp
+
+# Analysis approach 1 -- a series of linear mixed effects models  
+
+lme4::lmer(data = tmp, diff ~ keyType_enc + (1|subject)) -> model.fit.1
+lme4::lmer(data = tmp, diff ~ keyType_enc + (keyType_enc|subject)) -> model.fit.2
+lme4::lmer(data = tmp, diff ~ keyType_enc + (0 + keyType_enc||subject)) -> model.fit.3
+
+lmerTest::ranova(model.fit.1)
+
+anova(model.fit.1, model.fit.2)
+
+# Analysis Approach 2 -- 
+
+final.dependancy %>%
+  mutate(diff = joinedRetrieval.data - joinedRetrieval.indep) %>% 
+  filter(subject %in% Ss_with_both_days) %>%
+  add_column(mod = predict(model.fit)) %>% 
+  ggplot(aes(x = day)) +
+  facet_wrap(~subject) +
+  geom_point(aes(y = diff)) +
+  geom_point(aes(y = mod), color = 'blue')
+
 final.data %>%
   select(-subject) %>%
-  corrr::correlate()
+  corrr::correlate() %>%
+  corrr::as_matrix(diagonal = 1) -> observed_corMat
 
-GGally::ggpairs(final.data %>% select(-subject))
+observed_corMat %>%
+  magrittr::subtract(1, .) -> observed_corMat_as_distMatrix
+
+# compare the observed correlation matrix to hypothetical correlation matrices
+c(.5,0,.5,.5,0,.5) %>% 
+  pracma::squareform() %>% 
+  magrittr::set_colnames(., colnames(observed_corMat_as_distMatrix)) %>% 
+  magrittr::set_rownames(., rownames(observed_corMat_as_distMatrix)) -> hypothesis1
+
+observed_corMat_as_distMatrix %>%
+  pracma::squareform() -> observed_asVec
+
+hypothesis1 %>%
+  pracma::squareform() -> hypothesis1_asVec
+
+cor(observed_asVec, hypothesis1_asVec, method = 'spearman') -> obs
+null_perm(final.data, hypothesis1_asVec) -> nulls
 
 # Do Ratings Predict Performance? ------------------------------------------
 
