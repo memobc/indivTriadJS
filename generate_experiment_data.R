@@ -1,10 +1,10 @@
 # generate experiment data csv
 
-# requirements
+# requirements ------------------------------------------------------------
 library(tidyverse)
 
 # body
-files <- list.files('./Nina_similar_famous_faces_noBR', pattern = '.*.png')
+files <- list.files('Stimuli/Nina_similar_famous_faces_noBR', pattern = '.*.png')
 
 organize <- function(listEntry){
   if(length(listEntry) == 2){
@@ -48,12 +48,12 @@ celeb.names %>%
 # places ------------------------------------------------------------------
 
 # body
-place.names <- readxl::read_excel(path = 'famous_places.xlsx')
+place.names <- readxl::read_excel(path = 'Stimuli/famous_places.xlsx')
 
 # objects -----------------------------------------------------------------
 
 # body
-df <- read_csv(file = 'BOSS_norms_maureen_condensed.csv')
+df <- read_csv(file = 'Stimuli/BOSS_norms_maureen_condensed.csv')
 
 # arrange by name agreement, only non-living objects
 df %>%
@@ -90,22 +90,17 @@ celeb.names %>%
   anti_join(., day1) %>%
   sample_n(size = 26) -> day2
 
-# clean up
-day1 %>%
-  mutate(last = str_replace_na(last, replacement = ''),
-         people = str_c(first, last, sep = ' '),
-         people = str_trim(people)) %>%
-  select(-first, -last) %>%
-  add_row(people = NA) %>% 
-  add_row(people = NA) -> day1.people
+bind_rows(day1, day2, .id = 'day') -> select.celebs
 
-day2 %>%
+select.celebs %>%
   mutate(last = str_replace_na(last, replacement = ''),
          people = str_c(first, last, sep = ' '),
          people = str_trim(people)) %>%
   select(-first, -last) %>%
-  add_row(people = NA) %>% 
-  add_row(people = NA) -> day2.people
+  add_row(day = '1', people = NA, .after = 26) %>% 
+  add_row(day = '1', people = NA, .after = 27) %>%
+  add_row(day = '2', people = NA) %>% 
+  add_row(day = '2', people = NA) -> select.celebs
 
 ## Place
 
@@ -119,15 +114,14 @@ place.names %>%
   anti_join(., day1) %>%
   sample_n(size = 26) -> day2
 
-day1 %>%
-  rename(place = `Unique Places`) %>%
-  add_row(place = NA) %>% 
-  add_row(place = NA) -> day1.place
+bind_rows(day1, day2, .id = 'day') -> select.places
 
-day2 %>%
+select.places %>%
   rename(place = `Unique Places`) %>%
-  add_row(place = NA) %>% 
-  add_row(place = NA) -> day2.place
+  add_row(day = '1', place = NA, .after = 26) %>%
+  add_row(day = '1', place = NA, .after = 27) %>%
+  add_row(day = '2', place = NA) %>%
+  add_row(day = '2', place = NA) -> select.places
 
 ## objects
 
@@ -149,8 +143,9 @@ day2 %>%
   mutate(index = c(0:27, 0:27), objPosition = gl(n = 2, k = 28, labels = c('first', 'second'))) %>%
   pivot_wider(values_from = value, names_from = objPosition) -> day2.objects
 
-bind_cols(day1.people, day1.place, day1.objects) -> experiment_data_day1
-write_csv(x = experiment_data_day1, 'day1_experiment_data.csv', na = "")
+bind_rows(day1.objects, day2.objects, .id = 'day') -> select.objects
 
-bind_cols(day2.people, day2.place, day2.objects) -> experiment_data_day2
-write_csv(x = experiment_data_day2, 'day2_experiment_data.csv', na = "")
+bind_cols(select.celebs, select.places, select.objects) %>%
+  rename(day = day...1) %>%
+  select(-matches('...[0-9]$')) -> experiment_data
+write_csv(x = experiment_data, 'experiment_data.csv', na = "")
