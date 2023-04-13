@@ -17,3 +17,4 @@ data/pilot4/*.csv
 data/pilot4/*.html
 data/*.png
 *.png
+.vscode/
