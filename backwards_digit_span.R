@@ -16,6 +16,10 @@ for(i in rep(3:7, each = 2)){
   sample.int(n = 9, size = i, replace = TRUE) %>% 
     as.numeric() -> stimulus
   tibble(stimulus) -> tmp
+  
+  tmp %>%
+    mutate(stimulus = str_c("<p style='font-size:48px'>", stimulus, "</p>")) -> tmp
+  
   digits.list[[c]] <- tmp
 }
 

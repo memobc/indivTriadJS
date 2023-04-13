@@ -26,6 +26,8 @@ var jsPsych = initJsPsych({
   auto_update_progress_bar: false
 });
 
+nEvents = 129;
+
 // grabs all variables from the url
 // url variables are specified as follows:
 // Ex: experiment.html?subject=s001?day=1
@@ -38,8 +40,13 @@ jsPsych.data.addProperties({day: urlvar.day});
 // global variables -- available to all functions
 
 // encoding randomization
-var myarray = Array.from({length: 24}, (x, i) => i);
-var randperm = jsPsych.randomization.sampleWithoutReplacement(myarray, 24);
+var myarray = Array.from({length: 28}, (x, i) => i);
+var randperm = jsPsych.randomization.sampleWithoutReplacement(myarray, 28);
+
+var personCatch = Array.from({length: 14}, (x, i) => i);
+personCatch = jsPsych.randomization.sampleWithoutReplacement(personCatch, 2);
+var placeCatch = Array.from({length: 14}, (x, i) => i);
+placeCatch = jsPsych.randomization.sampleWithoutReplacement(placeCatch, 2);
 
 // allKeySim = a list containing all of the people and places selected by the
 //             participant
@@ -50,6 +57,9 @@ var allKeyStim = [];
 //        indexs lists starting from 0
 var c = -1;
 var cc = -1;
+
+var place_count = -1;
+var person_count = -1;
 
 //
 var enc_trial_data = [];
@@ -64,6 +74,7 @@ var welcome = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: "Welcome to the experiment. Press any key to begin.",
     data: {phase: 'welcome_screen'},
+    on_finish: updateProgressBar
   };
 
 // Consent Form
@@ -71,25 +82,17 @@ var consent = {
   type: jsPsychExternalHtml,
   url: "consents/SONA_Neut.html",
   cont_btn: "agree",
-  data: {phase: 'consent'}
+  data: {phase: 'consent'},
+  on_finish: updateProgressBar
 };
 
-var people_likert_scale = [
+var likert_scale = [
   "Unfamiliar",
   "",
   "",
   "",
   "",
   "Very Familiar"
-];
-
-var places_likert_scale = [
-  "Not at all",
-  "",
-  "",
-  "",
-  "",
-  "Very Vividly"
 ];
 
 // Demographics Questionnaire
@@ -99,14 +102,16 @@ var demographics = {
               {prompt: "What is your gender?<br>(male, female, or other)"},
               {prompt: "At what age did you first learn English?<br>(native OR in years)"}],
   preamble: 'Demographic Questionnaire',
-  data: {phase: 'demographics'}
+  data: {phase: 'demographics'},
+  on_finish: updateProgressBar
 };
 
 // Force Fullscreen
 var fullscreen_up = {
   type: jsPsychFullscreen,
   fullscreen_mode: true,
-  data: {phase: 'fullscreen_up'}
+  data: {phase: 'fullscreen_up'},
+  on_finish: updateProgressBar
 }
 
 // Instructions
@@ -116,7 +121,8 @@ var enc_instuct = SetInstr();
 var fullscreen_down = {
   type: jsPsychFullscreen,
   fullscreen_mode: false,
-  data: {phase: 'fullscreen_down'}
+  data: {phase: 'fullscreen_down'},
+  on_finish: updateProgressBar
 }
 
 // topPeople = list containing participant's top 14 most familiar famous
@@ -132,22 +138,16 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   // add welcome, fullscreen_up, consent, and demographics routines
   timeline.push(welcome);
-  //timeline.push(fullscreen_up);
-  //timeline.push(consent);
-  //timeline.push(demographics);
-
-  var bds = await backwards_digit_span();
-  timeline.push(bds)
+  timeline.push(fullscreen_up);
+  timeline.push(consent);
+  timeline.push(demographics);
 
   // select only the data from the correct session
   var sesData = data.filter(function(el){return el.day == '1'})
 
   // people object array
-  function removeBlank(value){
-    return !value.people == ''
-  }
   var people = sesData.filter(removeBlank).map(x => pick(x, 'people'))
-  people = people.map(obj => ({...obj, prompt: obj.people, labels: people_likert_scale, required: true, name: obj.people}))
+  people = people.map(obj => ({...obj, prompt: obj.people, labels: likert_scale, required: true, name: obj.people}))
   people = people.map(obj => omit(obj, 'people'))
 
   var peoplesurvey = {
@@ -157,27 +157,35 @@ d3.csv("experiment_data.csv").then(async function(data){
     data: {phase: 'people_ratings'},
     button_label: 'continue',
     randomize_question_order: true,
-    on_finish: calculate_top_People
+    on_finish: function(){
+      calculate_top_People();
+      updateProgressBar();
+    }
   };
-  //timeline.push(peoplesurvey)
+  timeline.push(peoplesurvey)
 
   // places
   var places = sesData.filter(removeBlank).map(x => pick(x, 'place'))
-  places = places.map(obj => ({...obj, prompt: obj.place, labels: places_likert_scale, required: true, name: obj.place}))
+  places = places.map(obj => ({...obj, prompt: obj.place, labels: likert_scale, required: true, name: obj.place}))
   places = places.map(obj => omit(obj, 'place'))
 
   var placessurvey = {
     type: jsPsychSurveyLikert,
-    preamble: "<p>How vividly can you imagine each of these places?</p>",
+    preamble: "<p>How familiar are you with the following places?</p>",
     questions: places,
     data: {phase: 'place_ratings'},
     button_label: 'continue',
     randomize_question_order: true,
-    on_finish: calculate_top_Places
+    on_finish: function(){
+      calculate_top_Places();
+      updateProgressBar();
+    }
   };
-  //timeline.push(placessurvey)
+  timeline.push(placessurvey)
 
-  //timeline.push(enc_instuct)
+  // mock_stim();
+
+  timeline.push(enc_instuct)
 
   // encoding
   var enc_trial = {
@@ -208,12 +216,7 @@ d3.csv("experiment_data.csv").then(async function(data){
         </div>`,
     require_movement: true,
     post_trial_gap: 500,
-    on_finish: function(){
-      // at the end of each trial, update the progress bar
-      // based on the current value and the proportion to update for each trial
-      var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
-      jsPsych.setProgressBar(curr_progress_bar_value + (1/objects.length));
-    },
+    on_finish: updateProgressBar,
     labels: ['Unsuccessful', 'Successful'],
     data: {
       phase: 'enc',
@@ -221,27 +224,26 @@ d3.csv("experiment_data.csv").then(async function(data){
         return c
       }
     }
-};
+  };
 
-
-var free_text_response = {
-    type: jsPsychSurveyText,
-    questions: [
-      {prompt: 'Please describe what you were imagining:', rows: 5, required: true}
-    ],
-    data: {
-      phase: 'enc',
-      encTrialNum: function(){
-        return c
+  var free_text_response = {
+      type: jsPsychSurveyText,
+      questions: [
+        {prompt: 'Please describe what you were imagining:', rows: 5, required: true}
+      ],
+      data: {
+        phase: 'enc',
+        encTrialNum: function(){
+          return c
+        }
       }
-    }
   }
   var if_node = {
       timeline: [free_text_response],
       conditional_function: function(){
           // advance the place and person counters
 
-          var place_stim = data.map(x => x.place)
+          var place_stim = sesData.map(x => x.place)
           var current_key = allKeyStim[randperm[c]]
 
           if(place_stim.includes(current_key)){
@@ -256,20 +258,37 @@ var free_text_response = {
       }
   }
 
-  var objects = data.map(x => pick(x, 'first', 'second'))
+  var objects = sesData.map(x => pick(x, 'first', 'second'))
 
   var enc_trial_procedure = {
       timeline: [enc_trial, success_rating, if_node],
       timeline_variables: objects,
       randomize_order: true,
       repetitions: 1,
-      on_timeline_start: function(){
-        // set progress bar to 0 at the start of the procedure
-        jsPsych.setProgressBar(0);
-      },
       on_timeline_finish: set_up_retrieval,
   }
-  //timeline.push(enc_trial_procedure)
+  timeline.push(enc_trial_procedure)
+
+  var enc_bds_BufferScreen = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "Finished with encoding. Next task is the backwards digit span task. Press any key to begin.",
+    data: {phase: 'enc_bds_BufferScreen'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(enc_bds_BufferScreen)
+
+  var bds = await backwards_digit_span();
+  timeline.push(bds)
+
+  var bds_ret_BufferScreen = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "Finished with backwards digit span task. Next task is the memory test. Press any key to begin.",
+    data: {phase: 'bds_ret_bufferScreen'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(bds_ret_BufferScreen)
+
+  //mock_retTrials(objects);
 
   // retrieval
   var ret_trial = {
@@ -280,23 +299,18 @@ var free_text_response = {
           cc=++cc;
           return "What items went with <b>"+ret_trials[cc].key+"</b> ?"
         },
-        rows: 5,
+        rows: 2,
         required: false
       },
       {
         prompt: '',
-        rows: 5,
+        rows: 2,
         require: false
 
       }
       ],
       post_trial_gap: 500,
-      on_finish: function(){
-        // at the end of each trial, update the progress bar
-        // based on the current value and the proportion to update for each trial
-        var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
-        jsPsych.setProgressBar(curr_progress_bar_value + (1/72));
-      },
+      on_finish: updateProgressBar,
       data: function(){
         ret_trials[cc].phase = 'ret'
         return ret_trials[cc]
@@ -305,21 +319,266 @@ var free_text_response = {
 
   var ret_trial_procedure = {
       timeline: [ret_trial],
-      on_timeline_start: function(){
-        if (cc == -1) {
-          // set progress bar to 0 at the start of procedures
-          jsPsych.setProgressBar(0);
-        }
-      },
       randomize_order: false,
       repetitions: 72
   }
+  timeline.push(ret_trial_procedure)
 
-  //timeline.push(ret_trial_procedure)
+  // Survey of Autobiographical Memory
+  var sam_labels = ['1 Strongly disagree', '2 Disagree somewhat', '3 Neither agree nor disagree', '4 Agree somewhat', '5 Agree strongly'];
 
-  //timeline.push(fullscreen_down);
+  var sam_questionnaire_episodic = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>Specific events are difficult for me to recall</p>",
+                 labels: sam_labels,
+                 required: false},
+                {prompt: "<p>When I remember events, I have a hard time determining the order of details in the event</p>",
+                 labels: sam_labels,
+                 required: false},
+                {prompt: "<p>When I remember events, in general I can recall objects that were in the environment</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>When I remember events, in general I can recall what I was wearing</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>I am highly confident in my ability to remember past events</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>When I remember events, I remember a lot of details</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>When I remember events, in general I can recall which day of the week it was</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>When I remember events, in general I can recall people, what they looked like, or what they were wearing</p>",
+                 labels: sam_labels,
+                 required: false}],
+    preamble: 'Please indicate the strength of your agreement with each of the following statements.',
+    data: {phase: 'sam_episodic'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(sam_questionnaire_episodic);
 
-  jsPsych.run(timeline)
+  var sam_questionnaire_semantic = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>I can learn and repeat facts easily, even if I don’t remember where I learned them</p>",
+                 labels: sam_labels,
+                 required: false},
+                {prompt: "<p>After I have read a novel or newspaper, I forget the facts after a few days</p>",
+                 labels: sam_labels,
+                 required: false},
+                {prompt: "<p>After I have met someone once, I easily remember his or her name</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>I can easily remember the names of famous people (sports figures, politicians, celebrities)</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>I have a hard time remembering information I have learned at school or work</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>I am very good at remembering information about people that I know (e.g., the names of a co-worker’s children, their personalities, places friends have visited etc.)</p>",
+                 labels: sam_labels,
+                 required: false}],
+    preamble: 'Please indicate the strength of your agreement with each of the following statements.',
+    data: {phase: 'sam_semantic'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(sam_questionnaire_semantic);
+
+  var sam_questionnaire_spatial = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>In general, my ability to navigate is better than most of my family/friends</p>",
+                 labels: sam_labels,
+                 required: false},
+                {prompt: "<p>After I have visited an area, it is easy for me to find my way around the second time I visit</p>",
+                 labels: sam_labels,
+                 required: false},
+                {prompt: "<p>I have a hard time judging the distance (e.g., in meters or kilometers) between familiar landmarks</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>I get lost easily, even in familiar areas</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>If my route to work or school was blocked, I could easily find the next fastest way to get there</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>I use specific landmarks for navigating</p>",
+                 labels: sam_labels,
+                 required: false}],
+    preamble: 'Please indicate the strength of your agreement with each of the following statements.',
+    data: {phase: 'sam_spatial'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(sam_questionnaire_spatial);
+
+  var sam_questionnaire_future = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>When I imagine an event in the future, the event generates vivid mental images that are specific in time and place</p>",
+                 labels: sam_labels,
+                 required: false},
+                {prompt: "<p>When I imagine an event in the future, I can picture the spatial layout</p>",
+                 labels: sam_labels,
+                 required: false},
+                {prompt: "<p>When I imagine an event in the future, I can picture people and what they look like</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>When I imagine an event in the future, I can imagine how I may feel</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>When I imagine an event in the future, I can picture images (e.g., people, objects, etc)</p>",
+                 labels: sam_labels,
+                 required: false},
+                 {prompt: "<p>I have a difficult time imagining specific events in the future</p>",
+                 labels: sam_labels,
+                 required: false}],
+    preamble: 'Please indicate the strength of your agreement with each of the following statements.',
+    data: {phase: 'sam_future'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(sam_questionnaire_future);
+
+  // Iterpersonal Reactivity Index
+
+  var iti_scale = ['A: Does Not Describe Me Well', 'B', 'C', 'D', 'E: Describes Me Very Well'];
+  var iti_questionnaire_one = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>I daydream and fantasize, with some regularity, about things that might happen to me.</p>",
+                 labels: iti_scale,
+                 required: false},
+                {prompt: "<p>I often have tender, concerned feelings for people less fortunate than me.</p>",
+                 labels: iti_scale,
+                 required: false},
+                {prompt: "<p>I sometimes find it difficult to see things from the 'other guy's' point of view.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>Sometimes I don't feel very sorry for other people when they are having problems.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>I really get involved with the feelings of the characters in a novel.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>In emergency situations, I feel apprehensive and ill-at-ease.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>I am usually objective when I watch a movie or play, and I don't often get completely caught up in it.</p>",
+                 labels: iti_scale,
+                 required: false}],
+    preamble: 'The following statements inquire about your thoughts and feelings in a variety of situations.  For each item, indicate how well it describes you by choosing the appropriate letter on the scale.',
+    data: {phase: 'iti_one'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(iti_questionnaire_one);
+
+  var iti_questionnaire_two = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>I try to look at everybody's side of a disagreement before I make a decision.</p>",
+                 labels: iti_scale,
+                 required: false},
+                {prompt: "<p>When I see someone being taken advantage of, I feel kind of protective towards them.</p>",
+                 labels: iti_scale,
+                 required: false},
+                {prompt: "<p>I sometimes feel helpless when I am in the middle of a very emotional situation.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>I sometimes try to understand my friends better by imagining how things look from their perspective.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>Becoming extremely involved in a good book or movie is somewhat rare for me.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>When I see someone get hurt, I tend to remain calm.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>Other people's misfortunes do not usually disturb me a great deal.</p>",
+                 labels: iti_scale,
+                 required: false}],
+    preamble: 'The following statements inquire about your thoughts and feelings in a variety of situations.  For each item, indicate how well it describes you by choosing the appropriate letter on the scale.',
+    data: {phase: 'iti_two'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(iti_questionnaire_two);
+
+  var iti_questionnaire_three = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>If I'm sure I'm right about something, I don't waste much time listening to other people's arguments.</p>",
+                 labels: iti_scale,
+                 required: false},
+                {prompt: "<p>After seeing a play or movie, I have felt as though I were one of the characters.</p>",
+                 labels: iti_scale,
+                 required: false},
+                {prompt: "<p>Being in a tense emotional situation scares me.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>When I see someone being treated unfairly, I sometimes don't feel very much pity for them.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>I am usually pretty effective in dealing with emergencies.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>I am often quite touched by things that I see happen.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>I believe that there are two sides to every question and try to look at them both.</p>",
+                 labels: iti_scale,
+                 required: false}],
+    preamble: 'The following statements inquire about your thoughts and feelings in a variety of situations.  For each item, indicate how well it describes you by choosing the appropriate letter on the scale.',
+    data: {phase: 'iti_three'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(iti_questionnaire_three);
+
+  var iti_questionnaire_four = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>I would describe myself as a pretty soft-hearted person.</p>",
+                 labels: iti_scale,
+                 required: false},
+                {prompt: "<p>When I watch a good movie, I can very easily put myself in the place of a leading character.</p>",
+                 labels: iti_scale,
+                 required: false},
+                {prompt: "<p>I tend to lose control during emergencies.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>When I'm upset at someone, I usually try to 'put myself in his shoes' for a while.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>When I am reading an interesting story or novel, I imagine how I would feel if the events in the story were happening to me.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>When I see someone who badly needs help in an emergency, I go to pieces.</p>",
+                 labels: iti_scale,
+                 required: false},
+                 {prompt: "<p>Before criticizing somebody, I try to imagine how I would feel if I were in their place.</p>",
+                 labels: iti_scale,
+                 required: false}],
+    preamble: 'The following statements inquire about your thoughts and feelings in a variety of situations.  For each item, indicate how well it describes you by choosing the appropriate letter on the scale.',
+    data: {phase: 'iti_four'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(iti_questionnaire_four);
+
+  var debrief_questionnaire = {
+    type: jsPsychSurveyLikert,
+    questions: [{prompt: "<p>How distracted were you during the experiment?</p>",
+                 labels: ["1 - Not Very", "2", "3", "4", "5 - Very Distracted"],
+                 required: false,
+                 name: 'distrationLevel'},
+                {prompt: "<p>How much were you paying attention during the experiemnt?</p>",
+                 labels: ["1 - Not Much", "2", "3", "4", "5 - Very Much"],
+                 required: false,
+                 name: 'attentionLevel'},
+                {prompt: "<p>How well do you feel that you did on the experiment?</p>",
+                 labels: ["1 - Not Very Well", "2", "3", "4", "5 - Very Well"],
+                 required: false,
+                 name: 'performanceLevel'}],
+    preamble: 'Please complete the following short questionnaire. Your answers to these questions will not be kept confidential. They will not effect your pay.',
+    data: {phase: 'debrief'},
+    on_finish: updateProgressBar
+  };
+  timeline.push(debrief_questionnaire);
+
+  timeline.push(fullscreen_down);
+
+  jsPsych.run(timeline);
 
 });
 

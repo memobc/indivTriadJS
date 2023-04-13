@@ -1,3 +1,12 @@
+// update progress bar
+
+function updateProgressBar(){
+  // at the end of each trial, update the progress bar
+  // based on the current value and the proportion to update for each trial
+  var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
+  jsPsych.setProgressBar(curr_progress_bar_value + (1/nEvents));
+}
+
 // pick an element from an object
 pick = (obj, ...keys) => Object.fromEntries(
   keys
@@ -19,6 +28,11 @@ remove = function(array, value){
   return array_copy;
 }
 
+// returns true when value is blank
+function removeBlank(value){
+  return !value.people == ''
+}
+
 SetInstr = function(){
   /* encoding instructions */
 
@@ -32,9 +46,15 @@ SetInstr = function(){
                       '<div class="lowerright">'+expObjTwo+'</div>'+
                       '</div>'
 
-  var succss_example = '<div id="jspsych-html-slider-response-wrapper" style="margin: 100px auto; width: 80vmin;"><div id="jspsych-html-slider-response-stimulus"><div style="margin: auto"><p>How successful were you in imagining a scenario?</p></div></div><div class="jspsych-html-slider-response-container" style="position:relative; margin: 0 auto 3em auto; width:auto;"><input type="range" class="jspsych-slider" value="50" min="0" max="100" step="1" id="jspsych-html-slider-response-response"><div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(5% - (100% / 2) - -7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Unsuccessful</span></div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(95% - (100% / 2) - 7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Successful</span></div></div></div></div>'
+  var success_example = '<div id="jspsych-html-slider-response-wrapper" style="margin: 100px auto; width: 80vmin;"><div id="jspsych-html-slider-response-stimulus"><div style="margin: auto"><p>How successful were you in imagining a scenario?</p></div></div><div class="jspsych-html-slider-response-container" style="position:relative; margin: 0 auto 3em auto; width:auto;"><input type="range" class="jspsych-slider" value="50" min="0" max="100" step="1" id="jspsych-html-slider-response-response"><div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(5% - (100% / 2) - -7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Unsuccessful</span></div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(95% - (100% / 2) - 7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Successful</span></div></div></div></div>'
+  var success_example_SliderMoved = '<div id="jspsych-html-slider-response-wrapper" style="margin: 100px auto; width: 80vmin;"><div id="jspsych-html-slider-response-stimulus"><div style="margin: auto"><p>How successful were you in imagining a scenario?</p></div></div><div class="jspsych-html-slider-response-container" style="position:relative; margin: 0 auto 3em auto; width:auto;"><input type="range" class="jspsych-slider" value="85" min="0" max="100" step="1" id="jspsych-html-slider-response-response"><div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(5% - (100% / 2) - -7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Unsuccessful</span></div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(95% - (100% / 2) - 7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Successful</span></div></div></div></div>';
 
   var text_box_example = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Please describe what you were imagining:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder=""></textarea></div></form>'
+  var text_box_exampleFilled = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Please describe what you were imagining:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder="I imagined Jennifer Anniston at a bowling alley trying to push a bowling ball down the lane with a hockey stick."></textarea></div></form>'
+
+  var text_box_example_BDS = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Report the numbers that you just saw in reverse order:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder=""></textarea></div></form>'
+  var text_box_example_BDS_filled = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Report the numbers that you just saw in reverse order:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder="9 7 5 1 1"></textarea></div></form>'
+
 
   // A series of reusable html strings
 
@@ -61,16 +81,22 @@ SetInstr = function(){
   var instruct = {
       type: jsPsychInstructions,
       pages: [
-          '<p>This is a memory experiment.</p><p style = "margin:auto; inline-size: 40%">Your task is to vividly imagine a scenario composed of three words in as much detail as possible.</p><p>Click next to continue.</p>',
-          '<p>Here is an example of what you will be asked to do:</p>' + enc_example_1,
-          '<p>Each trial will have three words displayed in a triangle.</p>' + enc_example_1,
+          '<p>This is a memory experiment.</p><p>Click next to continue.</p>',
+          '<p>You will be asked to study sets of three items.</p>',
+          '<p>Each encoding trial will have three items displayed in a triangle. An example is presented below: </p>' + enc_example_1,
           '<p>During this time, try to vividly imagine a scenario linking the three words together.</p>' + enc_example_1,
-          '<p style = "inline-size: 80%; margin: auto">After each trial, you will be asked to report how successful you were in imagining a scenario:</p>' + succss_example,
-          '<p style = "inline-size: 80%; margin: auto">Using your mouse, drag the slider to indicate how successful you were.</p>' + succss_example,
-          '<p style = "inline-size: 80%; margin: auto">For some trials, you will be asked to report what you were imagining by typing text into a text box. Please be as detailed as possible.</p>' + text_box_example,
+          '<p style = "inline-size: 80%; margin: auto">After each trial, you will be asked to report how successful you were in imagining a scenario.</p>' + success_example,
+          '<p style = "inline-size: 80%; margin: auto">Using your mouse, drag the slider to indicate how successful you were.</p>' + success_example_SliderMoved,
+          '<p style = "inline-size: 80%; margin: auto">For some trials, you will be asked to report what you were imagining by typing text into a text box.</p>' + text_box_example,
+          '<p style = "inline-size: 80%; margin: auto">Please be as detailed as possible.</p>' + text_box_exampleFilled,
           '<p>You will be asked to recall the words on a later memory test.</p>',
-          '<p>Here is an example of how we will test your memory:</p>' + example_blank,
-          '<p>You will be presented with one of the words presented previously along with two blank boxes.</p>' + example_blank,
+          '<p>After studying the three word triads, you will be asked to complete a short backward digit span task.</p>',
+          '<p>In this task, you will be presented with a series of digits one at a time.',
+          '<p>You will then be presented with a blank answer text box like the one shown below:</p>' + text_box_example_BDS,
+          '<p>Your goal is to type out the digits you saw in the reverse order in which you saw them.</p>' + text_box_example_BDS,
+          '<p>So for example, if you were shown the digits "1 - 1 - 5 - 7 - 9", you will need to report back "9 7 5 1 1".</p>' + text_box_example_BDS_filled,
+          '<p>The final part of the experiment will be a memory test</p>', 
+          '<p>During the memory test, you will be presented with one of the words presented previously along with two blank boxes:</p>' + example_blank,
           '<p>Your task is to remember the items that were presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
           '<p>Leave the boxes blank if you cannot remember the other items. If you can only remember one of the two items, fill that one in.<\p>' + example_correct,
           '<p>You will click the "submit" button at the bottom of the page when you want to submit your answers.<\p>' + example_correct,
@@ -78,22 +104,23 @@ SetInstr = function(){
       ],
       data: {phase: 'enc_instr'},
       post_trial_gap: 1500,
-      show_clickable_nav: true
+      show_clickable_nav: true,
+      on_finish: updateProgressBar
   }
   return(instruct)
 }
 
-calculate_top_People = function(data){
-  var responses = data.response;
+calculate_top_People = function(){
+  var responses    = jsPsych.data.getLastTrialData().values()[0].response;
   var sortedPeople = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
-  topTwelvePeople = sortedPeople.slice(0,14);
+  topPeople        = sortedPeople.slice(0,14);
 }
 
-calculate_top_Places = function(data){
-  var responses = data.response;
+calculate_top_Places = function(){
+  var responses    = jsPsych.data.getLastTrialData().values()[0].response;
   var sortedPlaces = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
-  topTwelvePlaces = sortedPlaces.slice(0,14);
-  allKeyStim = topTwelvePlaces.concat(topTwelvePeople)
+  topPlaces        = sortedPlaces.slice(0,14);
+  allKeyStim       = topPlaces.concat(topPeople)
 }
 
 construct_encoding_stimulus = function(){
@@ -173,24 +200,115 @@ set_up_retrieval = function(){
 
 }
 
-mock_retrieval_trials = function(){
-  ret_trials.push({
-    key: 'The Washington Monument, Washington D.C.',
-    resp_opt_1: 'sewing machine',
-    resp_opt_2: 'measuring cup',
-    resp_opt_3: 'cash register',
-    resp_opt_4: 'dream catcher',
-    resp_opt_5: 'bowling ball',
-    resp_opt_6: 'light switch'})
+function mock_stim() {
+  // hand picked set of 14 people and 14 places. 
+  // useful for debugging encoding and retrieval 
+  // without having to repeatedly do the 
+  // people/places surveys.
+  allKeyStim = ['Octavia Spencer',
+    'Paul McCartney',
+    'Julianne Moore',
+    'Stephen Hawking',
+    'Nicholas Cage',
+    'Bradley Cooper',
+    'Hugh Jackman',
+    'Anne Hathaway',
+    'Audrey Hepburn',
+    'John F. Kennedy',
+    'Mother Teresa',
+    'Daniel Radcliffe',
+    'Emily Blunt',
+    'Mark Zuckerberg',
+    'The Golden Gate Bridge, San Francisco',
+    'Napa Valley, California',
+    'Niagara Falls',
+    'Burj Khalifa, Dubai',
+    'The Tower of Pisa, Italy',
+    'The Lincoln Memorial, Washington D.C.',
+    'Neuschwanstein Castle, Germany',
+    'The London Eye',
+    'The University of Oxford, England',
+    'Epcot Center, Orlando',
+    'United Nations Headquarters, New York',
+    'The Pyramids of Giza',
+    'The Brandenburg Gate, Berlin',
+    'The Empire State Building, New York'
+    ]
+}
 
-    ret_trials.push({
-      key: 'Oprah',
-      resp_opt_1: 'cd',
-      resp_opt_2: 'key',
-      resp_opt_3: 'bow',
-      resp_opt_4: 'ring',
-      resp_opt_5: 'kite',
-      resp_opt_6: 'dice'})
+function mock_retTrials(objectList){
+  // create a mock set of ret_trials
+  // useful for debugging retrieval without having to click through encoding
+
+  // create a copy of the allKeyStim array
+  var fauxAllKeyStim = [...allKeyStim];
+
+  // remove two elements at the end of the array
+  //   the elements at the beginning of the array are
+  //   people. these two people will be the catch trials
+  fauxAllKeyStim.pop();
+  fauxAllKeyStim.pop();
+
+  // remove two elements at the beginning of the array
+  //   the elements at the end of the array are places. 
+  //   these two places will be the catch trials
+  fauxAllKeyStim.shift();
+  fauxAllKeyStim.shift();
+
+  // create a fake object list. remove 4 trials worth of data
+  // Why? For the catch trials.
+  var fauxObjectList = [...objectList];
+  fauxObjectList.pop();
+  fauxObjectList.pop();
+  fauxObjectList.shift();
+  fauxObjectList.shift();
+
+  // for keys
+  for (let i = 0; i < fauxAllKeyStim.length; i++) {
+
+    // this key
+    var key = fauxAllKeyStim[i];
+
+    var this_trial = {
+      key: key,
+      enc_trial_index: NaN
+    }
+
+    ret_trials.push(this_trial)
+
+  }
+
+  // for objOne
+  for (let i = 0; i < fauxObjectList.length; i++) {
+
+    // this key
+    var key = fauxObjectList[i].first;
+
+    var this_trial = {
+      key: key,
+      enc_trial_index: NaN
+    }
+
+    ret_trials.push(this_trial)
+
+  }
+
+  // for objTwo
+  for (let i = 0; i < fauxObjectList.length; i++) {
+
+    // this key
+    var key = fauxObjectList[i].second;
+
+    var this_trial = {
+      key: key,
+      enc_trial_index: NaN
+    }
+
+    ret_trials.push(this_trial)
+
+  }
+
+  ret_trials = jsPsych.randomization.sampleWithoutReplacement(ret_trials, ret_trials.length)
 
 }
 
@@ -283,7 +401,7 @@ async function backwards_digit_span(){
   var timeline_vars = await fetch('backwards_digit_span.json')
   .then((response) => response.json())
   .then((value) => value);
-
+  console.log(timeline_vars.length)
   var trial
   var procedure = {timeline: []}
   for (let i = 0; i < timeline_vars.length; i++) {
@@ -299,8 +417,9 @@ async function backwards_digit_span(){
         {
           type: jsPsychSurveyText,
           questions: [
-            {prompt: 'Report the numbers that you saw in reverse order:', rows: 5, required: true}
-          ]
+            {prompt: 'Report the numbers that you just saw in reverse order:', rows: 2, required: true}
+          ],
+          on_finish: updateProgressBar
         }
       ],
     }
@@ -309,3 +428,7 @@ async function backwards_digit_span(){
 
   return(procedure)
 };
+
+function set_up_sam(){
+  
+}
