@@ -28,10 +28,12 @@ var jsPsych = initJsPsych({
 
 // grabs all variables from the url
 // url variables are specified as follows:
-// Ex: experiment.html?subject=s001
+// Ex: experiment.html?subject=s001?day=1
 // urlvar.subject = 's001'
+// urlvar.day = 1
 var urlvar = jsPsych.data.urlVariables();
 jsPsych.data.addProperties({subject: urlvar.subject});
+jsPsych.data.addProperties({day: urlvar.day});
 
 // global variables -- available to all functions
 
@@ -108,8 +110,7 @@ var fullscreen_up = {
 }
 
 // Instructions
-var enc_instuct = SetEncInstr();
-var ret_instuct = SetRetInstr();
+var enc_instuct = SetInstr();
 
 // End Full Screen
 var fullscreen_down = {
@@ -118,27 +119,34 @@ var fullscreen_down = {
   data: {phase: 'fullscreen_down'}
 }
 
-// topTwelvePeople = list containing participant's top 12 most familiar famous
-//                   people
-// topTwelvePlaces = list containing participant's top 12 most vividly
-//                   imagineable places
-var topTwelvePeople = [];
-var topTwelvePlaces = [];
+// topPeople = list containing participant's top 14 most familiar famous
+//             people
+// topPlaces = list containing participant's top 14 most familar famous 
+//             places
+var topPeople = [];
+var topPlaces = [];
 
 // d3 is a part of the D3.js JavasScript library. Used here to read in a csv files
 // from the disk
-d3.csv("experiment_data.csv").then(function(data){
+d3.csv("experiment_data.csv").then(async function(data){
 
-  timeline.push(welcome)
+  // add welcome, fullscreen_up, consent, and demographics routines
+  timeline.push(welcome);
+  //timeline.push(fullscreen_up);
+  //timeline.push(consent);
+  //timeline.push(demographics);
 
-  timeline.push(fullscreen_up);
+  var bds = await backwards_digit_span();
+  timeline.push(bds)
 
-  timeline.push(consent)
-
-  timeline.push(demographics)
+  // select only the data from the correct session
+  var sesData = data.filter(function(el){return el.day == '1'})
 
   // people object array
-  var people = data.map(x => pick(x, 'people'))
+  function removeBlank(value){
+    return !value.people == ''
+  }
+  var people = sesData.filter(removeBlank).map(x => pick(x, 'people'))
   people = people.map(obj => ({...obj, prompt: obj.people, labels: people_likert_scale, required: true, name: obj.people}))
   people = people.map(obj => omit(obj, 'people'))
 
@@ -149,12 +157,12 @@ d3.csv("experiment_data.csv").then(function(data){
     data: {phase: 'people_ratings'},
     button_label: 'continue',
     randomize_question_order: true,
-    on_finish: calculate_top_twelvePeople
+    on_finish: calculate_top_People
   };
-  timeline.push(peoplesurvey)
+  //timeline.push(peoplesurvey)
 
   // places
-  var places = data.map(x => pick(x, 'place'))
+  var places = sesData.filter(removeBlank).map(x => pick(x, 'place'))
   places = places.map(obj => ({...obj, prompt: obj.place, labels: places_likert_scale, required: true, name: obj.place}))
   places = places.map(obj => omit(obj, 'place'))
 
@@ -165,11 +173,11 @@ d3.csv("experiment_data.csv").then(function(data){
     data: {phase: 'place_ratings'},
     button_label: 'continue',
     randomize_question_order: true,
-    on_finish: calculate_top_twelvePlaces
+    on_finish: calculate_top_Places
   };
-  timeline.push(placessurvey)
+  //timeline.push(placessurvey)
 
-  timeline.push(enc_instuct)
+  //timeline.push(enc_instuct)
 
   // encoding
   var enc_trial = {
@@ -186,7 +194,11 @@ d3.csv("experiment_data.csv").then(function(data){
         objTwo: jsPsych.timelineVariable('second'),
         key: function(){
           return allKeyStim[randperm[c]]
-        }},
+        },
+        encTrialNum: function(){
+          return c
+        }
+      },
   };
 
   var success_rating = {
@@ -203,13 +215,51 @@ d3.csv("experiment_data.csv").then(function(data){
       jsPsych.setProgressBar(curr_progress_bar_value + (1/objects.length));
     },
     labels: ['Unsuccessful', 'Successful'],
-    data: {phase: 'enc'}
+    data: {
+      phase: 'enc',
+      encTrialNum: function(){
+        return c
+      }
+    }
 };
+
+
+var free_text_response = {
+    type: jsPsychSurveyText,
+    questions: [
+      {prompt: 'Please describe what you were imagining:', rows: 5, required: true}
+    ],
+    data: {
+      phase: 'enc',
+      encTrialNum: function(){
+        return c
+      }
+    }
+  }
+  var if_node = {
+      timeline: [free_text_response],
+      conditional_function: function(){
+          // advance the place and person counters
+
+          var place_stim = data.map(x => x.place)
+          var current_key = allKeyStim[randperm[c]]
+
+          if(place_stim.includes(current_key)){
+            // advance the place counter
+            place_count=++place_count;
+            return placeCatch.includes(place_count)
+          } else {
+            // advance the person counter
+            person_count=++person_count;
+            return personCatch.includes(person_count)
+          }
+      }
+  }
 
   var objects = data.map(x => pick(x, 'first', 'second'))
 
   var enc_trial_procedure = {
-      timeline: [enc_trial, success_rating],
+      timeline: [enc_trial, success_rating, if_node],
       timeline_variables: objects,
       randomize_order: true,
       repetitions: 1,
@@ -219,20 +269,28 @@ d3.csv("experiment_data.csv").then(function(data){
       },
       on_timeline_finish: set_up_retrieval,
   }
-  timeline.push(enc_trial_procedure)
-
-  // retrieval instructions
-  timeline.push(ret_instuct)
+  //timeline.push(enc_trial_procedure)
 
   // retrieval
   var ret_trial = {
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: construct_retrieval_stimulus,
-      choices: ['1','2','3','4','5','6'],
-      trial_duration: null,
-      stimulus_duration: null,
-      response_ends_trial: true,
-      post_trial_gap: 1000,
+      type: jsPsychSurveyText,
+      questions: [
+      {
+        prompt: function(){
+          cc=++cc;
+          return "What items went with <b>"+ret_trials[cc].key+"</b> ?"
+        },
+        rows: 5,
+        required: false
+      },
+      {
+        prompt: '',
+        rows: 5,
+        require: false
+
+      }
+      ],
+      post_trial_gap: 500,
       on_finish: function(){
         // at the end of each trial, update the progress bar
         // based on the current value and the proportion to update for each trial
@@ -257,9 +315,9 @@ d3.csv("experiment_data.csv").then(function(data){
       repetitions: 72
   }
 
-  timeline.push(ret_trial_procedure)
+  //timeline.push(ret_trial_procedure)
 
-  timeline.push(fullscreen_down);
+  //timeline.push(fullscreen_down);
 
   jsPsych.run(timeline)
 

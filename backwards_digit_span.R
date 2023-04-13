@@ -1,0 +1,22 @@
+# Create backwards digit span json data
+
+# requirements ------------------------------------------------------------
+
+# <3
+library(tidyverse)
+
+# body --------------------------------------------------------------------
+# We need to generate a random series of digits
+
+set.seed(123)
+digits.list <- vector("list")
+c <- 0
+for(i in rep(3:7, each = 2)){
+  c <- c + 1;
+  sample.int(n = 9, size = i, replace = TRUE) %>% 
+    as.numeric() -> stimulus
+  tibble(stimulus) -> tmp
+  digits.list[[c]] <- tmp
+}
+
+jsonlite::write_json(digits.list, path = 'backwards_digit_span.json', pretty = T)

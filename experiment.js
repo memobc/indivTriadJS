@@ -1,14 +1,17 @@
+// pick an element from an object
 pick = (obj, ...keys) => Object.fromEntries(
   keys
   .filter(key => key in obj)
   .map(key => [key, obj[key]])
 );
 
+// remove element from an object
 omit = (obj, ...keys) => Object.fromEntries(
   Object.entries(obj)
   .filter(([key]) => !keys.includes(key))
 );
 
+// remove element from an array
 remove = function(array, value){
   var array_copy = [...array];
   var index = array_copy.indexOf(value);
@@ -16,7 +19,7 @@ remove = function(array, value){
   return array_copy;
 }
 
-SetEncInstr = function(){
+SetInstr = function(){
   /* encoding instructions */
 
   // A series of reusable html strings
@@ -35,25 +38,25 @@ SetEncInstr = function(){
 
   // A series of reusable html strings
 
-var example_blank = '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
-                        '<p class="jspsych-survey-text">What items went with <b>Jennifer Anniston</b>?</p>'+
-                        '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="">'+
+  var example_blank = '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
+                      '<p class="jspsych-survey-text">What items went with <b>Jennifer Anniston</b>?</p>'+
+                      '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="">'+
                       '</div>'+
                       '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
-                        '<p class="jspsych-survey-text"></p>'+
-                        '<input type="text" id="input-1" name="#jspsych-survey-text-response-1" data-name="" size="40" placeholder="">'+
+                      '<p class="jspsych-survey-text"></p>'+
+                      '<input type="text" id="input-1" name="#jspsych-survey-text-response-1" data-name="" size="40" placeholder="">'+
                       '</div>'+
                       '<input type="submit" value="Continue">'
 
   var example_correct =  '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
-                            '<p class="jspsych-survey-text">What items went with <b>Jennifer Anniston</b>?</p>'+
-                            '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="" placeholder="Bowling Ball">'+
-                          '</div>'+
-                          '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
-                            '<p class="jspsych-survey-text"></p>'+
-                            '<input type="text" id="input-1" name="#jspsych-survey-text-response-1" data-name="" size="40" placeholder="Hockey Stick">'+
-                          '</div>'+
-                          '<input type="submit" value="Continue">'
+                         '<p class="jspsych-survey-text">What items went with <b>Jennifer Anniston</b>?</p>'+
+                         '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="" placeholder="Bowling Ball">'+
+                         '</div>'+
+                         '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
+                         '<p class="jspsych-survey-text"></p>'+
+                         '<input type="text" id="input-1" name="#jspsych-survey-text-response-1" data-name="" size="40" placeholder="Hockey Stick">'+
+                         '</div>'+
+                         '<input type="submit" value="Continue">'
 
   var instruct = {
       type: jsPsychInstructions,
@@ -192,6 +195,7 @@ mock_retrieval_trials = function(){
 }
 
 construct_retrieval_stimulus = function(){
+
   cc=++cc;
 
   var keyWord = ret_trials[cc].key;
@@ -212,6 +216,7 @@ construct_retrieval_stimulus = function(){
              '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
              '</div>'
   return html
+
 }
 
 finish_experiment = function(){
@@ -222,71 +227,37 @@ finish_experiment = function(){
     var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
 
     // Save Data w/ unique data/time string
-    saveData(datestring + '_' + urlvar.subject + "_experiment_data.csv", jsPsych.data.get().csv());
-    saveData(datestring + '_' + urlvar.subject + "_interaction_data.csv", jsPsych.data.getInteractionData().csv());
+    saveData('datetime-' + datestring + '_sub-' + urlvar.subject + '_ses-' + urlvar.day + "_data-experiment.csv", jsPsych.data.get().csv());
+    saveData('datetime-' + datestring + '_sub-' + urlvar.subject + '_ses-' + urlvar.day + "_data-interaction.csv", jsPsych.data.getInteractionData().csv());
 
     // Display the link so participants can give themselves SONA credit
     var el = jsPsych.getDisplayElement();
     var a = document.createElement('a');
     var farewell_paragraph = document.createElement('p');
-    var farewell_text = document.createTextNode("Thank you for participating!");
+    
+    // farewell message based on the session
+    var farewell_message;
+    if(urlvar.day == 'one') {
+      farewell_messsage = "Thank you for participating! The link to complete Part 2 of the experiment will be available on SONA in 24 hours. You will then have 24 hours to complete Part 2.";
+    } else {
+      farewell_messsage = "Thank you for participating!";
+    }
+    
+    var farewell_text = document.createTextNode(farewell_messsage);
     farewell_paragraph.appendChild(farewell_text);
+    
     var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
     a.appendChild(linkText);
-    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1287&credit_token=c497d6c0727547be816b76ce8b8b1b52&survey_code=" + urlvar.subject;
-    el.appendChild(farewell_paragraph);
-    el.appendChild(a);
-
-}
-
-finish_experiment_dayOne = function(){
-
-    // a unique data/time string
-    // mm-dd-yyyy-hh-mm-ss
-    var today = new Date();
-    var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
-
-    // Save Data w/ unique data/time string
-    saveData(datestring + '_' + urlvar.subject + "_experiment_data.csv", jsPsych.data.get().csv());
-    saveData(datestring + '_' + urlvar.subject + "_interaction_data.csv", jsPsych.data.getInteractionData().csv());
-
-    // Display the link so participants can give themselves SONA credit
-    var el = jsPsych.getDisplayElement();
-    var a = document.createElement('a');
-    var farewell_paragraph = document.createElement('p');
-    var farewell_text = document.createTextNode("Thank you for participating! The link to complete Part 2 of the experiment will be available on SONA in 24 hours. You will then have 24 hours to complete Part 2.");
-    farewell_paragraph.appendChild(farewell_text);
-    var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
-    a.appendChild(linkText);
-    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1296&credit_token=4e26aa97c80e4ed498758f301ff269aa&survey_code=" + urlvar.subject;
-    el.appendChild(farewell_paragraph);
-    el.appendChild(a);
-
-}
-
-finish_experiment_dayTwo = function(){
-
-    // a unique data/time string
-    // mm-dd-yyyy-hh-mm-ss
-    var today = new Date();
-    var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
-
-    // Save Data w/ unique data/time string
-    saveData(datestring + '_' + urlvar.subject + "_experiment_data.csv", jsPsych.data.get().csv());
-    saveData(datestring + '_' + urlvar.subject + "_interaction_data.csv", jsPsych.data.getInteractionData().csv());
-
-    // Display the link so participants can give themselves SONA credit
-    var el = jsPsych.getDisplayElement();
-    var a = document.createElement('a');
-    var b = document.createElement('a');
-    var farewell_paragraph = document.createElement('p');
-    var farewell_text = document.createTextNode("Thank you for participating!");
-    farewell_paragraph.appendChild(farewell_text);
-
-    var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
-    a.appendChild(linkText);
-    a.href = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1297&credit_token=a2cfc2ea894e46689484c27d86ed1642&survey_code=" + urlvar.subject;
-
+    
+    // farewell link based on the session
+    var farewell_link;
+    if(urlvar.day == 'one'){
+      farewell_link = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1296&credit_token=4e26aa97c80e4ed498758f301ff269aa&survey_code=" + urlvar.subject;
+    } else {
+      farewell_link = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1297&credit_token=a2cfc2ea894e46689484c27d86ed1642&survey_code=" + urlvar.subject;
+    }
+    a.href = farewell_link;
+    
     el.appendChild(farewell_paragraph);
     el.appendChild(a);
 
@@ -306,3 +277,35 @@ function saveData(filename, filedata){
     }
    });
  }
+
+async function backwards_digit_span(){
+
+  var timeline_vars = await fetch('backwards_digit_span.json')
+  .then((response) => response.json())
+  .then((value) => value);
+
+  var trial
+  var procedure = {timeline: []}
+  for (let i = 0; i < timeline_vars.length; i++) {
+    trial = {
+      timeline: [
+        {
+          type: jsPsychHtmlKeyboardResponse,
+          choices: "NO_KEYS",
+          trial_duration: 500,
+          post_trial_gap: 500,
+          timeline: timeline_vars[i]
+        },
+        {
+          type: jsPsychSurveyText,
+          questions: [
+            {prompt: 'Report the numbers that you saw in reverse order:', rows: 5, required: true}
+          ]
+        }
+      ],
+    }
+    procedure.timeline.push(trial)
+  }
+
+  return(procedure)
+};
