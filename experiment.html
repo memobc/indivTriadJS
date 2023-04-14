@@ -26,7 +26,7 @@ var jsPsych = initJsPsych({
   auto_update_progress_bar: false
 });
 
-nEvents = 129;
+nEvents = 133;
 
 // grabs all variables from the url
 // url variables are specified as follows:
@@ -152,6 +152,7 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var peoplesurvey = {
     type: jsPsychSurveyLikert,
+    scale_width: 600,
     preamble: "<p>How familiar are you with the following individuals?</p>",
     questions: people,
     data: {phase: 'people_ratings'},
@@ -171,6 +172,7 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var placessurvey = {
     type: jsPsychSurveyLikert,
+    scale_width: 600,
     preamble: "<p>How familiar are you with the following places?</p>",
     questions: places,
     data: {phase: 'place_ratings'},
@@ -211,9 +213,7 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var success_rating = {
     type: jsPsychHtmlSliderResponse,
-    stimulus: `<div style="width:500px;">
-        <p>How successful were you in imagining a scenario?</p>
-        </div>`,
+    stimulus: '<p>How successful were you in imagining a scenario?</p>',
     require_movement: true,
     post_trial_gap: 500,
     on_finish: updateProgressBar,
@@ -288,7 +288,7 @@ d3.csv("experiment_data.csv").then(async function(data){
   };
   timeline.push(bds_ret_BufferScreen)
 
-  //mock_retTrials(objects);
+  // mock_retTrials(objects);
 
   // retrieval
   var ret_trial = {
@@ -325,32 +325,36 @@ d3.csv("experiment_data.csv").then(async function(data){
   timeline.push(ret_trial_procedure)
 
   // Survey of Autobiographical Memory
-  var sam_labels = ['1 Strongly disagree', '2 Disagree somewhat', '3 Neither agree nor disagree', '4 Agree somewhat', '5 Agree strongly'];
+  var sam_labels = ['<p style="font-size:16px">1 Strongly disagree</p>', 
+                    '<p style="font-size:16px">2 Disagree somewhat</p>', 
+                    '<p style="font-size:16px">3 Neither agree nor disagree</p>', 
+                    '<p style="font-size:16px">4 Agree somewhat</p>', 
+                    '<p style="font-size:16px">5 Agree strongly</p>'];
 
   var sam_questionnaire_episodic = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>Specific events are difficult for me to recall</p>",
+    questions: [{prompt: "<p style='font-size: 18px'>Specific events are difficult for me to recall</p>",
                  labels: sam_labels,
                  required: false},
-                {prompt: "<p>When I remember events, I have a hard time determining the order of details in the event</p>",
+                {prompt: "<p style='font-size:18px'>When I remember events, I have a hard time determining the order of details in the event</p>",
                  labels: sam_labels,
                  required: false},
-                {prompt: "<p>When I remember events, in general I can recall objects that were in the environment</p>",
+                {prompt: "<p style='font-size:18px'>When I remember events, in general I can recall objects that were in the environment</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>When I remember events, in general I can recall what I was wearing</p>",
+                 {prompt: "<p style='font-size:18px'>When I remember events, in general I can recall what I was wearing</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>I am highly confident in my ability to remember past events</p>",
+                 {prompt: "<p style='font-size:18px'>I am highly confident in my ability to remember past events</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>When I remember events, I remember a lot of details</p>",
+                 {prompt: "<p style='font-size:18px'>When I remember events, I remember a lot of details</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>When I remember events, in general I can recall which day of the week it was</p>",
+                 {prompt: "<p style='font-size:18px'>When I remember events, in general I can recall which day of the week it was</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>When I remember events, in general I can recall people, what they looked like, or what they were wearing</p>",
+                 {prompt: "<p style='font-size:18px'>When I remember events, in general I can recall people, what they looked like, or what they were wearing</p>",
                  labels: sam_labels,
                  required: false}],
     preamble: 'Please indicate the strength of your agreement with each of the following statements.',
@@ -361,22 +365,22 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var sam_questionnaire_semantic = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>I can learn and repeat facts easily, even if I don’t remember where I learned them</p>",
+    questions: [{prompt: "<p style='font-size:18px'>I can learn and repeat facts easily, even if I don’t remember where I learned them</p>",
                  labels: sam_labels,
                  required: false},
-                {prompt: "<p>After I have read a novel or newspaper, I forget the facts after a few days</p>",
+                {prompt: "<p style='font-size:18px'>After I have read a novel or newspaper, I forget the facts after a few days</p>",
                  labels: sam_labels,
                  required: false},
-                {prompt: "<p>After I have met someone once, I easily remember his or her name</p>",
+                {prompt: "<p style='font-size:18px'>After I have met someone once, I easily remember his or her name</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>I can easily remember the names of famous people (sports figures, politicians, celebrities)</p>",
+                 {prompt: "<p style='font-size:18px'>I can easily remember the names of famous people (sports figures, politicians, celebrities)</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>I have a hard time remembering information I have learned at school or work</p>",
+                 {prompt: "<p style='font-size:18px'>I have a hard time remembering information I have learned at school or work</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>I am very good at remembering information about people that I know (e.g., the names of a co-worker’s children, their personalities, places friends have visited etc.)</p>",
+                 {prompt: "<p style='font-size:18px'>I am very good at remembering information about people that I know (e.g., the names of a co-worker’s children, their personalities, places friends have visited etc.)</p>",
                  labels: sam_labels,
                  required: false}],
     preamble: 'Please indicate the strength of your agreement with each of the following statements.',
@@ -387,22 +391,22 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var sam_questionnaire_spatial = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>In general, my ability to navigate is better than most of my family/friends</p>",
+    questions: [{prompt: "<p style='font-size:18px'>In general, my ability to navigate is better than most of my family/friends</p>",
                  labels: sam_labels,
                  required: false},
-                {prompt: "<p>After I have visited an area, it is easy for me to find my way around the second time I visit</p>",
+                {prompt: "<p style='font-size:18px'>After I have visited an area, it is easy for me to find my way around the second time I visit</p>",
                  labels: sam_labels,
                  required: false},
-                {prompt: "<p>I have a hard time judging the distance (e.g., in meters or kilometers) between familiar landmarks</p>",
+                {prompt: "<p style='font-size:18px'>I have a hard time judging the distance (e.g., in meters or kilometers) between familiar landmarks</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>I get lost easily, even in familiar areas</p>",
+                 {prompt: "<p style='font-size:18px'>I get lost easily, even in familiar areas</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>If my route to work or school was blocked, I could easily find the next fastest way to get there</p>",
+                 {prompt: "<p style='font-size:18px'>If my route to work or school was blocked, I could easily find the next fastest way to get there</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>I use specific landmarks for navigating</p>",
+                 {prompt: "<p style='font-size:18px'>I use specific landmarks for navigating</p>",
                  labels: sam_labels,
                  required: false}],
     preamble: 'Please indicate the strength of your agreement with each of the following statements.',
@@ -413,22 +417,22 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var sam_questionnaire_future = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>When I imagine an event in the future, the event generates vivid mental images that are specific in time and place</p>",
+    questions: [{prompt: "<p style='font-size:18px'>When I imagine an event in the future, the event generates vivid mental images that are specific in time and place</p>",
                  labels: sam_labels,
                  required: false},
-                {prompt: "<p>When I imagine an event in the future, I can picture the spatial layout</p>",
+                {prompt: "<p style='font-size:18px'>When I imagine an event in the future, I can picture the spatial layout</p>",
                  labels: sam_labels,
                  required: false},
-                {prompt: "<p>When I imagine an event in the future, I can picture people and what they look like</p>",
+                {prompt: "<p style='font-size:18px'>When I imagine an event in the future, I can picture people and what they look like</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>When I imagine an event in the future, I can imagine how I may feel</p>",
+                 {prompt: "<p style='font-size:18px'>When I imagine an event in the future, I can imagine how I may feel</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>When I imagine an event in the future, I can picture images (e.g., people, objects, etc)</p>",
+                 {prompt: "<p style='font-size:18px'>When I imagine an event in the future, I can picture images (e.g., people, objects, etc)</p>",
                  labels: sam_labels,
                  required: false},
-                 {prompt: "<p>I have a difficult time imagining specific events in the future</p>",
+                 {prompt: "<p style='font-size:18px'>I have a difficult time imagining specific events in the future</p>",
                  labels: sam_labels,
                  required: false}],
     preamble: 'Please indicate the strength of your agreement with each of the following statements.',
@@ -439,28 +443,32 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   // Iterpersonal Reactivity Index
 
-  var iti_scale = ['A: Does Not Describe Me Well', 'B', 'C', 'D', 'E: Describes Me Very Well'];
+  var iti_scale = ['<p style="font-size:16px">A: Does Not Describe Me Well</p>', 
+                   '<p style="font-size:16px">B</p>', 
+                   '<p style="font-size:16px">C</p>', 
+                   '<p style="font-size:16px">D</p>', 
+                   '<p style="font-size:16px">E: Describes Me Very Well</p>'];
   var iti_questionnaire_one = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>I daydream and fantasize, with some regularity, about things that might happen to me.</p>",
+    questions: [{prompt: "<p style='font-size:18px'>I daydream and fantasize, with some regularity, about things that might happen to me.</p>",
                  labels: iti_scale,
                  required: false},
-                {prompt: "<p>I often have tender, concerned feelings for people less fortunate than me.</p>",
+                {prompt: "<p style='font-size:18px'>I often have tender, concerned feelings for people less fortunate than me.</p>",
                  labels: iti_scale,
                  required: false},
-                {prompt: "<p>I sometimes find it difficult to see things from the 'other guy's' point of view.</p>",
+                {prompt: "<p style='font-size:18px'>I sometimes find it difficult to see things from the 'other guy's' point of view.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>Sometimes I don't feel very sorry for other people when they are having problems.</p>",
+                 {prompt: "<p style='font-size:18px'>Sometimes I don't feel very sorry for other people when they are having problems.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>I really get involved with the feelings of the characters in a novel.</p>",
+                 {prompt: "<p style='font-size:18px'>I really get involved with the feelings of the characters in a novel.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>In emergency situations, I feel apprehensive and ill-at-ease.</p>",
+                 {prompt: "<p style='font-size:18px'>In emergency situations, I feel apprehensive and ill-at-ease.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>I am usually objective when I watch a movie or play, and I don't often get completely caught up in it.</p>",
+                 {prompt: "<p style='font-size:18px'>I am usually objective when I watch a movie or play, and I don't often get completely caught up in it.</p>",
                  labels: iti_scale,
                  required: false}],
     preamble: 'The following statements inquire about your thoughts and feelings in a variety of situations.  For each item, indicate how well it describes you by choosing the appropriate letter on the scale.',
@@ -471,25 +479,25 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var iti_questionnaire_two = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>I try to look at everybody's side of a disagreement before I make a decision.</p>",
+    questions: [{prompt: "<p style='font-size:18px'>I try to look at everybody's side of a disagreement before I make a decision.</p>",
                  labels: iti_scale,
                  required: false},
-                {prompt: "<p>When I see someone being taken advantage of, I feel kind of protective towards them.</p>",
+                {prompt: "<p style='font-size:18px'>When I see someone being taken advantage of, I feel kind of protective towards them.</p>",
                  labels: iti_scale,
                  required: false},
-                {prompt: "<p>I sometimes feel helpless when I am in the middle of a very emotional situation.</p>",
+                {prompt: "<p style='font-size:18px'>I sometimes feel helpless when I am in the middle of a very emotional situation.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>I sometimes try to understand my friends better by imagining how things look from their perspective.</p>",
+                 {prompt: "<p style='font-size:18px'>I sometimes try to understand my friends better by imagining how things look from their perspective.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>Becoming extremely involved in a good book or movie is somewhat rare for me.</p>",
+                 {prompt: "<p style='font-size:18px'>Becoming extremely involved in a good book or movie is somewhat rare for me.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>When I see someone get hurt, I tend to remain calm.</p>",
+                 {prompt: "<p style='font-size:18px'>When I see someone get hurt, I tend to remain calm.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>Other people's misfortunes do not usually disturb me a great deal.</p>",
+                 {prompt: "<p style='font-size:18px'>Other people's misfortunes do not usually disturb me a great deal.</p>",
                  labels: iti_scale,
                  required: false}],
     preamble: 'The following statements inquire about your thoughts and feelings in a variety of situations.  For each item, indicate how well it describes you by choosing the appropriate letter on the scale.',
@@ -500,25 +508,25 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var iti_questionnaire_three = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>If I'm sure I'm right about something, I don't waste much time listening to other people's arguments.</p>",
+    questions: [{prompt: "<p style='font-size:18px'>If I'm sure I'm right about something, I don't waste much time listening to other people's arguments.</p>",
                  labels: iti_scale,
                  required: false},
-                {prompt: "<p>After seeing a play or movie, I have felt as though I were one of the characters.</p>",
+                {prompt: "<p style='font-size:18px'>After seeing a play or movie, I have felt as though I were one of the characters.</p>",
                  labels: iti_scale,
                  required: false},
-                {prompt: "<p>Being in a tense emotional situation scares me.</p>",
+                {prompt: "<p style='font-size:18px'>Being in a tense emotional situation scares me.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>When I see someone being treated unfairly, I sometimes don't feel very much pity for them.</p>",
+                 {prompt: "<p style='font-size:18px'>When I see someone being treated unfairly, I sometimes don't feel very much pity for them.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>I am usually pretty effective in dealing with emergencies.</p>",
+                 {prompt: "<p style='font-size:18px'>I am usually pretty effective in dealing with emergencies.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>I am often quite touched by things that I see happen.</p>",
+                 {prompt: "<p style='font-size:18px'>I am often quite touched by things that I see happen.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>I believe that there are two sides to every question and try to look at them both.</p>",
+                 {prompt: "<p style='font-size:18px'>I believe that there are two sides to every question and try to look at them both.</p>",
                  labels: iti_scale,
                  required: false}],
     preamble: 'The following statements inquire about your thoughts and feelings in a variety of situations.  For each item, indicate how well it describes you by choosing the appropriate letter on the scale.',
@@ -529,25 +537,25 @@ d3.csv("experiment_data.csv").then(async function(data){
 
   var iti_questionnaire_four = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>I would describe myself as a pretty soft-hearted person.</p>",
+    questions: [{prompt: "<p style='font-size:18px'>I would describe myself as a pretty soft-hearted person.</p>",
                  labels: iti_scale,
                  required: false},
-                {prompt: "<p>When I watch a good movie, I can very easily put myself in the place of a leading character.</p>",
+                {prompt: "<p style='font-size:18px'>When I watch a good movie, I can very easily put myself in the place of a leading character.</p>",
                  labels: iti_scale,
                  required: false},
-                {prompt: "<p>I tend to lose control during emergencies.</p>",
+                {prompt: "<p style='font-size:18px'>I tend to lose control during emergencies.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>When I'm upset at someone, I usually try to 'put myself in his shoes' for a while.</p>",
+                 {prompt: "<p style='font-size:18px'>When I'm upset at someone, I usually try to 'put myself in his shoes' for a while.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>When I am reading an interesting story or novel, I imagine how I would feel if the events in the story were happening to me.</p>",
+                 {prompt: "<p style='font-size:18px'>When I am reading an interesting story or novel, I imagine how I would feel if the events in the story were happening to me.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>When I see someone who badly needs help in an emergency, I go to pieces.</p>",
+                 {prompt: "<p style='font-size:18px'>When I see someone who badly needs help in an emergency, I go to pieces.</p>",
                  labels: iti_scale,
                  required: false},
-                 {prompt: "<p>Before criticizing somebody, I try to imagine how I would feel if I were in their place.</p>",
+                 {prompt: "<p style='font-size:18px'>Before criticizing somebody, I try to imagine how I would feel if I were in their place.</p>",
                  labels: iti_scale,
                  required: false}],
     preamble: 'The following statements inquire about your thoughts and feelings in a variety of situations.  For each item, indicate how well it describes you by choosing the appropriate letter on the scale.',
@@ -556,18 +564,153 @@ d3.csv("experiment_data.csv").then(async function(data){
   };
   timeline.push(iti_questionnaire_four);
 
+ // VVIQ Questionnaire
+  var vvi_scale = ['<p style="font-size:16px">1</p>', 
+                   '<p style="font-size:16px">2</p>', 
+                   '<p style="font-size:16px">3</p>', 
+                   '<p style="font-size:16px">4</p>', 
+                   '<p style="font-size:16px">5</p>'];
+  var vvi_questionnaire_one = {
+    type: jsPsychSurveyLikert,
+    scale_width: 600,
+    questions: [{prompt: "<p style='font-size:18px'>The exact contour of face, head, shoulders and body.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                {prompt: "<p style='font-size:18px'>Characteristic poses of head, attitudes of body etc.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                {prompt: "<p style='font-size:18px'>The precise carriage, length of step etc., in walking.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                 {prompt: "<p style='font-size:18px'>The different colors worn in some familiar clothes.</p>",
+                 labels: vvi_scale,
+                 required: false}],
+      preamble: '<p style="font-size:18px">For each item on this questionnaire, try to form a mental image, and consider your experience carefully. For any image that you do experience, rate how vivid it is using the five-point scale described below. If you do not have a visual image, rate vividness as ‘1’. Only use ‘5’ for images that are truly as lively and vivid as real seeing. Please note that there are no right or wrong answers to the questions, and that it is not necessarily desirable to experience imagery or, if you do, to have more vivid imagery.</p>' + 
+      '<ol style="text-align:left;margin:auto;width:60%;font-size:18px">'+
+        '<li>No image at all, you only “know” that you are thinking of the object</li>'+
+        '<li>Vague and dim</li>'+
+        '<li>Moderately clear and lively</li>'+
+        '<li>Clear and reasonably vivid</li>'+
+        '<li>Perfectly clear and vivid as real seeing</li>'+
+      '</ol>' +   
+      '<p style="font-size:18px; margin-top:3.8em;">Think of some relative or friend whom you frequently see (but who is not with you at present) and consider carefully the picture that comes before your mind’s eye.',
+      data: {phase: 'vvi_one'},
+      on_finish: updateProgressBar
+    };
+  timeline.push(vvi_questionnaire_one);
+
+  var vvi_questionnaire_two = {
+    type: jsPsychSurveyLikert,
+    scale_width: 600,
+    questions: [{prompt: "<p style='font-size:18px'>The sun rising above the horizon into a hazy sky.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                {prompt: "<p style='font-size:18px'>The sky clears and surrounds the sun with blueness.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                {prompt: "<p style='font-size:18px'>Clouds. A storm blows up with flashes of lightning.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                 {prompt: "<p style='font-size:18px'>A rainbow appears.</p>",
+                 labels: vvi_scale,
+                 required: false}],
+      preamble: '<p style="font-size:18px">For each item on this questionnaire, try to form a mental image, and consider your experience carefully. For any image that you do experience, rate how vivid it is using the five-point scale described below. If you do not have a visual image, rate vividness as ‘1’. Only use ‘5’ for images that are truly as lively and vivid as real seeing. Please note that there are no right or wrong answers to the questions, and that it is not necessarily desirable to experience imagery or, if you do, to have more vivid imagery.</p>' + 
+      '<ol style="text-align:left;margin:auto;width:60%;font-size:18px">'+
+        '<li>No image at all, you only “know” that you are thinking of the object</li>'+
+        '<li>Vague and dim</li>'+
+        '<li>Moderately clear and lively</li>'+
+        '<li>Clear and reasonably vivid</li>'+
+        '<li>Perfectly clear and vivid as real seeing</li>'+
+      '</ol>' +  
+      '<p style="font-size:18px; margin-top:3.8em;">Visualize a rising sun. Consider carefully the picture that comes before your mind’s eye.',
+      data: {phase: 'vvi_two'},
+      on_finish: updateProgressBar
+    };
+  timeline.push(vvi_questionnaire_two);  
+
+  var vvi_questionnaire_three = {
+    type: jsPsychSurveyLikert,
+    scale_width: 600,
+    questions: [{prompt: "<p style='font-size:18px'>The overall appearance of the shop from the opposite side of the road.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                {prompt: "<p style='font-size:18px'>A window display including colors, shapes and details of individual items for sale.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                {prompt: "<p style='font-size:18px'>You are near the entrance. The color, shape and details of the door.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                 {prompt: "<p style='font-size:18px'>You enter the shop and go to the counter. The counter assistant serves you. Money changes hands.</p>",
+                 labels: vvi_scale,
+                 required: false}],
+      preamble: '<p style="font-size:18px">For each item on this questionnaire, try to form a mental image, and consider your experience carefully. For any image that you do experience, rate how vivid it is using the five-point scale described below. If you do not have a visual image, rate vividness as ‘1’. Only use ‘5’ for images that are truly as lively and vivid as real seeing. Please note that there are no right or wrong answers to the questions, and that it is not necessarily desirable to experience imagery or, if you do, to have more vivid imagery.</p>' + 
+      '<ol style="text-align:left;margin:auto;width:60%;font-size:18px">'+
+        '<li>No image at all, you only “know” that you are thinking of the object</li>'+
+        '<li>Vague and dim</li>'+
+        '<li>Moderately clear and lively</li>'+
+        '<li>Clear and reasonably vivid</li>'+
+        '<li>Perfectly clear and vivid as real seeing</li>'+
+      '</ol>' +   
+      '<p style="font-size:18px; margin-top:3.8em;">Think of the front of a shop which you often go to. Consider the picture that comes before your mind’s eye.',
+      data: {phase: 'vvi_three'},
+      on_finish: updateProgressBar
+    };
+  timeline.push(vvi_questionnaire_three);
+
+  var vvi_questionnaire_four = {
+    type: jsPsychSurveyLikert,
+    scale_width: 600,
+    questions: [{prompt: "<p style='font-size:18px'>The contours of the landscape.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                {prompt: "<p style='font-size:18px'>The color and shape of the trees.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                {prompt: "<p style='font-size:18px'>The color and shape of the lake.</p>",
+                 labels: vvi_scale,
+                 required: false},
+                 {prompt: "<p style='font-size:18px'>A strong wind blows on the trees and on the lake causing waves in the water.</p>",
+                 labels: vvi_scale,
+                 required: false}],
+      preamble: '<p style="font-size:18px;text-align:justify">For each item on this questionnaire, try to form a mental image, and consider your experience carefully. For any image that you do experience, rate how vivid it is using the five-point scale described below. If you do not have a visual image, rate vividness as ‘1’. Only use ‘5’ for images that are truly as lively and vivid as real seeing. Please note that there are no right or wrong answers to the questions, and that it is not necessarily desirable to experience imagery or, if you do, to have more vivid imagery.</p>' + 
+      '<ol style="text-align:left;margin:auto;width:60%;font-size:18px">'+
+        '<li>No image at all, you only “know” that you are thinking of the object</li>'+
+        '<li>Vague and dim</li>'+
+        '<li>Moderately clear and lively</li>'+
+        '<li>Clear and reasonably vivid</li>'+
+        '<li>Perfectly clear and vivid as real seeing</li>'+
+      '</ol>' +
+      '<p style="font-size:18px; margin-top:3.8em;">Finally, think of a country scene which involves trees, mountains and a lake. Consider the picture that comes before your mind’s eye. ',
+      data: {phase: 'vvi_four'},
+      on_finish: updateProgressBar
+    };
+  timeline.push(vvi_questionnaire_four);
+
   var debrief_questionnaire = {
     type: jsPsychSurveyLikert,
-    questions: [{prompt: "<p>How distracted were you during the experiment?</p>",
-                 labels: ["1 - Not Very", "2", "3", "4", "5 - Very Distracted"],
+    scale_width: 600,
+    questions: [{prompt: "<p style='font-size:18px'>How distracted were you during the experiment?</p>",
+                 labels: ["<p style='font-size:16px'>1 - Not Very</p>", 
+                          "<p style='font-size:16px'>2</p>", 
+                          "<p style='font-size:16px'>3</p>", 
+                          "<p style='font-size:16px'>4</p>", 
+                          "<p style='font-size:16px'>5 - Very Distracted</p>"],
                  required: false,
                  name: 'distrationLevel'},
-                {prompt: "<p>How much were you paying attention during the experiemnt?</p>",
-                 labels: ["1 - Not Much", "2", "3", "4", "5 - Very Much"],
+                {prompt: "<p style='font-size:18px'>How much were you paying attention during the experiemnt?</p>",
+                 labels: ["<p style='font-size:16px'>1 - Not Much</p>", 
+                          "<p style='font-size:16px'>2</p>", 
+                          "<p style='font-size:16px'>3</p>", 
+                          "<p style='font-size:16px'>4</p>", 
+                          "<p style='font-size:16px'>5 - Very Much</p>"],
                  required: false,
                  name: 'attentionLevel'},
-                {prompt: "<p>How well do you feel that you did on the experiment?</p>",
-                 labels: ["1 - Not Very Well", "2", "3", "4", "5 - Very Well"],
+                {prompt: "<p style='font-size:18px'>How well do you feel that you did on the experiment?</p>",
+                 labels: ["<p style='font-size:16px'>1 - Not Very Well</p>", 
+                          "<p style='font-size:16px'>2</p>", 
+                          "<p style='font-size:16px'>3</p>", 
+                          "<p style='font-size:16px'>4</p>", 
+                          "<p style='font-size:16px'>5 - Very Well</p>"],
                  required: false,
                  name: 'performanceLevel'}],
     preamble: 'Please complete the following short questionnaire. Your answers to these questions will not be kept confidential. They will not effect your pay.',
