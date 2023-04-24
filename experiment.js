@@ -401,7 +401,7 @@ async function backwards_digit_span(){
   var timeline_vars = await fetch('backwards_digit_span.json')
   .then((response) => response.json())
   .then((value) => value);
-  console.log(timeline_vars.length)
+
   var trial
   var procedure = {timeline: []}
   for (let i = 0; i < timeline_vars.length; i++) {
