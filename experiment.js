@@ -355,7 +355,7 @@ finish_experiment = function(){
     
     // farewell message based on the session
     var farewell_message;
-    if(urlvar.day == 'one') {
+    if(urlvar.day == '1') {
       farewell_messsage = "Thank you for participating! The link to complete Part 2 of the experiment will be available on SONA in 24 hours. You will then have 24 hours to complete Part 2.";
     } else {
       farewell_messsage = "Thank you for participating!";
@@ -369,7 +369,7 @@ finish_experiment = function(){
     
     // farewell link based on the session
     var farewell_link;
-    if(urlvar.day == 'one'){
+    if(urlvar.day == '1'){
       farewell_link = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1296&credit_token=4e26aa97c80e4ed498758f301ff269aa&survey_code=" + urlvar.subject;
     } else {
       farewell_link = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1297&credit_token=a2cfc2ea894e46689484c27d86ed1642&survey_code=" + urlvar.subject;
