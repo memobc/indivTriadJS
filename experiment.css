@@ -33,9 +33,9 @@
 #jspsych-survey-likert-next{
   margin-bottom: 35px;
 }
-.jspsych-content{
+/* .jspsych-content{
   width: 8.5in;
-}
+} */
 .jspsych-survey-likert-preamble{
   display: inline-block;
   text-align: justify;
@@ -63,3 +63,16 @@ textarea {
 .jspsych-survey-likert-opts {
   font-size: 16px;
 }
+@media (min-width: 768px){
+  .sv_main .sv_container .sv_body .sv_p_root table.sv_q_matrix td {
+    min-width: unset;
+}
+}
+.consent_form {
+  width: 8.5in
+}
+
+/* .sv_main .sv_container .sv_body .sv_p_root .sv_q_title {
+    font-size: 28px;
+}
+ */

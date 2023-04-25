@@ -105,22 +105,26 @@ SetInstr = function(){
       data: {phase: 'enc_instr'},
       post_trial_gap: 1500,
       show_clickable_nav: true,
+      css_classes: ['consent_form'],
       on_finish: updateProgressBar
   }
   return(instruct)
 }
 
-calculate_top_People = function(){
+calculate_top = function(){
   var responses    = jsPsych.data.getLastTrialData().values()[0].response;
-  var sortedPeople = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
+  
+  // people
+  var people = responses.people;
+  var sortedPeople = Object.keys(people).sort(function(a,b){return people[b]-people[a]});
   topPeople        = sortedPeople.slice(0,14);
-}
-
-calculate_top_Places = function(){
-  var responses    = jsPsych.data.getLastTrialData().values()[0].response;
-  var sortedPlaces = Object.keys(responses).sort(function(a,b){return responses[b]-responses[a]});
+  
+  // places
+  var places = responses.places;
+  var sortedPlaces = Object.keys(places).sort(function(a,b){return places[b]-places[a]});
   topPlaces        = sortedPlaces.slice(0,14);
-  allKeyStim       = topPlaces.concat(topPeople)
+  allKeyStim       = topPlaces.concat(topPeople);
+
 }
 
 construct_encoding_stimulus = function(){
