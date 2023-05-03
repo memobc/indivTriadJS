@@ -31,9 +31,6 @@
     auto_update_progress_bar: false
   });
 
-  // total number of events in the experiment. Used to properly gage the progress bar at the top of the screen
-  nEvents = 133;
-
   /* 
   grabs all variables from the url
   url variables are specified as follows:
@@ -42,8 +39,16 @@
     urlvar.day = '1'
   */
   var urlvar = jsPsych.data.urlVariables();
+  console.log(urlvar)
   jsPsych.data.addProperties({ subject: urlvar.subject });
   jsPsych.data.addProperties({ day: urlvar.day });
+
+  // total number of events in the experiment. Used to properly gage the progress bar at the top of the screen
+  if(urlvar.day == '1'){
+    nEvents = 120;
+  } else {
+    nEvents = 121;
+  }
 
   // global variables -- available to all functions
 
