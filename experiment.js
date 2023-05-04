@@ -345,38 +345,38 @@ finish_experiment = function(){
 
     // a unique data/time string
     // mm-dd-yyyy-hh-mm-ss
-    var today = new Date();
+    var today      = new Date();
     var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
 
     // Save Data w/ unique data/time string
-    saveData('datetime-' + datestring + '_sub-' + urlvar.subject + '_ses-' + urlvar.day + "_data-experiment.csv", jsPsych.data.get().csv());
-    saveData('datetime-' + datestring + '_sub-' + urlvar.subject + '_ses-' + urlvar.day + "_data-interaction.csv", jsPsych.data.getInteractionData().csv());
+    saveData('datetime-' + datestring + '_sub-' + subject_id + '_ses-' + session_id + "_data-experiment.csv", jsPsych.data.get().csv());
+    saveData('datetime-' + datestring + '_sub-' + subject_id + '_ses-' + session_id + "_data-interaction.csv", jsPsych.data.getInteractionData().csv());
 
     // Display the link so participants can give themselves SONA credit
     var el = jsPsych.getDisplayElement();
-    var a = document.createElement('a');
+    var a  = document.createElement('a');
     var farewell_paragraph = document.createElement('p');
     
     // farewell message based on the session
     var farewell_message;
-    if(urlvar.day == '1') {
-      farewell_messsage = "Thank you for participating! The link to complete Part 2 of the experiment will be available on SONA in 24 hours. You will then have 24 hours to complete Part 2.";
+    if(session_id == '1') {
+      farewell_messsage = "You have completed the last task. Thank you for participating!";
     } else {
-      farewell_messsage = "Thank you for participating!";
+      farewell_messsage = "You have completed the last task. Thank you for participating!";
     }
     
     var farewell_text = document.createTextNode(farewell_messsage);
     farewell_paragraph.appendChild(farewell_text);
     
-    var linkText = document.createTextNode("Follow This Link To Get SONA Credit");
+    var linkText = document.createTextNode("Click here to return to Prolific and complete the study");
     a.appendChild(linkText);
     
     // farewell link based on the session
     var farewell_link;
-    if(urlvar.day == '1'){
-      farewell_link = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1296&credit_token=4e26aa97c80e4ed498758f301ff269aa&survey_code=" + urlvar.subject;
+    if(session_id == '1'){
+      farewell_link = "https://app.prolific.co/submissions/complete?cc=C995R784";
     } else {
-      farewell_link = "https://bc.sona-systems.com/webstudy_credit.aspx?experiment_id=1297&credit_token=a2cfc2ea894e46689484c27d86ed1642&survey_code=" + urlvar.subject;
+      farewell_link = "https://app.prolific.co/submissions/complete?cc=C995R784";
     }
     a.href = farewell_link;
     

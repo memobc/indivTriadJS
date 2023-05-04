@@ -35,16 +35,23 @@
   grabs all variables from the url
   url variables are specified as follows:
   Ex: experiment.html?subject=s001&day=1
-    urlvar.subject = 's001'
-    urlvar.day = '1'
+    subject_id = 's001'
+    session_id = '1'
   */
-  var urlvar = jsPsych.data.urlVariables();
-  console.log(urlvar)
-  jsPsych.data.addProperties({ subject: urlvar.subject });
-  jsPsych.data.addProperties({ day: urlvar.day });
+
+  // capture info from Prolific
+  var subject_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
+  var study_id   = jsPsych.data.getURLVariable('STUDY_ID');
+  var session_id = jsPsych.data.getURLVariable('SESSION_ID');
+
+  jsPsych.data.addProperties({
+    subject_id: subject_id,
+    study_id: study_id,
+    session_id: session_id
+  });
 
   // total number of events in the experiment. Used to properly gage the progress bar at the top of the screen
-  if(urlvar.day == '1'){
+  if(study_id == '645414644d939e64c3fe90e2'){
     nEvents = 120;
   } else {
     nEvents = 121;
@@ -59,12 +66,12 @@
     personCatch = a array of length 2 randomly selecting two person trials to serve as catch trials
     placeCatch  = an array of length 2 randomly select two place trials to serve as catch trials
   */
-  var myarray = Array.from({ length: 28 }, (x, i) => i);
-  var randperm = jsPsych.randomization.sampleWithoutReplacement(myarray, 28);
+  var myarray     = Array.from({ length: 28 }, (x, i) => i);
+  var randperm    = jsPsych.randomization.sampleWithoutReplacement(myarray, 28);
   var personCatch = Array.from({ length: 14 }, (x, i) => i);
-  personCatch = jsPsych.randomization.sampleWithoutReplacement(personCatch, 2);
-  var placeCatch = Array.from({ length: 14 }, (x, i) => i);
-  placeCatch = jsPsych.randomization.sampleWithoutReplacement(placeCatch, 2);
+  personCatch     = jsPsych.randomization.sampleWithoutReplacement(personCatch, 2);
+  var placeCatch  = Array.from({ length: 14 }, (x, i) => i);
+  placeCatch      = jsPsych.randomization.sampleWithoutReplacement(placeCatch, 2);
 
   // allKeySim = a list containing all of the people and places selected by the
   //             participant
@@ -75,25 +82,25 @@
          retrieval (cc) trial we are currently on. Start at -1 since javascript
          indexs lists starting from 0
   */
-  var c = -1;
+  var c  = -1;
   var cc = -1;
 
-  var place_count = -1;
+  var place_count  = -1;
   var person_count = -1;
 
   //
   var enc_trial_data = [];
-  var ret_trials = [];
+  var ret_trials     = [];
 
   // timeline = an array that contains all of the elements of our experiment in the
   //            order that they are to be experienced. See jsPsych tutorials.
   var timeline = [];
 
   // Welcome Message, differs based on session
-  if (urlvar.day == '1') {
-    var msg = "Welcome to session 1 of our experiment. Press any key to begin.";
+  if (study_id == '645414644d939e64c3fe90e2') {
+    var msg = "Welcome to Part 1 of our experiment. Press any key to begin.";
   } else {
-    var msg = "Welcome to session 2 of our experiemnt. Press any key to begin."
+    var msg = "Welcome to Part 2 of our experiemnt. Press any key to begin."
   }
 
   var welcome = {
@@ -179,13 +186,19 @@
     timeline.push(fullscreen_up);
 
     // only collect consent, demographics on day 1
-    if (urlvar.day == '1') {
+    if (study_id == '645414644d939e64c3fe90e2') {
       timeline.push(consent);
       timeline.push(demographics);
     }
 
     // select only the data from the correct session
-    var sesData = data.filter(function (el) { return el.day == urlvar.day })
+    var day = [];
+    if(study_id == '645414644d939e64c3fe90e2'){
+      day = '1';
+    } else {
+      day = '2';
+    }
+    var sesData = data.filter(function (el) { return el.day == day })
 
     // people stimuli
     var people = sesData.filter(removeBlank).map(x => pick(x, 'people'))
@@ -221,8 +234,8 @@
       type: jsPsychHtmlKeyboardResponse,
       stimulus: construct_encoding_stimulus,
       choices: "NO_KEYS",
-      trial_duration: 12000,
-      stimulus_duration: 12000,
+      trial_duration: 1000,//12000,
+      stimulus_duration: 1000,//12000,
       response_ends_trial: false,
       post_trial_gap: 1000,
       data: {
@@ -318,7 +331,7 @@
       on_finish: updateProgressBar
     };
     timeline.push(bds_ret_BufferScreen)
-
+ 
     // retrieval
     var ret_trial = {
       type: jsPsychSurveyText,
@@ -414,7 +427,7 @@
       data: { phase: 'sam' },
       on_finish: updateProgressBar
     };
-    if (urlvar.day == '2') {
+    if (study_id == '2') {
       timeline.push(sam);
     }
 
@@ -487,7 +500,7 @@ Interpersonal Reactivity Index
       data: { phase: 'iti' },
       on_finish: updateProgressBar
     };
-    if (urlvar.day == '2') {
+    if (study_id == '2') {
       timeline.push(iti);
     }
 
@@ -573,7 +586,7 @@ Interpersonal Reactivity Index
       data: { phase: 'vviq' },
       on_finish: updateProgressBar
     };    
-    if (urlvar.day == '2') {
+    if (study_id == '2') {
       timeline.push(vviq);
     }    
 
