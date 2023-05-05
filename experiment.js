@@ -360,11 +360,11 @@ finish_experiment = function(){
     // farewell message based on the session
     var farewell_message;
     if(day == '1') {
-      farewell_messsage = "You have completed the last task. Thank you for participating! We recommend completing Part 2 after 24 hours. ";
+      farewell_messsage = "You have completed the last task. Thank you for participating! We recommend completing Part 2 tomorrow at the earliest. You have up to 1 week to complete part 2.";
     } else {
       farewell_messsage = "You have completed the last task. Thank you for participating!";
     }
-    
+
     var farewell_text = document.createTextNode(farewell_messsage);
     farewell_paragraph.appendChild(farewell_text);
     
