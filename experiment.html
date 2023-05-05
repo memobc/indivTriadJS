@@ -312,21 +312,38 @@
     timeline.push(enc_trial_procedure)
 
     var enc_bds_BufferScreen = {
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: "Finished with encoding. Next task is the backwards digit span task. Press any key to begin.",
+      type: jsPsychInstructions,
+      pages: [
+              "<p>Finished with encoding. Next task is the backwards digit span task.</p>",
+              '<p>In this task, you will be presented with a series of digits one at a time.</p>',
+              '<p>You will then be presented with a blank answer text box.</p>',
+              '<p>Your goal is to type out the digits you saw in the reverse order in which you saw them.</p>',
+              '<p>So for example, if you were shown the digits "1 - 1 - 5 - 7 - 9", you will need to report back "9 7 5 1 1".</p>',
+              '<p>This task is designed to be difficult. You are not expected to be able to answer all of the questions correctly.</p>',
+              '<p>Your performance on this task will not affect your compensation. Try your best. Click next to begin the task.</p>'
+            ],
       data: { phase: 'enc_bds_BufferScreen' },
       css_classes: ['consent_form'],
+      show_clickable_nav: true,
+      post_trial_gap: 1500,
       on_finish: updateProgressBar
     };
     timeline.push(enc_bds_BufferScreen)
 
     var bds = await backwards_digit_span();
     timeline.push(bds)
-
+    mock_stim();
+    mock_retTrials(objects);
     var bds_ret_BufferScreen = {
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: "Finished with backwards digit span task. Next task is the memory test. Press any key to begin.",
+      type: jsPsychInstructions,
+      pages: [
+        "Finished with backwards digit span task. Next task is the memory test.",
+        '<p>During the memory test, you will be presented with one of the words presented previously along with two blank boxes.</p>',
+        '<p>Your task is to remember the items that were presented alongside the keyword in the previous portion of the experiment.<\p>',
+        '<p>You will click the "continue" button at the bottom of the page when you want to submit your answers. Hit next when you are ready to begin.<\p>',
+      ],
       data: { phase: 'bds_ret_bufferScreen' },
+      show_clickable_nav: true,
       css_classes: ['consent_form'],
       on_finish: updateProgressBar
     };
@@ -427,10 +444,9 @@
       data: { phase: 'sam' },
       on_finish: updateProgressBar
     };
-    if (study_id == '2') {
+    if (day == '2') {
       timeline.push(sam);
     }
-
 
 /* 
 
@@ -438,7 +454,7 @@ Interpersonal Reactivity Index
 
 */
 
-    var iti_options = [
+    var iri_options = [
       'A: Does Not Describe Me Well',
       'B',
       'C',
@@ -446,7 +462,7 @@ Interpersonal Reactivity Index
       'E: Describes Me Very Well'
     ];
 
-    var iti_statements = [
+    var iri_statements = [
       // first
       {prompt: 'I daydream and fantasize, with some regularity, about things that might happen to me.', name: 'iti_01'},
       {prompt: 'I often have tender, concerned feelings for people less fortunate than me.', name: 'iti_02'},
@@ -480,32 +496,32 @@ Interpersonal Reactivity Index
       {prompt: 'When I see someone who badly needs help in an emergency, I go to pieces.', name: 'iti_27'},
       {prompt: 'Before criticizing somebody, I try to imagine how I would feel if I were in their place.', name: 'iti_28'}
     ]
-    
-    var iti_page = [
+  
+    var iri_page = [
       {
         type: 'likert-table', 
         required: false, 
-        statements: iti_statements, 
+        statements: iri_statements, 
         prompt: 'The following statements inquire about your thoughts and feelings in a variety of situations. For each item, indicate how well it describes you by choosing the appropriate letter on the scale.', 
-        options: iti_options,
+        options: iri_options,
         randomize_statement_order: true, 
-        name: 'iti'
+        name: 'iri'
       }
     ]
 
-    var iti = {
+    var iri = {
       type: jsPsychSurvey,
-      pages: [iti_page],
+      pages: [iri_page],
       title: 'Interpersonal Reactivity Index',
       data: { phase: 'iti' },
       on_finish: updateProgressBar
     };
-    if (study_id == '2') {
-      timeline.push(iti);
+    if (day == '2') {
+      timeline.push(iri);
     }
 
-  /* 
-    
+  /*
+  
     Vividness of Visual Imagery Questionnaire 
 
   */
@@ -586,7 +602,7 @@ Interpersonal Reactivity Index
       data: { phase: 'vviq' },
       on_finish: updateProgressBar
     };    
-    if (study_id == '2') {
+    if (day == '2') {
       timeline.push(vviq);
     }    
 
@@ -599,7 +615,7 @@ Interpersonal Reactivity Index
     var debrief_questionnaire = {
       type: jsPsychSurvey,
       pages: [[
-        {type: 'html', prompt: 'Please complete the following short questionnaire. Your answers to these questions will not be kept confidential. They will not effect your pay.'},
+        {type: 'html', prompt: 'Please complete the following short questionnaire. Your answers to these questions will be kept confidential. They will not affect your pay.'},
         {type: 'likert', prompt: 'How distracted were you during the experiment?', likert_scale_max_label: 'Very Distracted', likert_scale_min_label: 'Not Very', name: 'distrationLevel'},
         {type: 'likert', prompt: 'How much were you paying attention during the experiemnt?', likert_scale_max_label: 'Not Much', likert_scale_min_label: 'Very Much', name: 'attentionLevel'},
         {type: 'likert', prompt: 'How well do you feel that you did on the experiment?', likert_scale_max_label: 'Not Very Well', likert_scale_min_label: 'Very Well', name: 'performanceLevel'}

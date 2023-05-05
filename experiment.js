@@ -50,7 +50,7 @@ SetInstr = function(){
   var success_example_SliderMoved = '<div id="jspsych-html-slider-response-wrapper" style="margin: 100px auto;"><div id="jspsych-html-slider-response-stimulus"><div style="margin: auto"><p>How successful were you in imagining a scenario?</p></div></div><div class="jspsych-html-slider-response-container" style="position:relative; margin: 0 auto 3em auto; width:auto;"><input type="range" class="jspsych-slider" value="85" min="0" max="100" step="1" id="jspsych-html-slider-response-response"><div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(5% - (100% / 2) - -7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Unsuccessful</span></div><div style="border: 1px solid transparent; display: inline-block; position: absolute; left:calc(95% - (100% / 2) - 7.5px); text-align: center; width: 100%;"><span style="text-align: center; font-size: 80%;">Successful</span></div></div></div></div>';
 
   var text_box_example = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Please describe what you were imagining:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder=""></textarea></div></form>'
-  var text_box_exampleFilled = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Please describe what you were imagining:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder="I imagined Jennifer Anniston at a bowling alley trying to push a bowling ball down the lane with a hockey stick."></textarea></div></form>'
+  var text_box_exampleFilled = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Please describe what you were imagining:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder="I imagined Jennifer Aniston at a bowling alley trying to push a bowling ball down the lane with a hockey stick."></textarea></div></form>'
 
   var text_box_example_BDS = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Report the numbers that you just saw in reverse order:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder=""></textarea></div></form>'
   var text_box_example_BDS_filled = '<form id="jspsych-survey-text-form" autocomplete="off"><div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;"><p class="jspsych-survey-text">Report the numbers that you just saw in reverse order:</p><textarea id="input-0" name="#jspsych-survey-text-response-0" data-name="" cols="40" rows="5" autofocus="" required="" placeholder="9 7 5 1 1"></textarea></div></form>'
@@ -59,7 +59,7 @@ SetInstr = function(){
   // A series of reusable html strings
 
   var example_blank = '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
-                      '<p class="jspsych-survey-text">What items went with <b>Jennifer Anniston</b>?</p>'+
+                      '<p class="jspsych-survey-text">What items went with <b>Jennifer Aniston</b>?</p>'+
                       '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="">'+
                       '</div>'+
                       '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
@@ -69,7 +69,7 @@ SetInstr = function(){
                       '<input type="submit" value="Continue">'
 
   var example_correct =  '<div id="jspsych-survey-text-0" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
-                         '<p class="jspsych-survey-text">What items went with <b>Jennifer Anniston</b>?</p>'+
+                         '<p class="jspsych-survey-text">What items went with <b>Jennifer Aniston</b>?</p>'+
                          '<input type="text" id="input-0" name="#jspsych-survey-text-response-0" data-name="" size="40" autofocus="" required="" placeholder="Bowling Ball">'+
                          '</div>'+
                          '<div id="jspsych-survey-text-1" class="jspsych-survey-text-question" style="margin: 2em 0em;">'+
@@ -99,10 +99,10 @@ SetInstr = function(){
           '<p>During the memory test, you will be presented with one of the words presented previously along with two blank boxes:</p>' + example_blank,
           '<p>Your task is to remember the items that were presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
           '<p>Leave the boxes blank if you cannot remember the other items. If you can only remember one of the two items, fill that one in.<\p>' + example_correct,
-          '<p>You will click the "submit" button at the bottom of the page when you want to submit your answers.<\p>' + example_correct,
+          '<p>You will click the "continue" button at the bottom of the page when you want to submit your answers.<\p>' + example_correct,
           '<p>Click next when you are ready to begin the experiment.</p>'
       ],
-      data: {phase: 'enc_instr'},
+      data: {phase: 'instr'},
       post_trial_gap: 1500,
       show_clickable_nav: true,
       css_classes: ['consent_form'],
@@ -432,7 +432,3 @@ async function backwards_digit_span(){
 
   return(procedure)
 };
-
-function set_up_sam(){
-  
-}
