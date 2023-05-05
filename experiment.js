@@ -359,8 +359,8 @@ finish_experiment = function(){
     
     // farewell message based on the session
     var farewell_message;
-    if(session_id == '1') {
-      farewell_messsage = "You have completed the last task. Thank you for participating!";
+    if(day == '1') {
+      farewell_messsage = "You have completed the last task. Thank you for participating! We recommend completing Part 2 after 24 hours. ";
     } else {
       farewell_messsage = "You have completed the last task. Thank you for participating!";
     }
@@ -373,7 +373,7 @@ finish_experiment = function(){
     
     // farewell link based on the session
     var farewell_link;
-    if(session_id == '1'){
+    if(day == '1'){
       farewell_link = "https://app.prolific.co/submissions/complete?cc=C995R784";
     } else {
       farewell_link = "https://app.prolific.co/submissions/complete?cc=C995R784";
