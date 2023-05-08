@@ -447,7 +447,8 @@
       pages: [sam_page],
       title: 'Survey of Autobiographical Memory',
       data: { phase: 'sam' },
-      on_finish: updateProgressBar
+      on_finish: updateProgressBar,
+      save_trial_parameters: {accuracy: false}
     };
     if (day == '2') {
       timeline.push(sam);
@@ -469,37 +470,37 @@ Interpersonal Reactivity Index
 
     var iri_statements = [
       // first
-      {prompt: 'I daydream and fantasize, with some regularity, about things that might happen to me.', name: 'iti_01'},
-      {prompt: 'I often have tender, concerned feelings for people less fortunate than me.', name: 'iti_02'},
-      {prompt: "I sometimes find it difficult to see things from the 'other guy's' point of view.", name: 'iti_03'},
-      {prompt: "Sometimes I don't feel very sorry for other people when they are having problems.", name: 'iti_04'},
-      {prompt: 'I really get involved with the feelings of the characters in a novel.', name: 'iti_05'},
-      {prompt: 'In emergency situations, I feel apprehensive and ill-at-ease.', name: 'iti_06'},
-      {prompt: "I am usually objective when I watch a movie or play, and I don't often get completely caught up in it.", name: 'iti_07'},
+      {prompt: 'I daydream and fantasize, with some regularity, about things that might happen to me.', name: 'iri_01'},
+      {prompt: 'I often have tender, concerned feelings for people less fortunate than me.', name: 'iri_02'},
+      {prompt: "I sometimes find it difficult to see things from the 'other guy's' point of view.", name: 'iri_03'},
+      {prompt: "Sometimes I don't feel very sorry for other people when they are having problems.", name: 'iri_04'},
+      {prompt: 'I really get involved with the feelings of the characters in a novel.', name: 'iri_05'},
+      {prompt: 'In emergency situations, I feel apprehensive and ill-at-ease.', name: 'iri_06'},
+      {prompt: "I am usually objective when I watch a movie or play, and I don't often get completely caught up in it.", name: 'iri_07'},
       // second
-      {prompt: "I try to look at everybody's side of a disagreement before I make a decision.", name: 'iti_08'},
-      {prompt: 'When I see someone being taken advantage of, I feel kind of protective towards them.', name: 'iti_09'},
-      {prompt: 'I sometimes feel helpless when I am in the middle of a very emotional situation.', name: 'iti_10'},
-      {prompt: 'I sometimes try to understand my friends better by imagining how things look from their perspective.', name: 'iti_11'},
-      {prompt: 'Becoming extremely involved in a good book or movie is somewhat rare for me.', name: 'iti_12'},
-      {prompt: 'When I see someone get hurt, I tend to remain calm.', name: 'iti_13'},
-      {prompt: "Other people's misfortunes do not usually disturb me a great deal.", name: 'iti_14'},
+      {prompt: "I try to look at everybody's side of a disagreement before I make a decision.", name: 'iri_08'},
+      {prompt: 'When I see someone being taken advantage of, I feel kind of protective towards them.', name: 'iri_09'},
+      {prompt: 'I sometimes feel helpless when I am in the middle of a very emotional situation.', name: 'iri_10'},
+      {prompt: 'I sometimes try to understand my friends better by imagining how things look from their perspective.', name: 'iri_11'},
+      {prompt: 'Becoming extremely involved in a good book or movie is somewhat rare for me.', name: 'iri_12'},
+      {prompt: 'When I see someone get hurt, I tend to remain calm.', name: 'iri_13'},
+      {prompt: "Other people's misfortunes do not usually disturb me a great deal.", name: 'iri_14'},
       // third
-      {prompt: "If I'm sure I'm right about something, I don't waste much time listening to other people's arguments.", name: 'iti_15'},
-      {prompt: 'After seeing a play or movie, I have felt as though I were one of the characters.', name: 'iti_16'},
-      {prompt: 'Being in a tense emotional situation scares me.', name: 'iti_17'},
-      {prompt: "When I see someone being treated unfairly, I sometimes don't feel very much pity for them.", name: 'iti_18'},
-      {prompt: "I am usually pretty effective in dealing with emergencies.", name: 'iti_19'},
-      {prompt: "I am often quite touched by things that I see happen.", name: 'iti_20'},
-      {prompt: "I believe that there are two sides to every question and try to look at them both.", name: 'iti_21'},
+      {prompt: "If I'm sure I'm right about something, I don't waste much time listening to other people's arguments.", name: 'iri_15'},
+      {prompt: 'After seeing a play or movie, I have felt as though I were one of the characters.', name: 'iri_16'},
+      {prompt: 'Being in a tense emotional situation scares me.', name: 'iri_17'},
+      {prompt: "When I see someone being treated unfairly, I sometimes don't feel very much pity for them.", name: 'iri_18'},
+      {prompt: "I am usually pretty effective in dealing with emergencies.", name: 'iri_19'},
+      {prompt: "I am often quite touched by things that I see happen.", name: 'iri_20'},
+      {prompt: "I believe that there are two sides to every question and try to look at them both.", name: 'iri_21'},
       // fourth
-      {prompt: 'I would describe myself as a pretty soft-hearted person.', name: 'iti_22'},
-      {prompt: 'When I watch a good movie, I can very easily put myself in the place of a leading character.', name: 'iti_23'},
-      {prompt: 'I tend to lose control during emergencies.', name: 'iti_24'},
-      {prompt: "When I'm upset at someone, I usually try to 'put myself in his shoes' for a while.", name: 'iti_25'},
-      {prompt: 'When I am reading an interesting story or novel, I imagine how I would feel if the events in the story were happening to me.', name: 'iti_26'},
-      {prompt: 'When I see someone who badly needs help in an emergency, I go to pieces.', name: 'iti_27'},
-      {prompt: 'Before criticizing somebody, I try to imagine how I would feel if I were in their place.', name: 'iti_28'}
+      {prompt: 'I would describe myself as a pretty soft-hearted person.', name: 'iri_22'},
+      {prompt: 'When I watch a good movie, I can very easily put myself in the place of a leading character.', name: 'iri_23'},
+      {prompt: 'I tend to lose control during emergencies.', name: 'iri_24'},
+      {prompt: "When I'm upset at someone, I usually try to 'put myself in his shoes' for a while.", name: 'iri_25'},
+      {prompt: 'When I am reading an interesting story or novel, I imagine how I would feel if the events in the story were happening to me.', name: 'iri_26'},
+      {prompt: 'When I see someone who badly needs help in an emergency, I go to pieces.', name: 'iri_27'},
+      {prompt: 'Before criticizing somebody, I try to imagine how I would feel if I were in their place.', name: 'iri_28'}
     ]
   
     var iri_page = [
@@ -518,8 +519,9 @@ Interpersonal Reactivity Index
       type: jsPsychSurvey,
       pages: [iri_page],
       title: 'Interpersonal Reactivity Index',
-      data: { phase: 'iti' },
-      on_finish: updateProgressBar
+      data: { phase: 'iri' },
+      on_finish: updateProgressBar,
+      save_trial_parameters: {accuracy: false}
     };
     if (day == '2') {
       timeline.push(iri);
@@ -546,57 +548,57 @@ Interpersonal Reactivity Index
         type: 'likert-table', 
         required: false, 
         statements: [
-              {prompt: 'The exact contour of face, head, shoulders and body.', name: 'vivq_01'},
-              {prompt: 'Characteristic poses of head, attitudes of body etc.', name: 'vivq_02'},
-              {prompt: "The precise carriage, length of step etc., in walking.", name: 'vivq_03'},
-              {prompt: "The different colors worn in some familiar clothes.", name: 'vivq_04'}
+              {prompt: 'The exact contour of face, head, shoulders and body.', name: '01'},
+              {prompt: 'Characteristic poses of head, attitudes of body etc.', name: '02'},
+              {prompt: "The precise carriage, length of step etc., in walking.", name: '03'},
+              {prompt: "The different colors worn in some familiar clothes.", name: '04'}
         ], 
         prompt: 'Think of some relative or friend whom you frequently see (but who is not with you at present) and consider carefully the picture that comes before your mind’s eye.', 
         options: vviq_options,
         randomize_statement_order: true, 
-        name: 'vviq_friend'
+        name: 'vviq_relative'
       },
       {
         type: 'likert-table', 
         required: false, 
         statements: [
-              {prompt: 'The sun rising above the horizon into a hazy sky.', name: 'vivq_01'},
-              {prompt: 'The sky clears and surrounds the sun with blueness.', name: 'vivq_02'},
-              {prompt: "Clouds. A storm blows up with flashes of lightning.", name: 'vivq_03'},
-              {prompt: "A rainbow appears.", name: 'vivq_04'}
+              {prompt: 'The sun rising above the horizon into a hazy sky.', name: '01'},
+              {prompt: 'The sky clears and surrounds the sun with blueness.', name: '02'},
+              {prompt: "Clouds. A storm blows up with flashes of lightning.", name: '03'},
+              {prompt: "A rainbow appears.", name: '04'}
         ], 
         prompt: 'Visualize a rising sun. Consider carefully the picture that comes before your mind’s eye.', 
         options: vviq_options,
         randomize_statement_order: true, 
-        name: 'vviq_rising_sun'
+        name: 'vviq_sun'
       },
       {
         type: 'likert-table', 
         required: false, 
         statements: [
-              {prompt: 'The overall appearance of the shop from the opposite side of the road.', name: 'vivq_01'},
-              {prompt: 'A window display including colors, shapes and details of individual items for sale.', name: 'vivq_02'},
-              {prompt: "You are near the entrance. The color, shape and details of the door.", name: 'vivq_03'},
-              {prompt: "You enter the shop and go to the counter. The counter assistant serves you. Money changes hands.", name: 'vivq_04'}
+              {prompt: 'The overall appearance of the shop from the opposite side of the road.', name: '01'},
+              {prompt: 'A window display including colors, shapes and details of individual items for sale.', name: '02'},
+              {prompt: "You are near the entrance. The color, shape and details of the door.", name: '03'},
+              {prompt: "You enter the shop and go to the counter. The counter assistant serves you. Money changes hands.", name: '04'}
         ], 
         prompt: 'Think of the front of a shop which you often go to. Consider the picture that comes before your mind’s eye.',
         options: vviq_options,
         randomize_statement_order: true, 
-        name: 'vviq_3'
+        name: 'vviq_shop'
       },
       {
         type: 'likert-table', 
         required: false, 
         statements: [
-              {prompt: 'The contours of the landscape.', name: 'vivq_01'},
-              {prompt: 'The color and shape of the trees.', name: 'vivq_02'},
-              {prompt: "The color and shape of the lake.", name: 'vivq_03'},
-              {prompt: "A strong wind blows on the trees and on the lake causing waves in the water.", name: 'vivq_04'}
+              {prompt: 'The contours of the landscape.', name: '01'},
+              {prompt: 'The color and shape of the trees.', name: '02'},
+              {prompt: "The color and shape of the lake.", name: '03'},
+              {prompt: "A strong wind blows on the trees and on the lake causing waves in the water.", name: '04'}
         ], 
         prompt: 'Finally, think of a country scene which involves trees, mountains and a lake. Consider the picture that comes before your mind’s eye.',
         options: vviq_options,
         randomize_statement_order: true, 
-        name: 'vviq_4'
+        name: 'vviq_country'
       },      
     ]
 
@@ -605,7 +607,8 @@ Interpersonal Reactivity Index
       pages: [vviq_page],
       title: 'Vivdness of Visual Imagery Questionnaire',
       data: { phase: 'vviq' },
-      on_finish: updateProgressBar
+      on_finish: updateProgressBar,
+      save_trial_parameters: {accuracy: false}
     };    
     if (day == '2') {
       timeline.push(vviq);
