@@ -416,13 +416,15 @@ async function backwards_digit_span(){
           choices: "NO_KEYS",
           trial_duration: 500,
           post_trial_gap: 500,
-          timeline: timeline_vars[i]
+          timeline: timeline_vars[i],
+          data: {phase: 'bds'},
         },
         {
           type: jsPsychSurveyText,
           questions: [
             {prompt: 'Report the numbers that you just saw in reverse order:', rows: 2, required: true}
           ],
+          data: {phase: 'bds'},
           on_finish: updateProgressBar
         }
       ],

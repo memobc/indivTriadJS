@@ -154,7 +154,8 @@
     show_question_numbers: 'on',
     title: 'Demographic Information Questionnaire',
     data: { phase: 'demographics' },
-    on_finish: updateProgressBar
+    on_finish: updateProgressBar,
+    save_trial_parameters: {accuracy: false}
   };
 
   // Force Fullscreen
@@ -224,7 +225,8 @@
       on_finish: function () {
         calculate_top();
         updateProgressBar();
-      }
+      },
+      save_trial_parameters: {accuracy: false}
     };
 
     timeline.push(stimsurvey)
@@ -265,7 +267,8 @@
         encTrialNum: function () {
           return c
         }
-      }
+      },
+      save_trial_parameters: {slider_start: false}
     };
 
     var free_text_response = {
@@ -324,7 +327,7 @@
               '<p>This task is designed to be difficult. You are not expected to be able to answer all of the questions correctly.</p>',
               '<p>Your performance on this task will not affect your compensation. Try your best. Click next to begin the task.</p>'
             ],
-      data: { phase: 'enc_bds_BufferScreen' },
+      data: { phase: 'instr' },
       css_classes: ['consent_form'],
       show_clickable_nav: true,
       post_trial_gap: 1500,
@@ -344,7 +347,7 @@
         '<p>Your task is to remember the items that were presented alongside the keyword in the previous portion of the experiment.<\p>',
         '<p>You will click the "continue" button at the bottom of the page when you want to submit your answers. Hit next when you are ready to begin.<\p>',
       ],
-      data: { phase: 'bds_ret_bufferScreen' },
+      data: { phase: 'instr' },
       show_clickable_nav: true,
       css_classes: ['consent_form'],
       on_finish: updateProgressBar
@@ -624,7 +627,8 @@ Interpersonal Reactivity Index
       ]],
       title: 'Debriefing',
       data: { phase: 'debrief' },
-      on_finish: updateProgressBar
+      on_finish: updateProgressBar,
+      save_trial_parameters: {accuracy: false}
     };
     
     timeline.push(debrief_questionnaire);
