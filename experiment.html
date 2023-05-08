@@ -337,8 +337,7 @@
 
     var bds = await backwards_digit_span();
     timeline.push(bds)
-    mock_stim();
-    mock_retTrials(objects);
+
     var bds_ret_BufferScreen = {
       type: jsPsychInstructions,
       pages: [
@@ -638,7 +637,7 @@ Interpersonal Reactivity Index
 
     timeline.push(fullscreen_down);
 
-    jsPsych.simulate(timeline, 'data-only');
+    jsPsych.run(timeline);
 
   });
 

@@ -402,7 +402,7 @@ function saveData(filename, filedata){
 
 async function backwards_digit_span(){
 
-  var timeline_vars = await fetch('backwards_digit_span.json')
+  var timeline_vars = await fetch('backwards_digit_span_day'+day+'.json')
   .then((response) => response.json())
   .then((value) => value);
 
