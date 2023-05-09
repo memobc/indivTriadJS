@@ -251,6 +251,23 @@
         },
         encTrialNum: function () {
           return c
+        },
+        condition: function(){
+          var peopleArray = people.map(obj => obj.prompt);
+          var placesArray = places.map(obj => obj.prompt);
+          var curKey      = allKeyStim[randperm[c]]
+          var condition
+
+          if(peopleArray.includes(curKey)){
+            condition = 'famous person'
+          } else {
+            if(placesArray.includes(curKey)){
+              condition = 'famous place'
+            } else{
+              condition = null;
+            }
+          }
+          return condition
         }
       },
     };
