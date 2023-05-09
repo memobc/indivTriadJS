@@ -18,3 +18,4 @@ data/pilot4/*.html
 data/*.png
 *.png
 .vscode/
+*.rds

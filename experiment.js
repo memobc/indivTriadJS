@@ -162,7 +162,7 @@ set_up_retrieval = function(){
 
     var this_trial = {
       key: thisKey,
-      enc_trial_index: enc_trial_data[i].trial_index
+      encTrialNum: enc_trial_data[i].encTrialNum
     }
 
     ret_trials.push(this_trial)
@@ -177,7 +177,7 @@ set_up_retrieval = function(){
 
     var this_trial = {
       key: objOne,
-      enc_trial_index: enc_trial_data[i].trial_index
+      encTrialNum: enc_trial_data[i].encTrialNum
     }
 
     ret_trials.push(this_trial)
@@ -192,7 +192,7 @@ set_up_retrieval = function(){
 
     var this_trial = {
       key: objTwo,
-      enc_trial_index: enc_trial_data[i].trial_index
+      encTrialNum: enc_trial_data[i].encTrialNum
     }
 
     ret_trials.push(this_trial)
@@ -316,31 +316,6 @@ function mock_retTrials(objectList){
 
 }
 
-construct_retrieval_stimulus = function(){
-
-  cc=++cc;
-
-  var keyWord = ret_trials[cc].key;
-  var resp_opt_1 = ret_trials[cc].resp_opt_1;
-  var resp_opt_2 = ret_trials[cc].resp_opt_2;
-  var resp_opt_3 = ret_trials[cc].resp_opt_3;
-  var resp_opt_4 = ret_trials[cc].resp_opt_4;
-  var resp_opt_5 = ret_trials[cc].resp_opt_5;
-  var resp_opt_6 = ret_trials[cc].resp_opt_6;
-
-  var html = '<div class="outer_wrap">'+
-             '<div class="center">'+keyWord+'</div>'+
-             '<div class="resp_opt_1">'+'1: '+resp_opt_1+'</div>'+
-             '<div class="resp_opt_2">'+'2: '+resp_opt_2+'</div>'+
-             '<div class="resp_opt_3">'+'3: '+resp_opt_3+'</div>'+
-             '<div class="resp_opt_4">'+'4: '+resp_opt_4+'</div>'+
-             '<div class="resp_opt_5">'+'5: '+resp_opt_5+'</div>'+
-             '<div class="resp_opt_6">'+'6:  '+resp_opt_6+'</div>'+
-             '</div>'
-  return html
-
-}
-
 finish_experiment = function(){
 
     // a unique data/time string
@@ -417,14 +392,14 @@ async function backwards_digit_span(){
           trial_duration: 500,
           post_trial_gap: 500,
           timeline: timeline_vars[i],
-          data: {phase: 'bds'},
+          data: {phase: 'bds', bds_trialNum: i},
         },
         {
           type: jsPsychSurveyText,
           questions: [
             {prompt: 'Report the numbers that you just saw in reverse order:', rows: 2, required: true}
           ],
-          data: {phase: 'bds'},
+          data: {phase: 'bds', bds_trialNum: i},
           on_finish: updateProgressBar
         }
       ],
