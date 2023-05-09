@@ -624,8 +624,8 @@ Interpersonal Reactivity Index
       pages: [[
         {type: 'html', prompt: 'Please complete the following short questionnaire. Your answers to these questions will be kept confidential. They will not affect your pay.'},
         {type: 'likert', prompt: 'How distracted were you during the experiment?', likert_scale_max_label: 'Very Distracted', likert_scale_min_label: 'Not Very', name: 'distrationLevel'},
-        {type: 'likert', prompt: 'How much were you paying attention during the experiemnt?', likert_scale_max_label: 'Not Much', likert_scale_min_label: 'Very Much', name: 'attentionLevel'},
-        {type: 'likert', prompt: 'How well do you feel that you did on the experiment?', likert_scale_max_label: 'Not Very Well', likert_scale_min_label: 'Very Well', name: 'performanceLevel'}
+        {type: 'likert', prompt: 'How much were you paying attention during the experiemnt?', likert_scale_max_label: 'Very Much', likert_scale_min_label: 'Not Much', name: 'attentionLevel'},
+        {type: 'likert', prompt: 'How well do you feel that you did on the experiment?', likert_scale_max_label: 'Very Well', likert_scale_min_label: 'Not Very Well', name: 'performanceLevel'}
       ]],
       title: 'Debriefing',
       data: { phase: 'debrief' },
@@ -637,7 +637,7 @@ Interpersonal Reactivity Index
 
     timeline.push(fullscreen_down);
 
-    jsPsych.run(timeline);
+    jsPsych.simulate(timeline, 'data-only');
 
   });
 
