@@ -335,7 +335,7 @@ finish_experiment = function(){
     // farewell message based on the session
     var farewell_message;
     if(day == '1') {
-      farewell_messsage = "You have completed the last task. Thank you for participating! We recommend completing Part 2 tomorrow at the earliest. You have up to 1 week to complete Part 2.";
+      farewell_messsage = "You have completed the last task. Thank you for participating! Part 2 of the experiment will be made available to you ASAP via Prolific.";
     } else {
       farewell_messsage = "You have completed the last task. Thank you for participating!";
     }
