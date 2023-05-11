@@ -36,7 +36,8 @@ df.exp %>%
   rename(trial_index_enc_slider = trial_index,
          time_elapsed_enc_slider = time_elapsed,
          rt_slider = rt,
-         response_slider = response) -> enc.slider
+         response_slider = response) %>%
+  mutate(rt_slider = as.double(rt_slider)) -> enc.slider
 
 df.exp %>%
   filter(phase == 'enc') %>%

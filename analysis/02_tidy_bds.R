@@ -34,7 +34,8 @@ df.exp %>%
   mutate(response = map(response, ~jsonlite::parse_json(.x) %>% as_tibble())) %>%
   unnest(response) %>%
   select(subject_id, study_id, session_id, trial_index, time_elapsed, rt, bds_trialNum, Q0) %>%
-  rename(response = Q0) -> bds.resp
+  rename(response = Q0) %>%
+  mutate(rt = as.double(rt)) -> bds.resp
 
 df.exp %>%
   filter(phase == 'bds' & trial_type == 'html-keyboard-response') %>%

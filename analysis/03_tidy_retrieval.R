@@ -17,7 +17,8 @@ df.exp %>%
   mutate(response = map(response, ~jsonlite::parse_json(.x) %>% as_tibble())) %>%
   unnest(response) %>%
   select(subject_id, study_id, session_id, trial_index, time_elapsed, rt, encTrialNum, key, Q0, Q1) %>%
-  rename(ret_probe = key, ret_resp_1 = Q0, ret_resp_2 = Q1) -> tidy.ret
+  rename(ret_probe = key, ret_resp_1 = Q0, ret_resp_2 = Q1) %>%
+  mutate(rt = as.double(rt)) -> tidy.ret
 
 left_join(tidy.ret, tidy.enc, by = c("subject_id", "study_id", "session_id", "encTrialNum")) -> tidy.ret
 
