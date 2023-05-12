@@ -42,8 +42,6 @@ timespent.all.else %>%
                            TRUE ~ as.character(phase))) %>%
   bind_rows(., timespent.task) %>%
   arrange(subject_id, trial_index) %>%
-  mutate(subject_id = factor(subject_id, labels = c('s001', 's002', 's003', 's004', 's005'))) %>%
-  mutate(phase = factor(phase, levels = rev(c('welcome_screen', 'consent', 'demographics', 'stim_ratings', 'instr_pre_enc', 'enc', 'instr_pre_bds', 'bds', 'instr_pre_ret', 'ret', 'debrief')))) %>%
   mutate(time_spend = time_spend / 1000 / 60) -> tidy.timespend
 
 Set3 <- RColorBrewer::brewer.pal(11, 'Set3')
