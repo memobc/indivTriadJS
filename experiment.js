@@ -324,8 +324,8 @@ finish_experiment = function(){
     var datestring = today.getMonth() + '-' + today.getDate() + '-' + today.getFullYear() + '-' + today.getHours() + '-' + today.getMinutes() + '-' + today.getSeconds()
 
     // Save Data w/ unique data/time string
-    saveData('datetime-' + datestring + '_sub-' + subject_id + '_ses-' + session_id + "_data-experiment.csv", jsPsych.data.get().csv());
-    saveData('datetime-' + datestring + '_sub-' + subject_id + '_ses-' + session_id + "_data-interaction.csv", jsPsych.data.getInteractionData().csv());
+    saveData('datetime-' + datestring + '_sub-' + subject_id + '_ses-' + study_id + "_data-experiment.csv", jsPsych.data.get().csv());
+    saveData('datetime-' + datestring + '_sub-' + subject_id + '_ses-' + study_id + "_data-interaction.csv", jsPsych.data.getInteractionData().csv());
 
     // Display the link so participants can give themselves SONA credit
     var el = jsPsych.getDisplayElement();
