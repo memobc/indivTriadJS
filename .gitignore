@@ -1,4 +1,5 @@
 *.Rproj
+analysis/*.html
 All
 Nina_similar_famous_faces_noBR
 BOSS_norms_maureen_condensed.csv
