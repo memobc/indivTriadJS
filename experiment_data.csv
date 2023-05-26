@@ -1,25 +1,57 @@
-people,place,index,first,second
-Hillary Clinton,Dunes,0,guitar case,hula hoop
-Oprah,Valley,1,snowboard,wheelchair
-Lady Gaga,Library,2,pencil,surf board
-Brad Pitt,Bridge,3,horseshoe,zipper
-Michael Jackson,Restaurant,4,frisbee,battery
-Julia Roberts,Ice Rink,5,accordion,thermometer
-Lady Diana,Lecture Hall,6,microscope,rubik cube
-Julianne Moore,Indoor Pool,7,binoculars,disco ball
-Shakira,Warehouse,8,dream catcher,arrow
-Tom Hanks,Courtroom,9,umbrella,sand castle
-Dwayne Johnson,Sauna,10,lighter,school bus
-Robert Pattinson,Newsroom,11,apron,bird house
-Robin Williams,Bathroom,12,earrings,light switch
-Michael Phelps,Cruise Ship,13,parachute,football
-Serena Williams,Bar,14,windmill,calculator
-Mahatma Gandhi,Wind Farm,15,chalk,dart board
-Rosa Parks,Stone House,16,cash register,handcuffs
-Audrey Hepburn,Green House,17,mouse trap,harmonica
-Ryan Reynolds,Theater,18,mattress,scissors
-Mindy Kaling,Cabin,19,bullet,lawn mower
-Ellen Degeneres,Ferris Wheel,20,screwdriver,cigarette
-Anne Hathaway,Studio,21,mail box,belt
-Timothee Chalamet,Jetty,22,kite,bow
-Sandra Bullock,Savannah,23,telescope,snowman
+day,people,place,index,first,second
+1,Octavia Spencer,"The Golden Gate Bridge, San Francisco",0,guitar case,telescope
+1,Paul McCartney,"Napa Valley, California",1,snowboard,bridge
+1,Julianne Moore,Niagara Falls,2,pencil,screwdriver
+1,Stephen Hawking,"Burj Khalifa, Dubai",3,horseshoe,mail box
+1,Nicholas Cage,"The Tower of Pisa, Italy",4,frisbee,kite
+1,Bradley Cooper,"The Lincoln Memorial, Washington D.C.",5,accordion,cd
+1,Hugh Jackman,"Neuschwanstein Castle, Germany",6,microscope,trophy
+1,Anne Hathaway,The London Eye,7,binoculars,wheelchair
+1,Audrey Hepburn,"The University of Oxford, England",8,ashtray,sand castle
+1,John F. Kennedy,"Epcot Center, Orlando",9,fly swatter,surf board
+1,Mother Teresa,"United Nations Headquarters, New York",10,umbrella,zipper
+1,Daniel Radcliffe,The Pyramids of Giza,11,cannon,battery
+1,Emily Blunt,"The Brandenburg Gate, Berlin",12,cash register,thermometer
+1,Mark Zuckerberg,"The Empire State Building, New York",13,lighter,plate
+1,Liam Hemsworth,"The Bird's Nest, Beijing",14,spoon,mouse trap
+1,Steve Jobs,"The Serengeti, Africa",15,apron,arrow
+1,Sean Connery,"The Western Wall, Jerusalem",16,disco ball,school bus
+1,Serena Williams,The Great Sphinx of Giza,17,earrings,light switch
+1,Jimmy Fallon,"The Hoover Dam, Nevada",18,dream catcher,sandal
+1,Robert Downey Jr.,"Capitol Hill, Washington D.C.",19,tricycle,eraser
+1,Jamie Foxx,"The Grand Canal, Venice",20,parachute,hockey stick
+1,Michael Phelps,"The White House, Washington D.C.",21,windmill,chain
+1,Mindy Kaling,"Machu Picchu, Peru",22,chalk,harmonica
+1,Tom Cruise,"Vatican City, Italy",23,cigar,tile
+1,Matthew McConaughey,"Uluru, Australia",24,lamp,stapler
+1,Bill Gates,"La Sagrada Familia, Barcelona",25,broom,snowman
+1,,,26,mattress,bullet
+1,,,27,shirt,funnel
+2,Timothee Chalamet,"Buckingham Palace, London",0,paint brush,compass
+2,Hillary Clinton,"The Gateway Arch, St. Louis",1,wrench,rubik cube
+2,Kristen Wiig,"The Great Buddha, Japan",2,candle,screw
+2,Ellen Degeneres,"Windsor Castle, United Kingdom",3,cigarette,key
+2,Stephen Curry,The Blue Domes of Santorini,4,staples,match
+2,Leonardo Dicaprio,The Las Vegas Strip,5,tennis ball,dart board
+2,Marilyn Monroe,"Notre-Dame, Paris",6,toothbrush,brick
+2,Oprah,"The Louvre, Paris",7,toolbox,book
+2,Chris Pratt,"The Palm Islands, Dubai",8,bird house,nutcracker
+2,Angelina Jolie,"The Grand Canyon, Arizona",9,anchor,dice
+2,Ryan Reynolds,"Mount Everest, Nepal",10,nunchuks,skateboard
+2,Lady Diana,"Hagia Sophia, Istanbul",11,button,lawn mower
+2,John Travolta,"The Bank of England, London",12,scissors,trampoline
+2,Meghan Markle,"The British Museum, London",13,calculator,envelope
+2,Justin Bieber,"Carnegie Hall, New York",14,toilet paper,football
+2,Amy Poehler,"Central Park, New York",15,blender,handcuffs
+2,Bruno Mars,"Easter Island, Chile",16,swing,dog house
+2,Robert Pattinson,"Mecca, Saudi Arabia",17,locker,sewing machine
+2,Will Smith,"Westminster Abbey, London",18,hula hoop,ladder
+2,Meryl Streep,"Times Square, New York",19,toaster,bowling pin
+2,Emma Watson,"Tower Bridge, London",20,scarf,violin
+2,Julia Roberts,"Fenway Park, Boston",21,lighthouse,basketball
+2,Margot Robbie,"Cristo Redentor, Rio de Janeiro",22,pool table,bow
+2,Robert Deniro,"La Grande Arche, Paris",23,banjo,wheel barrow
+2,George Clooney,"The Kremlin, Moscow",24,drum sticks,soccer ball
+2,Keira Knightley,"The CN Tower, Toronto",25,lipstick,rake
+2,,,26,ruler,helicopter
+2,,,27,bumper car,iron

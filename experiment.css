@@ -1,73 +1,78 @@
-<style>
-  /* ENCODING */
-  .centertop {
-    position: absolute;
-    top: 5%;
-    width: 100%;
-    text-align: center;
-  }
-  .lowerright {
-    position: absolute;
-    bottom: 5%;
-    right: 10%;
-  }
-  .lowerleft {
-    position: absolute;
-    bottom: 5%;
-    left: 10%;
-  }
-  /* RETRIEVAL */
-  .outer_wrap {
-    width: 120vmin;
-    height: 90vmin;
-    font-size: 4vmin;
-    position: relative;
-    line-height: normal;
-  }
-  .center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    inline-size: 25%;
-    transform: translate(-50%, -50%);
-  }
-  .resp_opt_1 {
-    position: absolute;
-    top: 45%;  /* unit */
-    left: 70%; /* unit*1.5 */
-    inline-size: 20%;
-  }
-  .resp_opt_2 {
-    position: absolute;
-    top: 71%; /*unit*1.43*/
-    left: 55%; /*unit*1.25*/
-    inline-size: 20%;
-  }
-  .resp_opt_3 {
-    position: absolute;
-    top: 71%; /*unit*1.43*/
-    left: 25%; /*unit*.75*/
-    inline-size: 20%;
-  }
-  .resp_opt_4 {
-    position: absolute;
-    top: 45%; /*unit*/
-    left: 10%; /*unit*.5*/
-    inline-size: 20%;
-  }
-  .resp_opt_5 {
-    position: absolute;
-    top: 19%; /*unit*.57*/
-    left: 25%; /*unit*.75*/
-    inline-size: 20%;
-  }
-  .resp_opt_6 {
-    position: absolute;
-    top: 19%; /*unit*.57*/
-    left: 55%; /*unit*1.25*/
-    inline-size: 20%;
-  }
-  #jspsych-survey-likert-next{
-    margin-bottom: 35px;
-  }
-</style>
+/* ENCODING */
+.centertop {
+  position: absolute;
+  top: 5%;
+  width: 100%;
+  text-align: center;
+}
+.lowerright {
+  position: absolute;
+  bottom: 5%;
+  right: 10%;
+}
+.lowerleft {
+  position: absolute;
+  bottom: 5%;
+  left: 10%;
+}
+/* RETRIEVAL */
+.outer_wrap {
+  width: 120vmin;
+  height: 90vmin;
+  font-size: 4vmin;
+  position: relative;
+  line-height: normal;
+}
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  inline-size: 25%;
+  transform: translate(-50%, -50%);
+}
+#jspsych-survey-likert-next{
+  margin-bottom: 35px;
+}
+/* .jspsych-content{
+  width: 8.5in;
+} */
+.jspsych-survey-likert-preamble{
+  display: inline-block;
+  text-align: justify;
+}
+.jspsych-display-element {
+  font-size: 24px;
+}
+
+.jspsych-display-element input[type=text] {
+  font-size: 18px;
+}
+
+.jspsych-btn {
+  font-size: 18px;
+}
+
+textarea {
+  font-size: 18px;
+}
+
+.jspsych-survey-likert-statement {
+  font-size: 18px;
+}
+
+.jspsych-survey-likert-opts {
+  font-size: 16px;
+}
+@media (min-width: 768px){
+  .sv_main .sv_container .sv_body .sv_p_root table.sv_q_matrix td {
+    min-width: unset;
+}
+}
+.consent_form {
+  width: 8.5in
+}
+
+/* .sv_main .sv_container .sv_body .sv_p_root .sv_q_title {
+    font-size: 28px;
+}
+ */

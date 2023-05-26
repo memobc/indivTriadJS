@@ -16,7 +16,7 @@ library(tidyverse)
 library(ggridges)
 library(lme4)
 
-source('../sort_associations.R')
+source('../toolbox/sort_associations.R')
 
 colSpec <- cols(subject = col_factor())
 
@@ -99,9 +99,7 @@ df %>%
   geom_hline(yintercept = 1/6, color = 'red') +
   expand_limits(y = c(0,1)) +
   facet_grid(~day, labeller = label_both) +
-  theme(aspect.ratio = 1) -> plot1
-
-ggsave(filename = 'plot1.png', path = 'pilot3/plot1.png', width = , height = )
+  theme(aspect.ratio = 1)
 ```
 
 ```{r}

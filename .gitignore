@@ -1,4 +1,5 @@
 *.Rproj
+analysis/*.html
 All
 Nina_similar_famous_faces_noBR
 BOSS_norms_maureen_condensed.csv
@@ -17,3 +18,5 @@ data/pilot4/*.csv
 data/pilot4/*.html
 data/*.png
 *.png
+.vscode/
+*.rds

@@ -1,0 +1,91 @@
+---
+title: "Secondary Exclusion Criteria"
+author: "Kyle Kurkela"
+date: "2023-05-12"
+output:
+  html_document: 
+    toc: yes
+    code_folding: hide  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+df.interaction <- read_rds('../compiled_interaction.rds')
+df.experiment <- read_rds('../compiled_experiment.rds')
+df.graded <- read_rds('../graded_df.rds')
+```
+
+## Criterion 1: RT Slower than 5 minutes
+
+Reaction time on any 1 trial is slower than 5 minutes.
+
+```{r, warning=FALSE}
+# coerce rt to double
+# remove events without a rt
+df.experiment %>% 
+  filter(!is.na(rt)) %>%
+  group_by(subject_id) %>%
+  summarise(exclude = any(rt > 5*60*1000), .groups = 'drop') %>%
+  rmarkdown::paged_table()
+```
+
+```{r}
+df.experiment %>%
+  filter(!is.na(rt)) %>%
+  mutate(highlight = rt > 5*60*1000) %>%
+  mutate(rt = rt/1000/60) %>%
+  ggplot(aes(x = rt, y = phase)) +
+  geom_point(shape = "|", size = 2) +
+  facet_wrap(~subject_id, ncol = 3, nrow = 2) +
+  geom_vline(xintercept = 5, color = 'red') +
+  scale_color_manual(values = c('black', 'red')) +
+  theme_light() +
+  guides(color = "none") +
+  theme(panel.grid.minor.x = element_blank()) +
+  scale_x_continuous(breaks = c(0,1,5,10,15)) +
+  labs(x = 'rt (min)', caption = 'dashes = trials. red line is 5 minutes')
+```
+
+## Criterion 2: Cued Recall Performance > 3 SDs
+
+Cued recall performance in greater than 3 SDs away from sample mean
+
+```{r}
+df.graded %>%
+  select(subject_id, study_id, trial_index, encTrialNum, ends_with('Correct')) %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
+  filter(!is.na(correct)) %>%
+  group_by(subject_id, study_id) %>%
+  summarise(prop_correct = mean(correct), .groups = 'drop') %>%
+  mutate(zscore = as.double(scale(prop_correct))) %>%
+  mutate(exclude = abs(zscore) > 3) %>%
+  rmarkdown::paged_table()
+```
+
+## Criterion 3: RT on Surveys < 3 SDs
+
+Average RT to complete the debriefing, SAM, IRI, or VVIQ is faster than 3 SDs away from sample mean.
+
+NOT COMPLETED YET.
+
+## Criterion 4: > 5 blue or focus events
+
+If they have more than 5 blur or focus events during the course of the experiment.
+
+```{r}
+# give the subjects easier to read ids
+# count the number of browser events
+# create an easy to read table
+df.interaction %>%
+  mutate(subject_id = factor(subject_id, labels = str_c('s00', 1:5))) %>%
+  unnest(data) %>%
+  count(subject_id, event) %>%
+  filter(event %in% c('blur', 'focus')) %>%
+  complete(subject_id, event, fill = list(n = 0)) %>%
+  pivot_wider(names_from = event, values_from = n) %>%
+  mutate(exclude = blur > 5 | focus > 5) %>%
+  rmarkdown::paged_table()
+```
