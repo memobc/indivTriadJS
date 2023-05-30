@@ -16,6 +16,10 @@ library(tidyverse)
 df.interaction <- read_rds('../compiled_interaction.rds')
 df.experiment <- read_rds('../compiled_experiment.rds')
 df.graded <- read_rds('../graded_df.rds')
+
+df.sam <- read_rds('../tidy_sam.rds')
+df.iri <- read_rds('../tidy_iri.rds')
+df.vviq <- read_rds('../tidy_vviq.rds')
 ```
 
 ## Criterion 1: RT Slower than 5 minutes
@@ -27,8 +31,9 @@ Reaction time on any 1 trial is slower than 5 minutes.
 # remove events without a rt
 df.experiment %>% 
   filter(!is.na(rt)) %>%
-  group_by(subject_id) %>%
+  group_by(subject_id, study_id) %>%
   summarise(exclude = any(rt > 5*60*1000), .groups = 'drop') %>%
+  pivot_wider(names_from = study_id, values_from = exclude) %>% 
   rmarkdown::paged_table()
 ```
 
@@ -38,8 +43,8 @@ df.experiment %>%
   mutate(highlight = rt > 5*60*1000) %>%
   mutate(rt = rt/1000/60) %>%
   ggplot(aes(x = rt, y = phase)) +
-  geom_point(shape = "|", size = 2) +
-  facet_wrap(~subject_id, ncol = 3, nrow = 2) +
+  geom_point(shape = "|", size = 3) +
+  facet_grid(study_id~subject_id) +
   geom_vline(xintercept = 5, color = 'red') +
   scale_color_manual(values = c('black', 'red')) +
   theme_light() +
@@ -60,16 +65,30 @@ df.graded %>%
   filter(!is.na(correct)) %>%
   group_by(subject_id, study_id) %>%
   summarise(prop_correct = mean(correct), .groups = 'drop') %>%
+  # z score within session (study_id)
+  group_by(study_id) %>%
   mutate(zscore = as.double(scale(prop_correct))) %>%
   mutate(exclude = abs(zscore) > 3) %>%
+  arrange(study_id, subject_id) %>%
   rmarkdown::paged_table()
 ```
+
+Zscore within session. See code.
 
 ## Criterion 3: RT on Surveys < 3 SDs
 
 Average RT to complete the debriefing, SAM, IRI, or VVIQ is faster than 3 SDs away from sample mean.
 
-NOT COMPLETED YET.
+```{r}
+bind_rows(df.sam, df.iri, df.vviq, .id = 'survey') %>%
+  mutate(survey = factor(survey, labels = c('sam', 'iri', 'vviq'))) %>%
+  select(subject_id, rt, survey) %>%
+  # zscore within survey
+  group_by(survey) %>%
+  mutate(zscore = as.double(scale(rt))) %>%
+  mutate(exclude = abs(zscore) > 3) %>%
+  rmarkdown::paged_table()
+```
 
 ## Criterion 4: > 5 blue or focus events
 
@@ -80,12 +99,13 @@ If they have more than 5 blur or focus events during the course of the experimen
 # count the number of browser events
 # create an easy to read table
 df.interaction %>%
-  mutate(subject_id = factor(subject_id, labels = str_c('s00', 1:5))) %>%
   unnest(data) %>%
-  count(subject_id, event) %>%
+  count(subject_id, session_id, event) %>%
+  complete(nesting(subject_id, session_id), event, fill = list(n = 0)) %>%
   filter(event %in% c('blur', 'focus')) %>%
-  complete(subject_id, event, fill = list(n = 0)) %>%
   pivot_wider(names_from = event, values_from = n) %>%
   mutate(exclude = blur > 5 | focus > 5) %>%
   rmarkdown::paged_table()
 ```
+
+Due to a bug in my code, I wrote out the "session_id" instead of the "study_id" which correctly identifies the study session. I am not entirely sure what Prolific's "session_id" refers to.

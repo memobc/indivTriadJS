@@ -42,16 +42,18 @@ ggplot(performance.df, aes(x = correct)) +
   theme(axis.title.y = element_blank(), 
         axis.ticks.y = element_blank(), 
         panel.grid.minor.x = element_blank(),
-        axis.text.y = element_blank())
+        axis.text.y = element_blank()) +
+  facet_wrap(~study_id, nrow = 2)
 ```
 
 ## Dependency
 
 ```{r}
-ggplot(dependency.df, aes(x = condition, y = dependency)) +
+ggplot(dependency.df, aes(x = condition, y = dependency, color = subject_id)) +
   geom_point() +
   geom_line(aes(group = subject_id)) +
   scale_y_continuous(limits = c(NA, 0.5)) +
   theme_light() +
-  labs(title = 'Dependency', subtitle = 'By Triad Type')
+  labs(title = 'Dependency', subtitle = 'By Triad Type') +
+  facet_wrap(~study_id, ncol = 2)
 ```

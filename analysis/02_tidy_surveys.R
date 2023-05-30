@@ -61,7 +61,7 @@ df.exp %>%
   select(where(~!all(is.na(.x)))) %>%
   mutate(response = map(response, extract_survey, page_name = 'sam')) %>%
   unnest(response) %>%
-  select(subject_id, study_id, session_id, matches('[0-9]$')) -> tidy.sam
+  select(subject_id, study_id, session_id, rt, matches('[0-9]$')) -> tidy.sam
 
 saveRDS(tidy.sam, file = 'tidy_sam.rds')
 
@@ -72,7 +72,7 @@ df.exp %>%
   select(where(~!all(is.na(.x)))) %>%
   mutate(response = map(response, extract_survey, page_name = 'iri')) %>%
   unnest(response) %>%
-  select(subject_id, study_id, session_id, matches('[0-9]$')) -> tidy.iri
+  select(subject_id, study_id, session_id, rt, matches('[0-9]$')) -> tidy.iri
 
 saveRDS(tidy.iri, file = 'tidy_iri.rds')
 
@@ -95,6 +95,6 @@ df.exp %>%
   select(where(~!all(is.na(.x)))) %>%
   mutate(response = map(response, extract_vivq)) %>%
   unnest(response) %>%
-  select(subject_id, study_id, session_id, matches('[0-9]$')) -> tidy.vviq
+  select(subject_id, study_id, session_id, rt, matches('[0-9]$')) -> tidy.vviq
 
-saveRDS(tidy.iri, file = 'tidy_iri.rds')
+saveRDS(tidy.iri, file = 'tidy_vviq.rds')

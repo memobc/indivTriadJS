@@ -51,7 +51,8 @@ tidy.enc %>%
     point_shape = '|', point_size = 3, point_alpha = 1, alpha = 0.7,
   ) +
   scale_x_continuous(breaks = c(0, 10000, 20000, 48500, 146000)/1000) +
-  labs(x = 'slider_rt (s)', title = 'Encoding Slider Response', subtitle = 'RT Distributions')
+  labs(x = 'slider_rt (s)', title = 'Encoding Slider Response', subtitle = 'RT Distributions') +
+  facet_grid(~study_id)
 ```
 
 
@@ -79,7 +80,8 @@ tidy.ret %>%
     point_shape = '|', point_size = 3, point_alpha = 1, alpha = 0.7,
   ) +
   scale_x_continuous(breaks = c(0,30, 60, 90, 120, 540)) +
-  labs(x = 'slider_rt (s)', title = 'Cued Recall', subtitle = 'Submit RT Distributions')
+  labs(x = 'slider_rt (s)', title = 'Cued Recall', subtitle = 'Submit RT Distributions') +
+  facet_grid(~study_id)
 ```
 
 
@@ -107,7 +109,8 @@ tidy.bds %>%
     point_shape = '|', point_size = 3, point_alpha = 1, alpha = 0.7,
   ) +
   scale_x_continuous(breaks = c(0,5, 10, 15, 20, 25)) +
-  labs(x = 'slider_rt (s)', title = 'Backwards Digit Span', subtitle = 'RT Distributions')
+  labs(x = 'slider_rt (s)', title = 'Backwards Digit Span', subtitle = 'RT Distributions') +
+  facet_grid(~study_id)
 ```
 
 
@@ -118,7 +121,7 @@ Participants who objectively demonstrated clear low-effort throughout the experi
 ```{r}
 tidy.ret %>%
   pivot_longer(cols = starts_with('ret_resp'), names_to = 'resp_num', values_to = 'text_resp') %>%
-  group_by(subject_id) %>%
+  group_by(subject_id, study_id) %>%
   summarise(nblank = sum(text_resp == ""), total = n(), .groups = 'drop') %>%
   mutate(prop_blank = nblank / total) %>%
   mutate(exclude = prop_blank > .9) %>%
@@ -139,7 +142,7 @@ tidy.enc %>%
 
 ## Exclusion Criterion 4
 
-Participants who objectively demonstrated clear low-effort throughout the experiment. Specifically participants used the same response on the slider scale for every single encoding trial.
+Participants who objectively demonstrated clear low-effort throughout the experiment. Specifically, they responded with nonsense on the catch trials.
 
 ```{r}
 # catch trials
