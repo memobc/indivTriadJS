@@ -59,7 +59,7 @@
   });
 
   // total number of events in the experiment. Used to properly gage the progress bar at the top of the screen
-  if(study_id == '645414644d939e64c3fe90e2'){
+  if(day == '1'){
     nEvents = 120;
   } else {
     nEvents = 121;
@@ -105,7 +105,7 @@
   var timeline = [];
 
   // Welcome Message, differs based on session
-  if (study_id == '645414644d939e64c3fe90e2') {
+  if (day == '1') {
     var msg = "Welcome to Part 1 of our experiment. Press any key to begin.";
   } else {
     var msg = "Welcome to Part 2 of our experiemnt. Press any key to begin."
@@ -195,7 +195,7 @@
     timeline.push(fullscreen_up);
 
     // only collect consent, demographics on day 1
-    if (study_id == '645414644d939e64c3fe90e2') {
+    if (day == '1') {
       timeline.push(consent);
       timeline.push(demographics);
     }
