@@ -101,6 +101,7 @@ SetInstr = function(){
           '<p>Leave the boxes blank if you cannot remember the other items. If you can only remember one of the two items, fill that one in.<\p>' + example_correct,
           '<p>You will click the "continue" button at the bottom of the page when you want to submit your answers.<\p>' + example_correct,
           '<p>Before each task, you will be reminded of these instructions. If you need to take a break at any point, please take a break during these instructions screens in between tasks.</p>',
+          '<p>We also ask that you refrain from clicking away from the screen during the experiment. If possible, please complete the experiment in a single sitting.</p>',
           '<p>Click next when you are ready to begin the experiment.</p>'
       ],
       data: {phase: 'instr'},
