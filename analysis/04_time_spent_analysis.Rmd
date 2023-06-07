@@ -166,4 +166,3 @@ tidy.timespend %>%
   labs(title = 'How log did participants spend on the surveys?')
 ```
 
-About 10-11 minutes.  

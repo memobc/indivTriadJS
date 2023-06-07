@@ -150,7 +150,3 @@ tidy.catch %>%
   select(subject_id, study_id, response) %>%
   paged_table()
 ```
-
-## Exclusion Criterion 5
-
-Participants who did not comprehend the instructions. Failed 2 of 3 instructions comprehension tests.
