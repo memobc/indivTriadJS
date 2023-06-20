@@ -6,6 +6,7 @@ BOSS_norms_maureen_condensed.csv
 .Rproj.user/
 data/*.csv
 data/*.html
+data/tests/
 *.Rhistory
 data/pilot1/*.csv
 data/pilot1/*.html

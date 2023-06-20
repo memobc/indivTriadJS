@@ -1,7 +1,7 @@
 ---
 title: "Recall Performance"
 author: "Kyle Kurkela"
-date: "2023-05-12"
+date: "2023-06-13"
 output: 
   html_document: 
     toc: yes
@@ -29,6 +29,7 @@ graded.df %>%
   summarise(across(correct, mean), .groups = 'drop') -> performance.df
 
 performance.df %>%
+  arrange(study_id, correct) %>%
   rmarkdown::paged_table()
 ```
 
@@ -54,6 +55,27 @@ ggplot(dependency.df, aes(x = condition, y = dependency, color = subject_id)) +
   geom_line(aes(group = subject_id)) +
   scale_y_continuous(limits = c(NA, 0.5)) +
   theme_light() +
-  labs(title = 'Dependency', subtitle = 'By Triad Type') +
+  labs(title = 'Dependency', subtitle = 'By Triad Type', caption = 'colors = subject') +
+  guides(color = "none") +
   facet_wrap(~study_id, ncol = 2)
 ```
+
+```{r}
+dependency.df %>% 
+  select(subject_id, study_id, condition, dependency) %>% 
+  pivot_wider(values_from = dependency, names_from = condition) %>% 
+  mutate(personType = case_when(`famous person` > `famous place` ~ 'person favorer', 
+                                `famous person` < `famous place` ~ 'place favorer', 
+                                TRUE ~ 'neither')) %>% 
+  pivot_longer(cols = all_of(c('famous person', 'famous place')), 
+                             names_to = 'condition', 
+                             values_to = 'dependency') %>%
+  ggplot(., aes(x = condition, y = dependency, color = personType, group = subject_id)) +
+  geom_point() +
+  geom_line(aes(group = subject_id)) +
+  scale_y_continuous(limits = c(NA, 0.5)) +
+  theme_light() +
+  labs(title = 'Dependency', subtitle = 'Highlighting Person Types', caption = 'color = personType') +
+  facet_wrap(~study_id)
+```
+
