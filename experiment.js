@@ -100,6 +100,8 @@ SetInstr = function(){
           '<p>Your task is to remember the items that were presented alongside the keyword in the previous portion of the experiment.<\p>' + example_correct,
           '<p>Leave the boxes blank if you cannot remember the other items. If you can only remember one of the two items, fill that one in.<\p>' + example_correct,
           '<p>You will click the "continue" button at the bottom of the page when you want to submit your answers.<\p>' + example_correct,
+          '<p>Before each task, you will be reminded of these instructions. If you need to take a break at any point, please take a break during these instructions screens in between tasks.</p>',
+          '<p>We also ask that you refrain from clicking away from the screen during the experiment. If possible, please complete the experiment in a single sitting.</p>',
           '<p>Click next when you are ready to begin the experiment.</p>'
       ],
       data: {phase: 'instr'},
@@ -335,7 +337,7 @@ finish_experiment = function(){
     // farewell message based on the session
     var farewell_message;
     if(day == '1') {
-      farewell_messsage = "You have completed the last task. Thank you for participating! Part 2 of the experiment will be made available to you ASAP via Prolific.";
+      farewell_messsage = "You have completed the last task. Thank you for participating! Part 2 of the experiment will be made available to you ASAP via Prolific. Please complete Part 2 within the next couple of days.";
     } else {
       farewell_messsage = "You have completed the last task. Thank you for participating!";
     }

@@ -1,0 +1,250 @@
+---
+title: "Data Accounting"
+output: 
+  html_notebook: 
+    toc: yes
+    toc_float: yes
+---
+
+Packages used  
+
+```{r requirements, warning=FALSE, message=FALSE}
+library(tidyverse) # <3
+library(rmarkdown)
+```
+
+Hand select the data directory. A directory selection window will pop up.  
+
+```{r data_dir}
+d <- choose.dir(caption = 'Select Data Folder')
+```
+
+# Data Descriptions
+
+## Rosetta
+
+The rosetta stone data frame (`rosetta`). Hand created by Kyle. Translates the prolific study ids
+into English.
+
+```{r rosetta, warning=FALSE, message=FALSE}
+file.path(d, 'study_id_rosetta.csv') -> path.2.file
+
+read_csv(file = path.2.file) %>%
+  rename(notes = ...4) -> rosetta
+
+paged_table(rosetta)
+```
+
+| variable name | description |
+| -- | ----------- |
+|`study_id`     | the randomized study id provided by prolific. uniquely identifies each prolific study.  |
+|`session`      | was this prolific study session 1 or session 2 of the experiment?  |
+|`version`      | which version of the experiment was this?  |
+|`notes`        | what makes this version unique?  |
+
+## Demographics
+
+The demographics data is downloadable from Prolific. There is one .csv file for each Prolific study. We have 6 studies on Prolific associated with TRIADs: 3 versions, 2 sessions per version. The `study_id` variable is written into the filenames. See code:  
+
+```{r}
+# list the full path to all files starting with "prolific_export" in the directory "d"
+list.files(path = d, pattern = 'prolific_export.*.csv', full.names = T) -> f.dem
+
+# grab all of the alphanumeric characters between the strings "export_" and ".csv"
+str_extract(f.dem, '(?<=export_).*(?=.csv)') -> extracted.study.id
+
+print(f.dem)
+```
+
+The `study_id` variable is not written into the data itself. The following code works it into the data appropriately:  
+
+```{r}
+# using the read_csv function, read each csv file in "f.dem" in. Store as a list.
+df.dem <- map(f.dem, read_csv, show_col_types = F)
+
+# create a tibble with a study_id and dem.data column. dem.data column is a list-col.
+tibble(study_id = extracted.study.id, dem.data = df.dem) %>%
+  unnest(cols = dem.data) -> df.dem
+
+paged_table(df.dem)
+```
+
+| variable name | description |
+| ---------- | --------------------------------------------   |
+| `study_id` | unique id associated with each Prolific study. |  
+| `Submission id` | unique to each subject/study combination. | 
+| `Participant id` | unique to each individual. |
+| `Status` | did you pay/reject them yet?. |
+| `Started at`:`Achived at` | date time that X occurred. |
+| `Time taken` | amount of time between originally clicking the link and clicking the link to return. |
+| `Completion code` | code that participant can message with. I did not set the option for a completion code. Not sure why it is reported here. |
+| `Total approvals`:`Employment status` | demographic data. I did not request any of this information. |
+
+Lets simplify this to a form that is less complex. Using `tidyr::nest` turn all of the demographic data variables into a list column of dataframes.  
+
+```{r}
+# take all of the columns that are NOT 'study_id' and 'Participant id' and hide them as a list-col dataframe ("dem.data").  
+df.dem %>%
+  nest(dem.data = -all_of(c('study_id', 'Participant id'))) -> df.dem
+
+paged_table(df.dem)
+```
+
+But what do the study_id's mean to us? Lets add the information from Kyle's `rosetta` dataframe so we understand in English what the `study_id`s mean.  
+
+```{r}
+# left_join:
+#  - for every row in df.dem, find a matching entry in rosetta. 
+#    Add all of the corresponding columns to that row.
+#
+#  select
+#  - rearrange the order of the columns for clarity
+left_join(df.dem, rosetta, by = join_by(study_id)) %>%
+  select(`Participant id`, study_id, session:notes, dem.data) -> df.dem
+
+paged_table(df.dem)
+```
+
+## Experimental
+
+What experimental data do we have?
+
+The experimental data files were designed by the author @KyleK to follow a BIDS format like filenaming convention. See:  
+
+```{r}
+# list the full path to all files in directory "d" that end with "data-experiment.csv"
+f.exp  <- list.files(path = d, pattern = '.*data-experiment.csv', full.names = T)
+
+print(f.exp[1])
+```
+
+| variable | description |  
+| - | -- |  
+| `datetime` | date and time this file was written |  
+| `sub`  | prolific's subject_id |  
+| `ses`  |  for V1, prolific's session_id. for V2 + v3, prolific's study_id |  
+
+There are 109 experimental data files:  
+
+```{r}
+length(f.exp)
+```
+
+What do the data files look like:  
+
+```{r}
+# using purr::map and readr::read_csv, read each experimental data .csv file into R as a dataframe
+df.exp <- map_dfr(f.exp, read_csv, show_col_types = F)
+
+head(df.exp)
+```
+
+A whole lot of variables written by `jsPsych` as programmed by the author @KyleK.  
+
+The important variables for accounting purposes are:
+
+| variable | description |
+| - | -- |
+| subject_id | first url variable. unique to each subject. |  
+| study_id   | second url variable. unique to each Prolific study. |  
+| session_id | third url variable. appears to be unique to each subject/study combination. |  
+
+Lets simplify this to a form that is less complex. Using `tidyr::nest` turn all of the experimental data variables into a list column of dataframes.  
+
+```{r}
+# Hide some complexity by nesting the data
+df.exp %>%
+  nest(exp.data = -all_of(c('subject_id', 'study_id'))) -> df.exp
+
+paged_table(df.exp)
+```
+
+# Accounting
+
+## Problem 1
+
+### Problem description:
+
+There are 3 subjects who are recorded as "successfully completed" on Prolific who do NOT have an experimental data file associated with their subject id on the server. All 3 of these happened on session 1. 2/3 of these subjects completed session 2 with corresponding data files.  
+
+```{r}
+# left_join --
+# for every row in df.dem, find a matching entry in df.exp. 
+#   If there is not match in df.exp, it will put NULL. for exp.data
+left_join(df.dem, df.exp, by = join_by(study_id, `Participant id` == subject_id)) -> dem.exp.df
+
+head(dem.exp.df)
+```
+
+```{r}
+# Are there entries in dem.exp.df that do NOT have any data files associated with them?
+dem.exp.df %>%
+  filter(!map_lgl(exp.data, is_tibble)) %>%
+  paged_table()
+```
+
+```{r}
+# the missing subject ids
+dem.exp.df %>%
+  filter(!map_lgl(exp.data, is_tibble)) %>%
+  pull(`Participant id`) -> missing.subjects
+
+dem.exp.df %>%
+  filter(`Participant id` %in% missing.subjects)
+```
+
+## Problem 2
+
+### Problem Description
+
+There is a data file that has `NA` for both the `subject_id` and the `study_id`.  
+
+```{r}
+left_join(df.exp, df.dem, by = join_by(study_id,  subject_id == `Participant id`)) -> exp.dem.df
+```
+
+```{r}
+exp.dem.df %>%
+  filter(!map_lgl(dem.data, is_tibble))
+```
+
+## The Numbers
+
+How many subject completed each session according to the demographics and experimental data?
+
+```{r}
+df.dem %>%
+  count(version, session)
+```
+
+```{r, warning=FALSE, message=FALSE}
+df.exp %>%
+  left_join(rosetta) %>%
+  count(version, session)
+```
+
+Alternative View
+
+```{r}
+df.dem %>%
+  count(`Participant id`, session) %>%
+  complete(`Participant id`, session, fill = list(n = 0)) %>%
+  pivot_wider(names_from = session, values_from = n) %>%
+  mutate(type = case_when(session1 == 1 & session2 == 1 ~ 'did both',
+                          session1 == 1 & session2 == 0 ~ 'did not return for session 2',
+                          TRUE ~ NA)) %>%
+  count(type)
+```
+```{r, warning=FALSE, message=FALSE}
+df.exp %>%
+  left_join(rosetta) %>%
+  count(subject_id, session) %>%
+  complete(subject_id, session, fill = list(n = 0)) %>%
+  pivot_wider(names_from = session, values_from = n) %>%
+  mutate(type = case_when(session1 == 1 & session2 == 1 ~ 'did both',
+                        session1 == 1 & session2 == 0 ~ 'did not return for session 2',
+                        session1 == 0 & session2 == 1 ~ 'has session 2 but no session 1?',
+                        TRUE ~ NA)) %>%
+  count(type)
+```
+

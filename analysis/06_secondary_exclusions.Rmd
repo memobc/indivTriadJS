@@ -1,7 +1,7 @@
 ---
 title: "Secondary Exclusion Criteria"
 author: "Kyle Kurkela"
-date: "2023-05-12"
+date: "2023-06-13"
 output:
   html_document: 
     toc: yes
@@ -16,42 +16,72 @@ library(tidyverse)
 df.interaction <- read_rds('../compiled_interaction.rds')
 df.experiment <- read_rds('../compiled_experiment.rds')
 df.graded <- read_rds('../graded_df.rds')
+
+df.sam <- read_rds('../tidy_sam.rds')
+df.iri <- read_rds('../tidy_iri.rds')
+df.vviq <- read_rds('../tidy_vviq.rds')
 ```
 
-## Criterion 1: RT Slower than 5 minutes
+## Criterion 1: RT Slower than 10 minutes
 
-Reaction time on any 1 trial is slower than 5 minutes.
+Reaction time on any 1 trial during encoding/retrieval is slower than 5 minutes.
 
 ```{r, warning=FALSE}
 # coerce rt to double
 # remove events without a rt
-df.experiment %>% 
+df.experiment %>%
   filter(!is.na(rt)) %>%
-  group_by(subject_id) %>%
-  summarise(exclude = any(rt > 5*60*1000), .groups = 'drop') %>%
+  group_by(subject_id, study_id, phase) %>%
+  summarise(exclude = any(rt > 10*60*1000), .groups = 'drop') %>%
+  filter(phase %in% c('enc', 'ret')) %>%
+  pivot_wider(names_from = study_id, values_from = exclude) %>%
   rmarkdown::paged_table()
 ```
 
 ```{r}
 df.experiment %>%
   filter(!is.na(rt)) %>%
-  mutate(highlight = rt > 5*60*1000) %>%
+  filter(phase == 'enc') %>%
+  mutate(highlight = rt > 10*60*1000) %>%
   mutate(rt = rt/1000/60) %>%
-  ggplot(aes(x = rt, y = phase)) +
-  geom_point(shape = "|", size = 2) +
-  facet_wrap(~subject_id, ncol = 3, nrow = 2) +
-  geom_vline(xintercept = 5, color = 'red') +
+  ggplot(aes(x = rt, y = subject_id)) +
+  geom_vline(xintercept = 10, color = 'red') +
+  geom_point(shape = "|", size = 1.5) +
+  facet_grid(~study_id) +
   scale_color_manual(values = c('black', 'red')) +
   theme_light() +
   guides(color = "none") +
-  theme(panel.grid.minor.x = element_blank()) +
+  theme(panel.grid.minor.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
   scale_x_continuous(breaks = c(0,1,5,10,15)) +
-  labs(x = 'rt (min)', caption = 'dashes = trials. red line is 5 minutes')
+  labs(x = 'rt (min)', caption = 'dashes = trials. red line is 10 minutes', title = 'Encoding')
+```
+
+```{r}
+df.experiment %>%
+  filter(!is.na(rt)) %>%
+  filter(phase == 'ret') %>%
+  mutate(highlight = rt > 10*60*1000) %>%
+  mutate(rt = rt/1000/60) %>%
+  ggplot(aes(x = rt, y = subject_id)) +
+  geom_point(shape = "|", size = 1.5) +
+  facet_grid(~study_id) +
+  geom_vline(xintercept = 10, color = 'red') +
+  scale_color_manual(values = c('black', 'red')) +
+  theme_light() +
+  guides(color = "none") +
+  theme(panel.grid.minor.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank()) +
+  scale_x_continuous(breaks = c(0,1,5,10,12)) +
+  expand_limits(x = c(NA,12)) +
+  labs(x = 'rt (min)', caption = 'dashes = trials. red line is 10 minutes', title = 'Retrieval')
 ```
 
 ## Criterion 2: Cued Recall Performance > 3 SDs
 
-Cued recall performance in greater than 3 SDs away from sample mean
+Cued recall performance in greater than 3 SDs away from sample mean.
 
 ```{r}
 df.graded %>%
@@ -60,32 +90,28 @@ df.graded %>%
   filter(!is.na(correct)) %>%
   group_by(subject_id, study_id) %>%
   summarise(prop_correct = mean(correct), .groups = 'drop') %>%
+  # z score within session (study_id)
+  group_by(study_id) %>%
   mutate(zscore = as.double(scale(prop_correct))) %>%
   mutate(exclude = abs(zscore) > 3) %>%
+  arrange(desc(abs(zscore))) %>%
   rmarkdown::paged_table()
 ```
 
+Zscore within session. See code.
+
 ## Criterion 3: RT on Surveys < 3 SDs
 
-Average RT to complete the debriefing, SAM, IRI, or VVIQ is faster than 3 SDs away from sample mean.
-
-NOT COMPLETED YET.
-
-## Criterion 4: > 5 blue or focus events
-
-If they have more than 5 blur or focus events during the course of the experiment.
+Average RT to complete the debriefing, SAM, IRI, or VVIQ is faster than 3 SDs away from sample mean.  
 
 ```{r}
-# give the subjects easier to read ids
-# count the number of browser events
-# create an easy to read table
-df.interaction %>%
-  mutate(subject_id = factor(subject_id, labels = str_c('s00', 1:5))) %>%
-  unnest(data) %>%
-  count(subject_id, event) %>%
-  filter(event %in% c('blur', 'focus')) %>%
-  complete(subject_id, event, fill = list(n = 0)) %>%
-  pivot_wider(names_from = event, values_from = n) %>%
-  mutate(exclude = blur > 5 | focus > 5) %>%
+bind_rows(df.sam, df.iri, df.vviq, .id = 'survey') %>%
+  mutate(survey = factor(survey, labels = c('sam', 'iri', 'vviq'))) %>%
+  select(subject_id, rt, survey) %>%
+  # zscore within survey
+  group_by(survey) %>%
+  mutate(zscore = as.double(scale(rt))) %>%
+  mutate(exclude = abs(zscore) > 3) %>%
+  arrange(desc(abs(zscore))) %>%
   rmarkdown::paged_table()
 ```

@@ -1,7 +1,7 @@
 ---
 title: "Timespent Analysis"
 author: "Kyle Kurkela"
-date: "2023-05-12"
+date: "2023-06-14"
 output: 
   html_document: 
     toc: yes
@@ -21,124 +21,215 @@ See code chunk below for Kyle's tidying process
 ```{r tidy}
 df %>%
   filter(phase %in% c('enc', 'bds', 'ret')) %>%
-  arrange(subject_id, trial_index) %>%
-  group_by(subject_id, phase) %>%
+  arrange(subject_id, study_id, trial_index) %>%
+  group_by(subject_id, study_id, phase) %>%
   slice(c(1,n())) %>%
-  group_by(subject_id, phase) %>%
+  group_by(subject_id, study_id, phase) %>%
   summarise(time_spend = diff(time_elapsed), trial_index = max(trial_index), .groups = 'drop') -> timespent.task
 
 df %>%
   filter(!phase %in% c('bds', 'enc', 'ret')) %>%
-  arrange(subject_id, trial_index) %>%
-  select(subject_id, trial_index, phase, rt) %>%
+  arrange(subject_id, study_id, trial_index) %>%
+  select(subject_id, study_id, trial_index, phase, rt) %>%
   filter(!is.na(rt)) %>%
   mutate(rt = as.double(rt)) %>%
   rename(time_spend = rt) -> timespent.all.else
 
 timespent.all.else %>%
-  mutate(phase = case_when(phase == 'instr' & trial_index == 5 ~ 'instr_pre_enc',
-                           phase == 'instr' & trial_index == 66 ~ 'instr_pre_bds',
-                           phase == 'instr' & trial_index == 127 ~ 'instr_pre_ret',
-                           TRUE ~ as.character(phase))) %>%
   bind_rows(., timespent.task) %>%
   arrange(subject_id, trial_index) %>%
   mutate(time_spend = time_spend / 1000 / 60) -> tidy.timespend
 
-Set3 <- RColorBrewer::brewer.pal(11, 'Set3')
+set.seed(321)
+SelectColors <- sample(grDevices::rainbow(n = 14), 14)
 ```
 
 ## How much time did participants send in each phase of the experiment?
 
 ```{r}
 tidy.timespend %>%
+  arrange(study_id, subject_id, trial_index) %>%
   rmarkdown::paged_table()
 ```
 
 A Pageable Table to explore. Where:
 
-- `subject_id` = arbitrary label given by Kyle  
-- `trial_index` = arbitrary numeric label given to each phase, designed to sort them in chronological order
-- `phase` = arbitrary labels given to the different parts of the experiment. Should be easy enought to figure out.
-- `time_spend` = estimated amount of time (in minutes) spend on each phase
+- `subject_id` = arbitrary label given by Prolific.  
+- `trial_index` = arbitrary numeric label given to each phase, designed to sort them in chronological order.  
+- `phase` = arbitrary labels given to the different parts of the experiment. Should be easy enough to figure out.  
+- `time_spend` = estimated amount of time (in minutes) spend on each phase.  
+- `study_id` = session 1 or session 2.  
 
-## Which phases were participants most variable?
+## Which phases were most variable?
+
+Session 1:  
 
 ```{r}
-tidy.timespend %>% 
+tidy.timespend %>%
+  filter(study_id == 'session1') %>%
   group_by(phase) %>% 
-  summarize(across(time_spend, sd)) %>%
+  summarize(across(time_spend, sd), .groups = 'drop') %>%
   rename(time_spend_sd = time_spend) %>%
   arrange(desc(time_spend_sd)) %>%
   rmarkdown::paged_table()
 ```
 
-`Retrieval`, the `pre backwards digit span instructions screen`, `encoding`, and `the welcome screen` were the most variable from subject to subject.  
+Session 2:  
+
+```{r}
+tidy.timespend %>%
+  filter(study_id == 'session2') %>%
+  group_by(phase) %>% 
+  summarize(across(time_spend, sd), .groups = 'drop') %>%
+  rename(time_spend_sd = time_spend) %>%
+  arrange(desc(time_spend_sd)) %>%
+  rmarkdown::paged_table()
+```
 
 ## Can we make a pretty visual?
 
 ```{r}
-ggplot(tidy.timespend, aes(x = subject_id, y = time_spend)) +
-  geom_col(aes(fill = phase)) +
-  geom_label(stat = 'summary', fun = sum, aes(label = round(after_stat(y), 1))) +
-  scale_fill_brewer(type = 'qual', palette = 'Set3') +
-  labs(y = 'time spent (min)', x = 'subject', title = 'Where did subject spend their time?', caption = 'Colors sorted in chronological order from bottom to top. Labels are total time spent on session (min).')
+tidy.timespend %>%
+  filter(study_id == 'session1') %>%
+  mutate(subject_id = fct_reorder(.f = subject_id, .x = time_spend, .fun = sum)) %>%
+  ggplot(aes(x = subject_id, y = time_spend)) +
+  geom_col(aes(fill = phase), color = 'black') +
+  coord_flip() +
+  scale_y_continuous(breaks = seq(0,90,30)) +
+  expand_limits(y = c(NA,120)) +
+  scale_fill_manual(values = SelectColors) +
+  labs(y = 'time spent (min)', 
+       x = 'subject', 
+       title = 'Where did subject spend their time?',
+       subtitle = 'Session 1',
+       caption = 'Colors sorted in chronological order from bottom to top.') +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
-
-### Zoom in on ret
 
 ```{r}
 tidy.timespend %>%
-  filter(phase == 'ret') %>%
-  ggplot(aes(x = subject_id, y = time_spend, fill = phase)) +
-  geom_col() +
-  geom_label(aes(label = round(time_spend, 1), fill = NULL)) +
-  scale_fill_manual(values = Set3[2]) +
-  labs(y = 'time spent (min)', x = 'subject', title = 'Subject 5 spent ~30 minutes on the cued recall alone') +
-  scale_y_continuous(limits = c(0, 60))
+  filter(study_id == 'session2') %>%
+  mutate(subject_id = fct_reorder(.f = subject_id, .x = time_spend, .fun = sum)) %>%
+  ggplot(aes(x = subject_id, y = time_spend)) +
+  geom_col(aes(fill = phase), color = 'black') +
+  coord_flip() +
+  scale_y_continuous(breaks = seq(0,120,30)) +
+  expand_limits(y = c(NA,120)) +
+  scale_fill_manual(values = SelectColors) +
+  labs(y = 'time spent (min)', 
+       x = 'subject', 
+       title = 'Where did subject spend their time?',
+       subtitle = 'Session 2',
+       caption = 'Colors sorted in chronological order from bottom to top.') +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
-See the reaction time distributions for `s005`. They had a single cued recall trial where they had a reaction time of almost 9 minutes!!
+Alternate Visual
+
+```{r, warning=FALSE,message=FALSE}
+library(ggbeeswarm)
+
+tidy.timespend %>%
+  group_by(subject_id, study_id) %>%
+  summarise(across(time_spend, sum)) %>%
+  group_by(study_id) %>%
+  summarise(across(time_spend, median)) %>%
+  mutate(time_spend = round(time_spend, digits = 2)) -> out.df
+
+tidy.timespend %>%
+  ggplot(aes(x = '', y = time_spend, group = subject_id)) +
+  geom_quasirandom(stat = 'summary', fun = sum) +
+  geom_hline(data = out.df, aes(yintercept = time_spend), color = 'red') +
+  geom_label(data = out.df, aes(label = time_spend, y = time_spend, group = NULL)) +
+  expand_limits(y = c(NA, 120)) +
+  scale_y_continuous(breaks = seq(20,120,20)) +
+  facet_grid(~study_id) +
+  theme(axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(caption  = 'dots = subjects, red line = median time (min)', 
+       y = 'time spent (min)',
+       title    = 'Total Time Spent on Experiment')
+```
+
+### Zoom in on retieval
+
+Retrieval was the most variable.
+
+```{r, warning=FALSE, message=FALSE}
+tidy.timespend %>%
+  filter(phase == 'ret') %>%
+  ggplot(aes(x = '', y = time_spend, group = subject_id)) +  
+  geom_quasirandom(stat = 'summary', fun = sum) +
+  scale_y_continuous(breaks = seq(0,60,10)) +
+  expand_limits(y = c(0,NA)) +
+  facet_grid(~study_id) +
+  theme(axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(caption  = 'dots = subjects',
+       y = 'time spent (min)',
+       title    = 'How much time did participants spent on retrieval?')
+```
+
+### Zoom in on the Welcome Screen
+
+```{r, warning=FALSE, message=FALSE}
+tidy.timespend %>%
+  filter(phase == 'welcome_screen') %>%
+  ggplot(aes(x = '', y = time_spend, group = subject_id)) +  
+  geom_quasirandom(stat = 'summary', fun = sum) +
+  scale_y_continuous(breaks = seq(0,30,5)) +
+  expand_limits(y = c(0,30)) +
+  facet_grid(~study_id) +
+  theme(axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(caption  = 'dots = subjects', 
+       y = 'time spent (min)',
+       title    = 'How much time did participants spent on the welcome screen?')
+```
 
 ### Zoom in on instr_pre_bds
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 tidy.timespend %>%
   filter(phase == 'instr_pre_bds') %>%
-  ggplot(aes(x = subject_id, y = time_spend, fill = phase)) +
-  geom_col() +
-  geom_label(aes(label = round(time_spend, 1), fill = NULL)) +
-  scale_fill_manual(values = Set3[length(Set3)-6]) +
-  labs(y = 'time spent (min)', x = 'subject', title = 'Subject 1 spent ~17 minutes on the backwards digit span instructions...') +
-  scale_y_continuous(limits = c(0, 60))
+  ggplot(aes(x = '', y = time_spend, group = subject_id)) +  
+  geom_quasirandom(stat = 'summary', fun = sum) +
+  scale_y_continuous(breaks = seq(0,20,5)) +
+  expand_limits(y = c(0,20)) +
+  facet_grid(~study_id) +
+  theme(axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(caption  = 'dots = subjects',
+       y = 'time spent (min)',
+       title    = 'How much time did participants spent on the instructions screen before BDS?')
 ```
-
-Maybe `s001` was taking a break?
 
 ### Zoom in on encoding
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 tidy.timespend %>%
   filter(phase == 'enc') %>%
-  ggplot(aes(x = subject_id, y = time_spend, fill = phase)) +
-  geom_col() +
-  geom_label(aes(label = round(time_spend, 1), fill = NULL)) +
-  scale_fill_manual(values = Set3[6]) +
-  labs(y = 'time spent (min)', x = 'subject', title = 'Significant Variability in Encoding Time to Completion') +
-  scale_y_continuous(limits = c(0, 60))
+  ggplot(aes(x = '', y = time_spend, group = subject_id)) +  
+  geom_quasirandom(stat = 'summary', fun = sum) +
+  scale_y_continuous(breaks = seq(5,40,5)) +
+  expand_limits(y = c(5,30)) +
+  facet_grid(~study_id) +
+  theme(axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(caption  = 'dots = subjects',
+       y = 'time spent (min)',
+       title    = 'How much time did participants spent on encoding?')
 ```
 
-Nothing seems too crazy here. The range is pretty substantial though 9 - 17 minutes.  
-
-### Zoom in Welcome Screen
+## How long do participants spend completing the surveys?
 
 ```{r}
 tidy.timespend %>%
-  filter(phase == 'welcome_screen') %>%
+  filter(phase %in% c('sam', 'iri', 'vviq')) %>%
+  mutate(subject_id = fct_reorder(.f = subject_id, .x = time_spend, .fun = sum)) %>%
   ggplot(aes(x = subject_id, y = time_spend, fill = phase)) +
-  geom_col() +
-  geom_label(aes(label = round(time_spend, 1), fill = NULL)) +
-  scale_fill_manual(values = Set3[length(Set3)]) +
-  labs(y = 'time spent (min)', x = 'subject', title = 'Subject 5 spent 6 minutes on the welcome screen') +
-  scale_y_continuous(limits = c(0, 60))
+  geom_col(color = 'black') +
+  scale_y_continuous(breaks = seq(0,30,3)) +
+  scale_fill_manual(values = SelectColors[1:3]) +
+  coord_flip() +
+  #expand_limits(y = c(0,12)) +
+  labs(title = 'How long did participants spend on the surveys?',
+       y = 'time spent (min)') +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 

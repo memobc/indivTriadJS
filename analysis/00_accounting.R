@@ -1,18 +1,17 @@
-# compile data
-# compile all available data into a single data frame
+# Lets account for the data
 
 # requirements ------------------------------------------------------------
 
-library(tidyverse)
+library(tidyverse) # <3
 
 # load data ---------------------------------------------------------------
 
-d      <- choose.dir(caption = 'Select Data Folder')
-
-# the rosetta stone -- translates prolific study ids into English
-
+# the rosetta stone data frame. Hand created by Kyle. Translates the prolific study ids
+# into English
 rosetta <- read_csv('study_id_rosetta.csv') %>%
            rename(notes = ...4)
+
+head(rosetta)
 
 # prolific demographic data
 
@@ -26,14 +25,13 @@ tibble(study_id = extracted.study.id, dem.data = df.dem) %>%
 
 # experimental data
 
+# choose where on your computer you have the data
+
 f.exp  <- list.files(path = d, pattern = '.*data-experiment.csv', full.names = T)
 
 df.exp <- map_dfr(f.exp, read_csv, show_col_types = F)
 
 df.exp %>% filter(!is.na(subject_id)) -> df.exp
-
-df.exp %>% pull(subject_id) %>% unique() -> prolific_subject_ids
-df.exp %>% pull(study_id) %>% unique() -> prolific_study_ids
 
 # light tidying
 df.exp %>%
