@@ -18,4 +18,6 @@ find_alpha_weak <- function(overall_alpha, n_segments, alpha_strong) { # Use num
 }
 
 # Example:
-find_alpha_weak(0.05, 4, 0.01)
+find_alpha_weak(overall_alpha = 0.05, n_segments = 4, alpha_strong = 0.035) %>%
+  magrittr::extract(1) %>%
+  format(scientific = F, digits = 3)
