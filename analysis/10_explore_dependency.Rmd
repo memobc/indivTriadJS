@@ -1,11 +1,13 @@
 ---
 title: "Dependency Analysis"
+date: "`r Sys.Date()`"
+author: "Kyle Kurkela"
 output:
   html_document:
-    df_print: paged
-    code_folding: hide
     toc: yes
     toc_float: yes
+    code_folding: hide
+    df_print: paged
 ---
 
 ```{r setup, echo=FALSE,warning=FALSE,message=FALSE}
@@ -16,7 +18,7 @@ library(ppcor)
 library(lmerTest)
 
 # data
-dependency.df <- read_rds('tidy_dependency.rds')
+dependency.df <- read_rds('tidy_data/tidy_dependency.rds')
 ```
 
 ```{r tidy, echo=FALSE}

@@ -6,8 +6,8 @@ library(tidyverse)
 
 # load data ---------------------------------------------------------------
 
-graded.df <- read_rds('graded_df.rds')
-source('independentModel.R')
+graded.df <- read_rds('tidy_data/graded_df.rds')
+source('functions/independentModel.R')
 
 # dependency --------------------------------------------------------------
 
@@ -97,7 +97,9 @@ bind_rows(objOne.Independent, objTwo.Independent, key.Independent, .id = 'type')
   group_by(subject_id, study_id, session, condition) %>%
   summarise(across(joinedRetrieval, mean), .groups = 'drop') -> independent.df
 
-left_join(dependancy.df, independent.df, by = c('subject_id', 'study_id', 'session', 'condition'), suffix = c('.data', '.indep')) -> final.dependancy
+left_join(dependancy.df, independent.df, 
+          by = c('subject_id', 'study_id', 'session', 'condition'), 
+          suffix = c('.data', '.indep')) -> final.dependancy
 
 final.dependancy %>%
   mutate(dependency = joinedRetrieval.data - joinedRetrieval.indep) -> final.dependancy

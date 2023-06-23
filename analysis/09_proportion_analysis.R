@@ -5,14 +5,14 @@ library(ppcor)
 library(lmerTest)
 
 # data
-graded.df     <- read_rds('graded_df.rds')
+graded.df     <- read_rds('tidy_data/graded_df.rds')
 
 # long --> wide
 graded.df %>%
   dplyr::select(subject_id, session, condition, trial_index, ends_with('Correct')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'thingCorrect', values_to = 'isCorrect') %>%
   group_by(subject_id, session, condition) %>%
-  summarise(across(isCorrect, .fns = ~mean(.x, na.rm = TRUE))) %>%
+  summarise(across(isCorrect, .fns = ~mean(.x, na.rm = TRUE)), .groups = 'drop') %>%
   unite(col = 'sess_cond', session, condition) %>%
   pivot_wider(id_cols = subject_id, names_from = sess_cond, values_from = isCorrect) -> graded.df
 

@@ -1,8 +1,13 @@
 ---
 title: "Across Subjects Correlations"
-author: "Kyle Kurkela"
 date: "`r Sys.Date()`"
-output: html_document
+author: "Kyle Kurkela"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+    df_print: paged    
 ---
 
 ```{r setup, echo=FALSE}
@@ -12,28 +17,22 @@ suppressPackageStartupMessages(library(corrplot))
 
 # data
 # -- bias
-tidy.bias       <- read_rds(file = 'tidy_bias.rds') %>% ungroup()
+tidy.bias       <- read_rds(file = 'tidy_data/tidy_bias.rds') %>% ungroup()
 # -- surveys
-tidy.sam        <- read_rds(file = 'tidy_sam.rds')
-tidy.iri        <- read_rds(file = 'tidy_iri.rds')
-tidy.vivq       <- read_rds(file = 'tidy_vviq.rds')
+tidy.sam        <- read_rds(file = 'tidy_data/tidy_sam.rds')
+tidy.iri        <- read_rds(file = 'tidy_data/tidy_iri.rds')
+tidy.vivq       <- read_rds(file = 'tidy_data/tidy_vviq.rds')
 # -- encoding success
-tidy.enc        <- read_rds(file = 'tidy_enc.rds')
+tidy.enc        <- read_rds(file = 'tidy_data/tidy_enc.rds')
 # -- dependency
-tidy.dependency <- read_rds(file = 'tidy_dependency.rds')
+tidy.dependency <- read_rds(file = 'tidy_data/tidy_dependency.rds')
 # -- retrieval success
-tidy.ret        <- read_rds(file = 'graded_df.rds')
+tidy.ret        <- read_rds(file = 'tidy_data/graded_df.rds')
 
 ```
 
 ```{r tidy_chunk, echo=FALSE}
 # minor tidying
-
-tidy.sam %>%
-  pivot_wider(names_from = 'category', values_from = 'response') -> tidy.sam
-
-tidy.iri %>%
-  pivot_wider(names_from = 'category', values_from = 'score') -> tidy.iri
 
 tidy.vivq %>%
   rename(visual_imagery = response) -> tidy.vivq
@@ -90,7 +89,7 @@ corr_mat %>%
 corr_df %>%
   ggplot(aes(x = x, y = y, fill = r)) +
   geom_raster() +
-  geom_text(aes(label = round(r, 2)), color = 'black') +
+  geom_text(aes(label = round(r, 2)), color = 'black', size = 8/.pt) +
   scale_fill_gradient2() +
   scale_x_discrete(limits = rev(corr_mat$term)) +
   scale_y_discrete(limits = rev(corr_mat$term)) +
@@ -105,7 +104,7 @@ corr_df %>%
 corr_df %>%
   ggplot(aes(x = x, y = y, fill = r, alpha = p < 0.05)) +
   geom_raster() +
-  geom_text(aes(label = round(r, 2)), color = 'black') +
+  geom_text(aes(label = round(r, 2)), color = 'black', size = 8/.pt) +
   scale_fill_gradient2() +
   scale_x_discrete(limits = rev(corr_mat$term)) +
   scale_y_discrete(limits = rev(corr_mat$term)) +

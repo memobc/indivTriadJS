@@ -1,11 +1,13 @@
 ---
 title: "Secondary Exclusion Criteria"
+date: "`r Sys.Date()`"
 author: "Kyle Kurkela"
-date: "2023-06-13"
 output:
   html_document: 
     toc: yes
-    code_folding: hide  
+    toc_float: yes
+    code_folding: hide
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -13,13 +15,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 
-df.interaction <- read_rds('compiled_interaction.rds')
-df.experiment <- read_rds('compiled_experiment.rds')
-df.graded <- read_rds('graded_df.rds')
+df.interaction <- read_rds('tidy_data/compiled_interaction.rds')
+df.experiment <- read_rds('tidy_data/compiled_experiment.rds')
+df.graded <- read_rds('tidy_data/graded_df.rds')
 
-df.sam <- read_rds('tidy_sam.rds')
-df.iri <- read_rds('tidy_iri.rds')
-df.vviq <- read_rds('tidy_vviq.rds')
+df.sam <- read_rds('tidy_data/tidy_sam.rds')
+df.iri <- read_rds('tidy_data/tidy_iri.rds')
+df.vviq <- read_rds('tidy_data/tidy_vviq.rds')
 ```
 
 ## Criterion 1: RT Slower than 10 minutes
@@ -85,7 +87,7 @@ Cued recall performance in greater than 3 SDs away from sample mean.
 
 ```{r}
 df.graded %>%
-  select(subject_id, session, trial_index, encTrialNum, ends_with('Correct')) %>%
+  dplyr::select(subject_id, session, trial_index, encTrialNum, ends_with('Correct')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
   filter(!is.na(correct)) %>%
   group_by(subject_id, session) %>%
@@ -105,13 +107,21 @@ Zscore within session. See code.
 Average RT to complete the debriefing, SAM, IRI, or VVIQ is faster than 3 SDs away from sample mean.  
 
 ```{r}
+df.sam %>%
+  dplyr::select(subject_id, rt) -> df.sam
+
+df.iri %>%
+  dplyr::select(subject_id, rt) -> df.iri
+
+df.vviq %>%
+  dplyr::select(subject_id, rt) -> df.vviq
+
 bind_rows(df.sam, df.iri, df.vviq, .id = 'survey') %>%
   mutate(survey = factor(survey, labels = c('sam', 'iri', 'vviq'))) %>%
-  select(subject_id, rt, survey) %>%
   # zscore within survey
   group_by(survey) %>%
   mutate(zscore = as.double(scale(rt))) %>%
-  mutate(exclude = abs(zscore) > 3) %>%
+  mutate(exclude = zscore < -3) %>%
   arrange(desc(abs(zscore))) %>%
   rmarkdown::paged_table()
 ```

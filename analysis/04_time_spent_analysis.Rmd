@@ -1,11 +1,13 @@
 ---
 title: "Timespent Analysis"
+date: "`r Sys.Date()`"
 author: "Kyle Kurkela"
-date: "2023-06-14"
 output: 
   html_document: 
     toc: yes
+    toc_float: yes
     code_folding: hide
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -13,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 
-df <- read_rds('../compiled_experiment.rds')
+df <- read_rds('tidy_data/compiled_experiment.rds')
 ```
 
 See code chunk below for Kyle's tidying process
@@ -30,7 +32,7 @@ df %>%
 df %>%
   filter(!phase %in% c('bds', 'enc', 'ret')) %>%
   arrange(subject_id, session, trial_index) %>%
-  select(subject_id, session, trial_index, phase, rt) %>%
+  dplyr::select(subject_id, session, trial_index, phase, rt) %>%
   filter(!is.na(rt)) %>%
   mutate(rt = as.double(rt)) %>%
   rename(time_spend = rt) -> timespent.all.else
@@ -131,7 +133,7 @@ library(ggbeeswarm)
 
 tidy.timespend %>%
   group_by(subject_id, session) %>%
-  summarise(across(time_spend, sum)) %>%
+  summarise(across(time_spend, sum), .groups = 'drop') %>%
   group_by(session) %>%
   summarise(across(time_spend, median)) %>%
   mutate(time_spend = round(time_spend, digits = 2)) -> out.df

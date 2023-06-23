@@ -1,11 +1,13 @@
 ---
 title: "Encoding Success Analysis"
+date: "`r Sys.Date()`"
+author: "Kyle Kurkela"
 output:
   html_document:
-    df_print: paged
-    code_folding: hide
     toc: yes
     toc_float: yes
+    code_folding: hide
+    df_print: paged
 ---
 
 ```{r setup, message=FALSE,warning=FALSE, echo=FALSE}
@@ -17,8 +19,7 @@ library(lmerTest)
 library(ggdist)
 
 # data
-tidy.enc     <- read_rds('tidy_enc.rds') %>%
-                mutate(response_slider = as.double(response_slider))
+tidy.enc     <- read_rds('tidy_data/tidy_enc.rds')
 ```
 
 ```{r tidy, echo = FALSE}

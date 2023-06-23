@@ -89,14 +89,17 @@ tidy.sam %>%
   dplyr::select(subject_id, study_id, session_id, session, rt, starts_with('episodic'), starts_with('semantic'), starts_with('spatial'), starts_with('future')) %>%
   pivot_longer(cols = matches('[0-9]$'), names_to = 'question', values_to = 'response') %>%
   separate(question, into = c('category', 'q')) %>%
-  group_by(subject_id, category) %>%
-  summarise(across(response, .fns = ~sum(.x, na.rm = TRUE))) -> tidy.sam
+  group_by(subject_id, rt, category) %>%
+  summarise(across(response, .fns = ~sum(.x, na.rm = TRUE)), .groups = 'drop') -> tidy.sam
+
+tidy.sam %>%
+  pivot_wider(id_cols = all_of(c('subject_id', 'rt')), names_from = category, values_from = response) -> tidy.sam
 
 saveRDS(tidy.sam, file = 'tidy_data/tidy_sam.rds')
 
 #-- iri
 
-iri_guide <- read_csv('IRI_guide.csv')
+iri_guide <- read_csv('metadata/IRI_guide.csv', show_col_types = FALSE)
 
 score_iri <- function(x, reverse){
   if(reverse){
@@ -123,8 +126,11 @@ df.exp %>%
   mutate(score = map2_dbl(.x = response, .y = reverse, .f = score_iri)) -> tidy.iri
 
 tidy.iri %>%
-  group_by(subject_id, category) %>%
+  group_by(subject_id, rt, category) %>%
   summarise(across(score, .fns = ~sum(.x, na.rm = TRUE)), .groups = 'drop') -> tidy.iri
+
+tidy.iri %>%
+  pivot_wider(id_cols = all_of(c('subject_id', 'rt')), names_from = category, values_from = score) -> tidy.iri
 
 saveRDS(tidy.iri, file = 'tidy_data/tidy_iri.rds')
 
@@ -147,7 +153,7 @@ df.exp %>%
   unnest(cols = response) %>%
   dplyr::select(subject_id, study_id, session_id, session, rt, matches('[0-9]$')) %>%
   pivot_longer(cols = matches('[0-9]$'), names_to = 'question_number', values_to = 'response') %>%
-  group_by(subject_id) %>%
-  summarise(across(response, ~sum(.x, na.rm = TRUE))) -> tidy_vivq
+  group_by(subject_id, rt) %>%
+  summarise(across(response, ~sum(.x, na.rm = TRUE)), .groups = 'drop') -> tidy_vivq
 
 saveRDS(tidy_vivq, file = 'tidy_data/tidy_vviq.rds')

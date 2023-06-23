@@ -5,8 +5,7 @@ library(ppcor)
 library(lmerTest)
 
 # data
-graded.df     <- read_rds('graded_df.rds')
-dependency.df <- read_rds('tidy_dependency.rds')
+dependency.df <- read_rds('tidy_data/tidy_dependency.rds')
 
 # long --> wide
 dependency.df %>%

@@ -1,11 +1,13 @@
 ---
 title: "Recall Performance"
+date: "`r Sys.Date()`"
 author: "Kyle Kurkela"
-date: "2023-06-13"
 output: 
   html_document: 
     toc: yes
+    toc_float: yes
     code_folding: hide
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -16,15 +18,15 @@ library(ggbeeswarm)
 library(ggdist)
 library(lmerTest)
 
-graded.df <- read_rds('graded_df.rds')
-dependency.df <- read_rds('tidy_dependency.rds')
+graded.df <- read_rds('tidy_data/graded_df.rds')
+dependency.df <- read_rds('tidy_data/tidy_dependency.rds')
 ```
 
 ## How well did participants do on the cued recall?
 
 ```{r}
 graded.df %>%
-  select(subject_id, study_id, session_id, session, condition, encTrialNum, trial_index, ends_with('Correct')) %>%
+  dplyr::select(subject_id, study_id, session_id, session, condition, encTrialNum, trial_index, ends_with('Correct')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
   filter(!is.na(correct)) %>%
   group_by(subject_id, condition, session) %>%
@@ -36,67 +38,44 @@ performance.df %>%
 ```
 
 ```{r}
-ggplot(performance.df, aes(y = correct, x = session)) +
- stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se) +
- geom_beeswarm() +
- geom_line(aes(group = subject_id), alpha = 0.5)
+ggplot(performance.df, aes(y = correct, x = condition)) +
+ geom_beeswarm(alpha = 0.5) +
+ geom_line(aes(group = subject_id), alpha = 0.5) +
+ facet_grid(~session) +
+ stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se, fill = 'white') +
+ labs(y = '% Cued Recall responses Correct', title = 'Famous Person >>> Famous Place')
 ```
 
 ```{r}
 graded.df %>%
-  select(subject_id, study_id, session_id, session, condition, encTrialNum, trial_index, ends_with('Correct')) %>%
+  dplyr::select(subject_id, study_id, session_id, session, condition, encTrialNum, trial_index, ends_with('Correct')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
   filter(!is.na(correct)) -> df
 ```
 
 ```{r}
 glmer(correct ~ session * condition + (condition*session|subject_id), family = 'binomial', data = df) -> model1.fit
-glmer(correct ~ condition + (condition*session|subject_id), family = 'binomial', data = df) -> model2.fit
-glmer(correct ~ condition + (condition*session|subject_id), family = 'binomial', data = df) -> model3.fit
 
-anova(model1.fit, model2.fit)
+summary(model1.fit)
 ```
-
-```{r}
-newdata <- expand_grid(subject_id = unique(df$subject_id),
-                       condition = c('famous person', 'famous place'),
-                       session = c('session1', 'session2'))
-
-predict(model.fit, newdata = newdata, type = 'response') -> newdata$predictions
-```
-
-```{r}
-df %>% 
-  group_by(subject_id, condition, session) %>% 
-  summarise(across(correct, .fns = mean), .groups = 'drop') -> summarised.df
-```
-
-
-```{r, message=FALSE}
-left_join(summarised.df, newdata) %>%
-  ggplot(aes(x = condition)) +
-  geom_point(aes(y = correct)) +
-  geom_point(aes(y = predictions), color = 'red') +
-  facet_grid(~session)
-```
-
 
 ## Dependency
 
 ```{r}
-ggplot(dependency.df, aes(x = condition, y = dependency, color = subject_id)) +
-  geom_point() +
-  geom_line(aes(group = subject_id)) +
+ggplot(dependency.df, aes(x = condition, y = dependency)) +
+  geom_point(alpha = 0.4) +
+  geom_line(aes(group = subject_id), alpha = 0.4) +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, fill = 'red', color = 'blue', width = 0.2) +
   scale_y_continuous(limits = c(NA, 0.5)) +
   theme_light() +
-  labs(title = 'Dependency', subtitle = 'By Triad Type', caption = 'colors = subject') +
+  labs(title = 'Dependency') +
   guides(color = "none") +
   facet_wrap(~session, ncol = 2)
 ```
 
 ```{r}
 dependency.df %>% 
-  select(subject_id, session, condition, dependency) %>% 
+  dplyr::select(subject_id, session, condition, dependency) %>% 
   pivot_wider(values_from = dependency, names_from = condition) %>% 
   mutate(personType = case_when(`famous person` > `famous place` ~ 'person favorer', 
                                 `famous person` < `famous place` ~ 'place favorer', 

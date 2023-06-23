@@ -1,11 +1,13 @@
 ---
 title: "Familarity Ratings Analysis"
+date: "`r Sys.Date()`"
+author: "Kyle Kurkela"
 output:
   html_document:
-    df_print: paged
-    code_folding: hide
     toc: yes
     toc_float: yes
+    code_folding: hide
+    df_print: paged
 ---
 
 ```{r setup, message=FALSE,warning=FALSE, echo=FALSE}
@@ -17,7 +19,7 @@ library(lmerTest)
 library(ggdist)
 
 # data
-df <- read_rds('compiled_experiment.rds')
+df <- read_rds('tidy_data/compiled_experiment.rds')
 
 extract_fam_ratings <- function(x){
   # x is a json formatted string.
@@ -98,7 +100,7 @@ summary(model.fit)
 YES.
 
 ```{r, echo = FALSE}
-df <- read_rds('tidy_enc.rds')
+df <- read_rds('tidy_data/tidy_enc.rds')
 
 left_join(df, fam.ratings.df, by = c('subject_id', 'session', 'key' = 'stimuli')) -> df
 ```
@@ -128,7 +130,7 @@ ggplot(df, aes(x = rating, y = response_slider)) +
 YES.
 
 ```{r, echo = FALSE}
-df <- read_rds('graded_df.rds')
+df <- read_rds('tidy_data/graded_df.rds')
 
 left_join(df, fam.ratings.df, by = c('subject_id', 'session', 'key' = 'stimuli')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'type', values_to = 'isCorrect') %>%
@@ -162,7 +164,7 @@ ggplot(df, aes(x = rating, y = numCorrect)) +
 NO.
 
 ```{r, echo = FALSE}
-df <- read_rds('tidy_dependency.rds')
+df <- read_rds('tidy_data/tidy_dependency.rds')
 
 fam.ratings.df %>%
   group_by(subject_id, session, stimType) %>%
@@ -200,7 +202,7 @@ ggplot(df, aes(x = rating, y = dependency)) +
 ## Does familarity rating predict bias?
 
 ```{r}
-df.bias <- read_rds('tidy_bias.rds')
+df.bias <- read_rds('tidy_data/tidy_bias.rds')
 
 head(df.bias)
 ```

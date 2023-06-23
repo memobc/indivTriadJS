@@ -11,8 +11,7 @@ d      <- rstudioapi::selectDirectory()
 
 # the rosetta stone -- translates prolific study ids into English
 
-rosetta <- read_csv('metadata/study_id_rosetta.csv') %>%
-           rename(notes = ...4)
+rosetta <- read_csv('metadata/study_id_rosetta.csv', show_col_types = F)
 
 # prolific demographic data
 
@@ -22,7 +21,7 @@ extracted.study.id <- str_extract(f.dem, '(?<=export_).*(?=.csv)')
 df.dem <- map(f.dem, read_csv, show_col_types = F)
 
 tibble(study_id = extracted.study.id, dem.data = df.dem) %>%
-  left_join(rosetta) -> rosetta
+  left_join(rosetta, by = join_by('study_id')) -> rosetta
 
 # experimental data
 
@@ -54,6 +53,6 @@ tibble(file = f.int) %>%
   mutate(data = map(file, read_csv, show_col_types = F),
          subject_id = str_extract(f.int, '(?<=sub-).*(?=_ses)'),
          session_id = str_extract(f.int, '(?<=ses-).*(?=_data)')) %>%
-  select(-file) -> df.int
+  dplyr::select(-file) -> df.int
 
 write_rds(x = df.int, file = 'tidy_data/compiled_interaction.rds')

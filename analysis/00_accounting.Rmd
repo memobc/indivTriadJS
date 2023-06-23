@@ -1,27 +1,31 @@
 ---
 title: "Data Accounting"
-output: 
-  html_notebook: 
+date: "`r Sys.Date()`"
+author: "Kyle Kurkela"
+output:
+  html_document: 
     toc: yes
     toc_float: yes
+    code_folding: hide
+    df_print: paged
 ---
 
-Packages used  
+Statement of purpose:
+
+Account for the data that has been collected. How many datasets do we have? How many datasets do we have according to those that exist on the server? How many datasets do we have according to Prolific?
 
 ```{r requirements, warning=FALSE, message=FALSE}
 library(tidyverse) # <3
 library(rmarkdown)
-```
 
-Hand select the data directory. A directory selection window will pop up.  
-
-```{r data_dir}
+# pop up box to select directory that contains the raw data
+# data currently live on mcguinn2k
 d <- rstudioapi::selectDirectory()
 ```
 
 # Data Descriptions
 
-## Rosetta
+## Rosetta Metadata
 
 The rosetta stone data frame (`rosetta`). Hand created by Kyle. Translates the prolific study ids
 into English.
@@ -41,9 +45,9 @@ paged_table(rosetta)
 |`version`      | which version of the experiment was this?  |
 |`notes`        | what makes this version unique?  |
 
-## Demographics
+## Demographic Data
 
-The demographics data is downloadable from Prolific. There is one .csv file for each Prolific study. We have 6 studies on Prolific associated with TRIADs: 3 versions, 2 sessions per version. The `study_id` variable is written into the filenames. See code:  
+The demographics data is downloadable from Prolific. There is one .csv file for each Prolific study. We have 8 studies on Prolific associated with TRIADs: 3 versions, 2 sessions per version. The `study_id` variable is written into the filenames. See code:  
 
 ```{r}
 # list the full path to all files starting with "prolific_export" in the directory "d"
@@ -73,7 +77,7 @@ paged_table(df.dem)
 | `study_id` | unique id associated with each Prolific study. |  
 | `Submission id` | unique to each subject/study combination. | 
 | `Participant id` | unique to each individual. |
-| `Status` | did you pay/reject them yet?. |
+| `Status` | did you pay/reject them yet? |
 | `Started at`:`Achived at` | date time that X occurred. |
 | `Time taken` | amount of time between originally clicking the link and clicking the link to return. |
 | `Completion code` | code that participant can message with. I did not set the option for a completion code. Not sure why it is reported here. |
@@ -89,7 +93,7 @@ df.dem %>%
 paged_table(df.dem)
 ```
 
-But what do the study_id's mean to us? Lets add the information from Kyle's `rosetta` dataframe so we understand in English what the `study_id`s mean.  
+But what do the `study_id`'s mean to us? Lets add the information from Kyle's `rosetta` dataframe so we understand in English what the `study_id`s mean.  
 
 ```{r}
 # left_join:
@@ -99,12 +103,12 @@ But what do the study_id's mean to us? Lets add the information from Kyle's `ros
 #  select
 #  - rearrange the order of the columns for clarity
 left_join(df.dem, rosetta, by = join_by(study_id)) %>%
-  select(`Participant id`, study_id, session:notes, dem.data) -> df.dem
+  dplyr::select(`Participant id`, study_id, session:notes, dem.data) -> df.dem
 
 paged_table(df.dem)
 ```
 
-## Experimental
+## Experimental Data
 
 What experimental data do we have?
 
@@ -123,7 +127,7 @@ print(f.exp[1])
 | `sub`  | prolific's subject_id |  
 | `ses`  |  for V1, prolific's session_id. for V2 + v3, prolific's study_id |  
 
-There are 128 experimental data files:  
+There are `r length(f.exp)` experimental data files:  
 
 ```{r}
 length(f.exp)

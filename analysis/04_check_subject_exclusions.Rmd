@@ -1,11 +1,13 @@
 ---
 title: "Check Subject Exclusions"
+date: "`r Sys.Date()`"
 author: "Kyle Kurkela"
-date: "2023-06-14"
 output: 
   html_document: 
     toc: yes
+    toc_float: yes
     code_folding: hide
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -15,10 +17,10 @@ library(tidyverse)
 library(rmarkdown)
 library(ggridges)
 
-tidy.enc   <- read_rds('tidy_enc.rds')
-tidy.ret   <- read_rds('tidy_ret.rds')
-tidy.bds   <- read_rds('tidy_bds.rds')
-tidy.catch <- read_rds('tidy_catch.rds')
+tidy.enc   <- read_rds('tidy_data/tidy_enc.rds')
+tidy.ret   <- read_rds('tidy_data/tidy_ret.rds')
+tidy.bds   <- read_rds('tidy_data/tidy_bds.rds')
+tidy.catch <- read_rds('tidy_data/tidy_catch.rds')
 ```
 
 ## Exclusion Criterion 1
@@ -92,7 +94,9 @@ tidy.ret %>%
   geom_vline(color = 'red', xintercept = 600, linetype = 'dotted') +
   geom_point(shape = '|', size = 1.5) +
   scale_x_continuous(breaks = seq(0,700, 100)) +
-  labs(x = 'slider_rt (s)', title = 'Cued Recall', subtitle = 'Submit RT Distributions', y = 'subjects', caption = 'dashes = trials; red dashed = 10 minutes.') +
+  labs(x = 'slider_rt (s)', title = 'Cued Recall', 
+       subtitle = 'Submit RT Distributions', y = 'subjects', 
+       caption = 'dashes = trials; red dashed = 10 minutes.') +
   facet_grid(~session) +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
@@ -126,7 +130,10 @@ tidy.bds %>%
   ggplot(aes(x = rt, y = subject_id)) +
   geom_point(shape = '|', size = 1.5) +
   scale_x_continuous(breaks = seq(0,300,50)) +
-  labs(x = 'reaction time (s)', title = 'Backwards Digit Span', subtitle = 'RT Distributions', y = 'subjects', caption = 'dashes = trials') +
+  labs(x = 'reaction time (s)', 
+       title = 'Backwards Digit Span', 
+       subtitle = 'RT Distributions', 
+       y = 'subjects', caption = 'dashes = trials') +
   facet_grid(~session) +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
@@ -183,7 +190,7 @@ tidy.catch %>%
   group_by(subject_id) %>%
   mutate(avgRespLength = mean(respLength)) %>% 
   arrange(avgRespLength) %>%
-  select(subject_id, session, response) %>%
+  dplyr::select(subject_id, session, response) %>%
   paged_table()
 ```
 
@@ -199,7 +206,7 @@ tidy.catch %>%
   group_by(subject_id) %>%
   mutate(avgRespLength = mean(respLength)) %>% 
   arrange(avgRespLength) %>%
-  select(subject_id, session, response) %>%
+  dplyr::select(subject_id, session, response) %>%
   paged_table()
 ```
 
@@ -211,6 +218,6 @@ Identify individuals with unusually long response lengths.
 tidy.ret %>% 
   mutate(respLength = str_length(ret_resp_1) + str_length(ret_resp_2)) %>% 
   group_by(subject_id, session) %>% 
-  summarise(across(respLength, max)) %>% 
+  summarise(across(respLength, max), .groups = 'drop') %>% 
   arrange(desc(respLength))
 ```

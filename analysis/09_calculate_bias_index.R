@@ -5,7 +5,7 @@ library(ppcor)
 library(lmerTest)
 
 # data
-dependency.df <- read_rds('tidy_dependency.rds')
+dependency.df <- read_rds('tidy_data/tidy_dependency.rds')
 
 dependency.df %>%
   pivot_wider(id_cols = all_of(c('subject_id', 'session')), names_from = condition, values_from = dependency) %>%
@@ -63,4 +63,4 @@ blank +
 summarised.df %>%
   mutate(bias = `famous place` - `famous person`) -> bias.df
 
-write_rds(x = bias.df, file = 'tidy_bias.rds')
+write_rds(x = bias.df, file = 'tidy_data/tidy_bias.rds')

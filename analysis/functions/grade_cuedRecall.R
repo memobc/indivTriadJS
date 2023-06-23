@@ -1,7 +1,7 @@
 grade_cuedRecall <- function(x){
 
   responses <- c(x$ret_resp_1, x$ret_resp_2)
-  
+
   if(x$ret_probe == x$objOne){
     objOneCorrect <- NA
   } else {

@@ -1,11 +1,13 @@
 ---
 title: "Proportion Correct Analysis"
+date: "`r Sys.Date()`"
+author: "Kyle Kurkela"
 output:
   html_document:
-    df_print: paged
-    code_folding: hide
     toc: yes
     toc_float: yes
+    code_folding: hide
+    df_print: paged
 ---
 
 ```{r setup, message=FALSE,warning=FALSE, echo=FALSE}
@@ -16,7 +18,7 @@ library(ppcor)
 library(lmerTest)
 
 # data
-graded.df     <- read_rds('graded_df.rds')
+graded.df     <- read_rds('tidy_data/graded_df.rds')
 ```
 
 ```{r tidy, echo = FALSE}
