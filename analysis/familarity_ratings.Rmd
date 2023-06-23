@@ -1,0 +1,252 @@
+---
+title: "Familarity Ratings Analysis"
+output:
+  html_document:
+    df_print: paged
+    code_folding: hide
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, message=FALSE,warning=FALSE, echo=FALSE}
+# requirements
+library(tidyverse)
+library(ggbeeswarm)
+library(ppcor)
+library(lmerTest)
+library(ggdist)
+
+# data
+df <- read_rds('compiled_experiment.rds')
+
+extract_fam_ratings <- function(x){
+  # x is a json formatted string.
+
+  jsonlite::parse_json(x) %>% 
+    unlist() %>% 
+    as_tibble_row() %>% 
+    pivot_longer(cols = everything(), names_to = 'stim', values_to = 'rating') %>% 
+    separate(col = 'stim', into = c('stimType', 'stimuli'), sep = '(?<=[es])(\\.)')
+}
+```
+
+```{r}
+df %>%
+  filter(phase == 'stim_ratings') %>% 
+  dplyr::select(where(~!all(is.na(.x)))) %>%
+  dplyr::select(subject_id, session, version, response) -> df
+
+# only subjects with both sessions
+df %>%
+  nest(data = -all_of(c('subject_id', 'session'))) %>%
+  pivot_wider(id_cols = subject_id, names_from = session, values_from = data) %>%
+  filter(map_lgl(session1, is_tibble) & map_lgl(session2, is_tibble)) %>%
+  pivot_longer(cols = starts_with('session'), names_to = 'session', values_to = 'data') %>%
+  unnest(cols = data) -> df
+
+df %>%
+  mutate(response = map(.x = response, .f = extract_fam_ratings)) %>%
+  unnest(response) -> fam.ratings.df
+```
+
+## Does familarity rating differ between conditions?
+
+Yes. Persons >> Places. See below:
+
+```{r, echo = FALSE}
+fam.ratings.df %>%
+  group_by(subject_id, session, stimType) %>%
+  summarise(rating = mean(rating), .groups = 'drop') -> df
+```
+
+### Visuals
+
+Person/Place Space
+
+```{r}
+df %>% 
+  pivot_wider(id_cols = all_of(c('subject_id', 'session')), names_from = stimType, values_from = rating) %>%
+  ggplot(aes(x = people, y = places)) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_point() +
+  scale_x_continuous(limits = c(0, 4)) +
+  scale_y_continuous(limits = c(0, 4)) +
+  geom_line(aes(group = subject_id)) +
+  labs(x = 'Avg Famous Person Familarity', 
+       y = 'Avg Famous Places Familarity', 
+       caption = 'dumbells = subjects. Dots = sessions', title = 'Person Familarity >> Place Familarity')
+```
+
+```{r}
+ggplot(df, aes(x = stimType, y = rating)) +
+  geom_point() +
+  geom_line(aes(group = subject_id), alpha = 0.2) +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
+  facet_grid(~session) +
+  labs(title = 'Person Familarity >> Place Familarity', subtitle = 'Alternative Visual', 
+       x = '', y = 'Familarity Rating', 
+       caption = 'dots = subjects. Lines connect subjects.')
+```
+
+```{r}
+lmer(data = df, rating ~ session*stimType + (stimType|subject_id)) -> model.fit
+summary(model.fit)
+```
+
+## Does familarity rating predict encoding success?
+
+YES.
+
+```{r, echo = FALSE}
+df <- read_rds('tidy_enc.rds')
+
+left_join(df, fam.ratings.df, by = c('subject_id', 'session', 'key' = 'stimuli')) -> df
+```
+
+### Stats
+
+```{r}
+lmer(response_slider ~ rating + (rating|subject_id), data = df) -> model.1
+summary(model.1)
+```
+
+### Visual
+
+```{r}
+ggplot(df, aes(x = rating, y = response_slider)) +
+  geom_quasirandom(alpha = 0.2, width = 0.2) +
+  stat_summary(fun.data = mean_se, geom = 'crossbar', width = 0.2, fill = 'red', color = 'blue') +
+  guides(color = 'none') +
+  labs(y = 'Encoding Imagination Success', 
+       x = 'Familarity Rating for Key Stimulus', 
+       caption = 'dots = trials', 
+       title = 'Familarity Rating Predicts Imagination Success')
+```
+
+## Does familarity rating predict retrieval success?
+
+YES.
+
+```{r, echo = FALSE}
+df <- read_rds('graded_df.rds')
+
+left_join(df, fam.ratings.df, by = c('subject_id', 'session', 'key' = 'stimuli')) %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'type', values_to = 'isCorrect') %>%
+  filter(!is.na(isCorrect)) %>%
+  group_by(subject_id, session, encTrialNum, key, rating) %>%
+  summarise(numCorrect = sum(isCorrect), .groups = 'drop') -> df
+```
+
+### Stats
+
+```{r}
+lmer(numCorrect ~ rating + (1|subject_id), data = df) -> model.1
+summary(model.1)
+```
+
+### Visual
+
+```{r}
+ggplot(df, aes(x = rating, y = numCorrect)) +
+  geom_quasirandom(alpha = 0.2, width = 0.2) +
+  stat_summary(fun.data = mean_se, geom = 'crossbar', width = 0.2, fill = 'red', color = 'blue') +
+  guides(color = 'none') +
+  labs(y = 'Number of Cued Retrievals Answered Correctly', 
+       x = 'Familarity Rating for Key Stimulus', 
+       caption = 'dots = trials', 
+       title = 'Familarity Rating Predicts Imagination Success')
+```
+
+## Does familarity rating predict dependency?
+
+NO.
+
+```{r, echo = FALSE}
+df <- read_rds('tidy_dependency.rds')
+
+fam.ratings.df %>%
+  group_by(subject_id, session, stimType) %>%
+  summarise(rating = mean(rating), .groups = 'drop') %>%
+  mutate(stimType = case_when(stimType == 'people' ~ 'famous person',
+                              stimType == 'places' ~ 'famous place')) -> fam.ratings.summarised
+
+left_join(df,fam.ratings.summarised, by = c('subject_id', 'session', 'condition' = 'stimType')) -> df
+```
+
+### Stats
+
+```{r}
+lmer(dependency ~ rating + (rating|subject_id), data = df) -> model.1
+summary(model.1)
+```
+
+### Visual
+
+```{r}
+df$pred <- predict(model.1)
+df$pred_fix <- predict(model.1, re.form = NA)
+
+ggplot(df, aes(x = rating, y = dependency)) +
+  geom_point() +
+  geom_line(aes(y = pred, color = subject_id), alpha = 0.4) +
+  geom_line(aes(y = pred_fix), color = 'blue', linewidth = 2) +
+  guides(color = 'none') +
+  labs(y = 'Retrieval Dependency', 
+       x = 'Average Familarity Does Not Predict Retrieval Dependency', 
+       caption = 'dots = subject:session:condition.\nFadded color lines = random effects model fit for subjects.\nThick blue line = fixed effect estimate', 
+       title = 'Familarity Rating Predicts Imagination Success')
+```
+
+## Does familarity rating predict bias?
+
+```{r}
+df.bias <- read_rds('tidy_bias.rds')
+
+head(df.bias)
+```
+
+```{r}
+head(fam.ratings.df)
+```
+
+```{r}
+fam.ratings.df %>%
+  group_by(subject_id, stimType) %>%
+  summarise(rating = mean(rating), .groups = 'drop') %>%
+  pivot_wider(id_cols = subject_id, names_from = stimType, values_from = rating) %>%
+  mutate(bias_fam = places - people) -> fam.ratings.bias.df
+```
+
+### Are the familarity Ratings Biased?
+
+"Bias" is the distance away from the diagonal line:
+
+```{r}
+ggplot(fam.ratings.bias.df, aes(x = people, y = places)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0) +
+  scale_x_continuous(limits = c(0,4)) +
+  scale_y_continuous(limits = c(0,4)) +
+  labs(title = 'People Familarity >> Place Familarity', x = 'Avg Famous Person Familarity', y = 'Avg Famous Place Familarity')
+```
+
+### Does bias predict bias?
+
+```{r}
+left_join(df.bias, fam.ratings.bias.df, by = 'subject_id') -> df.bias
+
+lm(data = df.bias, bias ~ bias_fam) -> model.fit
+
+summary(model.fit)
+```
+
+```{r}
+ggplot(df.bias, aes(x = bias_fam, y = bias)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ x) +
+  labs(x = 'avg famous place familarity - avg famous person familarity',
+       y = 'Bias = place dependency - person dependency',
+       caption = 'dots = subjects', 
+       title = 'Bias is NOT predicted by relative familarity of famous places/famous people.')
+```
+

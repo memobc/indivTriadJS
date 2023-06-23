@@ -1,7 +1,7 @@
 independentModel <- function(x){
 
   x %>%
-    select(where(~!all(is.na(.x)))) %>%
+    dplyr::select(where(~!all(is.na(.x)))) %>%
     mutate(across(ends_with('Correct'), as.logical)) %>%
     summarise(across(ends_with('correct'), mean)) %>%
     as_vector() -> probs

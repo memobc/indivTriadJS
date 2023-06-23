@@ -40,10 +40,10 @@ extract_debrief <- function(x){
 
 df.exp %>%
   filter(phase == 'debrief') %>%
-  select(where(~!all(is.na(.x)))) %>%
+  dplyr::select(where(~!all(is.na(.x)))) %>%
   mutate(response = map(response, extract_debrief)) %>%
   unnest(response) %>%
-  select(subject_id, study_id, session_id, trial_index, time_elapsed, ends_with('Level')) -> tidy.debrief
+  dplyr::select(subject_id, study_id, session_id, session, trial_index, time_elapsed, ends_with('Level')) -> tidy.debrief
 
 saveRDS(tidy.debrief, file = 'tidy_debrief.rds')
 
@@ -58,21 +58,73 @@ extract_survey <- function(x, page_name){
 
 df.exp %>%
   filter(phase == 'sam') %>%
-  select(where(~!all(is.na(.x)))) %>%
+  dplyr::select(where(~!all(is.na(.x)))) %>%
   mutate(response = map(response, extract_survey, page_name = 'sam')) %>%
   unnest(response) %>%
-  select(subject_id, study_id, session_id, rt, matches('[0-9]$')) -> tidy.sam
+  dplyr::select(subject_id, study_id, session_id, session, rt, matches('[0-9]$')) -> tidy.sam
+
+reverse_code_cols <- c('episodic_1', 'episodic_2', 'semantic_2', 'semantic_5', 'spatial_3', 'spatial_4', 'future_6')
+
+code <- function(x, type){
+  # x is a vector of responses 0-4 from jsPsych
+  if(type == 'regular'){
+    case_when(x == '0' ~ 1,
+              x == '1' ~ 2,
+              x == '2' ~ 3,
+              x == '3' ~ 4,
+              x == '4' ~ 5)
+  } else if(type == 'reverse'){
+    case_when(x == '0' ~ 5,
+              x == '1' ~ 4,
+              x == '2' ~ 3,
+              x == '3' ~ 2,
+              x == '4' ~ 1)
+  }
+}
+
+tidy.sam %>%
+  # reverse code: see Palombo et al. 2013 Appendix
+  mutate(across(.cols = all_of(reverse_code_cols), .fns = ~code(.x, type = 'reverse'))) %>%
+  mutate(across(.cols = !all_of(reverse_code_cols) & matches('_[0-9]$'), .fns = ~code(.x, type = 'regular'))) %>%
+  dplyr::select(subject_id, study_id, session_id, session, rt, starts_with('episodic'), starts_with('semantic'), starts_with('spatial'), starts_with('future')) %>%
+  pivot_longer(cols = matches('[0-9]$'), names_to = 'question', values_to = 'response') %>%
+  separate(question, into = c('category', 'q')) %>%
+  group_by(subject_id, category) %>%
+  summarise(across(response, .fns = ~sum(.x, na.rm = TRUE))) -> tidy.sam
 
 saveRDS(tidy.sam, file = 'tidy_sam.rds')
 
 #-- iri
 
+iri_guide <- read_csv('IRI_guide.csv')
+
+score_iri <- function(x, reverse){
+  if(reverse){
+    return(
+      case_when(x == '0' ~ 4,
+                x == '1' ~ 3,
+                x == '2' ~ 2,
+                x == '3' ~ 1,
+                x == '4' ~ 0)
+    )
+  } else {
+    return(x)
+  }
+}
+
 df.exp %>%
   filter(phase == 'iri') %>%
-  select(where(~!all(is.na(.x)))) %>%
+  dplyr::select(where(~!all(is.na(.x)))) %>%
   mutate(response = map(response, extract_survey, page_name = 'iri')) %>%
   unnest(response) %>%
-  select(subject_id, study_id, session_id, rt, matches('[0-9]$')) -> tidy.iri
+  dplyr::select(subject_id, study_id, session_id, session, rt, matches('[0-9]$')) %>%
+  pivot_longer(cols = matches('[0-9]$'), names_to = 'question_number', values_to = 'response') %>%
+  left_join(., iri_guide, by = c('question_number' = 'question')) %>%
+  mutate(score = map2_dbl(.x = response, .y = reverse, .f = score_iri)) -> tidy.iri
+
+tidy.iri %>%
+  group_by(subject_id, category) %>%
+  summarise(across(score, .fns = ~sum(.x, na.rm = TRUE)), .groups = 'drop') -> tidy.iri
 
 saveRDS(tidy.iri, file = 'tidy_iri.rds')
 
@@ -80,21 +132,22 @@ saveRDS(tidy.iri, file = 'tidy_iri.rds')
 
 extract_vivq <- function(x){
   # x is a json formatted string.
-  # the first entry is just text. It contains instructions.
-  
-  jsonlite::parse_json(x) %>% 
-    magrittr::extract(-1) %>%
-    as_tibble() %>%
-    mutate(across(.fns = as.character)) %>%
-    add_column(question_number = 1:4) %>%
-    pivot_wider(values_from = vviq_relative:vviq_country, names_from = question_number)
+
+  jsonlite::parse_json(x) -> parsedText
+
+  parsedText %>%
+    unlist() %>%
+    as_tibble_row()
 }
 
 df.exp %>%
   filter(phase == 'vviq') %>%
-  select(where(~!all(is.na(.x)))) %>%
+  dplyr::select(where(~!all(is.na(.x)))) %>%
   mutate(response = map(response, extract_vivq)) %>%
-  unnest(response) %>%
-  select(subject_id, study_id, session_id, rt, matches('[0-9]$')) -> tidy.vviq
+  unnest(cols = response) %>%
+  dplyr::select(subject_id, study_id, session_id, session, rt, matches('[0-9]$')) %>%
+  pivot_longer(cols = matches('[0-9]$'), names_to = 'question_number', values_to = 'response') %>%
+  group_by(subject_id) %>%
+  summarise(across(response, ~sum(.x, na.rm = TRUE))) -> tidy_vivq
 
-saveRDS(tidy.iri, file = 'tidy_vviq.rds')
+saveRDS(tidy_vivq, file = 'tidy_vviq.rds')

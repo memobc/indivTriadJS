@@ -13,39 +13,73 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(ggbeeswarm)
+library(ggdist)
+library(lmerTest)
 
-graded.df <- read_rds('../graded_df.rds')
-dependency.df <- read_rds('../tidy_dependency.rds')
+graded.df <- read_rds('graded_df.rds')
+dependency.df <- read_rds('tidy_dependency.rds')
 ```
 
 ## How well did participants do on the cued recall?
 
 ```{r}
 graded.df %>%
-  select(subject_id, study_id, session_id, encTrialNum, trial_index, ends_with('Correct')) %>%
+  select(subject_id, study_id, session_id, session, condition, encTrialNum, trial_index, ends_with('Correct')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
   filter(!is.na(correct)) %>%
-  group_by(subject_id, study_id) %>%
+  group_by(subject_id, condition, session) %>%
   summarise(across(correct, mean), .groups = 'drop') -> performance.df
 
 performance.df %>%
-  arrange(study_id, correct) %>%
+  arrange(session, correct) %>%
   rmarkdown::paged_table()
 ```
 
 ```{r}
-ggplot(performance.df, aes(x = correct)) +
-  geom_density() +
-  geom_rug() +
-  scale_x_continuous(limits = c(0,1), breaks = c(0,.25,.5,.75,1)) +
-  labs(x = 'Proportion Correct', title = 'Cued Recall Performance') +
-  theme_light() +
-  theme(axis.title.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        panel.grid.minor.x = element_blank(),
-        axis.text.y = element_blank()) +
-  facet_wrap(~study_id, nrow = 2)
+ggplot(performance.df, aes(y = correct, x = session)) +
+ stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se) +
+ geom_beeswarm() +
+ geom_line(aes(group = subject_id), alpha = 0.5)
 ```
+
+```{r}
+graded.df %>%
+  select(subject_id, study_id, session_id, session, condition, encTrialNum, trial_index, ends_with('Correct')) %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
+  filter(!is.na(correct)) -> df
+```
+
+```{r}
+glmer(correct ~ session * condition + (condition*session|subject_id), family = 'binomial', data = df) -> model1.fit
+glmer(correct ~ condition + (condition*session|subject_id), family = 'binomial', data = df) -> model2.fit
+glmer(correct ~ condition + (condition*session|subject_id), family = 'binomial', data = df) -> model3.fit
+
+anova(model1.fit, model2.fit)
+```
+
+```{r}
+newdata <- expand_grid(subject_id = unique(df$subject_id),
+                       condition = c('famous person', 'famous place'),
+                       session = c('session1', 'session2'))
+
+predict(model.fit, newdata = newdata, type = 'response') -> newdata$predictions
+```
+
+```{r}
+df %>% 
+  group_by(subject_id, condition, session) %>% 
+  summarise(across(correct, .fns = mean), .groups = 'drop') -> summarised.df
+```
+
+
+```{r, message=FALSE}
+left_join(summarised.df, newdata) %>%
+  ggplot(aes(x = condition)) +
+  geom_point(aes(y = correct)) +
+  geom_point(aes(y = predictions), color = 'red') +
+  facet_grid(~session)
+```
+
 
 ## Dependency
 
@@ -57,12 +91,12 @@ ggplot(dependency.df, aes(x = condition, y = dependency, color = subject_id)) +
   theme_light() +
   labs(title = 'Dependency', subtitle = 'By Triad Type', caption = 'colors = subject') +
   guides(color = "none") +
-  facet_wrap(~study_id, ncol = 2)
+  facet_wrap(~session, ncol = 2)
 ```
 
 ```{r}
 dependency.df %>% 
-  select(subject_id, study_id, condition, dependency) %>% 
+  select(subject_id, session, condition, dependency) %>% 
   pivot_wider(values_from = dependency, names_from = condition) %>% 
   mutate(personType = case_when(`famous person` > `famous place` ~ 'person favorer', 
                                 `famous person` < `famous place` ~ 'place favorer', 
@@ -76,6 +110,6 @@ dependency.df %>%
   scale_y_continuous(limits = c(NA, 0.5)) +
   theme_light() +
   labs(title = 'Dependency', subtitle = 'Highlighting Person Types', caption = 'color = personType') +
-  facet_wrap(~study_id)
+  facet_wrap(~session)
 ```
 

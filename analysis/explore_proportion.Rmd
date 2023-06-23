@@ -1,0 +1,176 @@
+---
+title: "Proportion Correct Analysis"
+output:
+  html_document:
+    df_print: paged
+    code_folding: hide
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, message=FALSE,warning=FALSE, echo=FALSE}
+# requirements
+library(tidyverse)
+library(ggbeeswarm)
+library(ppcor)
+library(lmerTest)
+
+# data
+graded.df     <- read_rds('graded_df.rds')
+```
+
+```{r tidy, echo = FALSE}
+# long --> wide
+graded.df %>%
+  dplyr::select(subject_id, session, condition, trial_index, ends_with('Correct')) %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'thingCorrect', values_to = 'isCorrect') %>%
+  group_by(subject_id, session, condition) %>%
+  summarise(across(isCorrect, .fns = ~mean(.x, na.rm = TRUE)), .groups = 'drop') %>%
+  ungroup() -> df
+
+df %>%
+  pivot_wider(id_cols = all_of(c('subject_id', 'session')), names_from = condition, values_from = isCorrect) %>%
+  group_by(subject_id) %>%
+  mutate(person_prefer = `famous person` > `famous place`,
+         place_prefer = `famous person` < `famous place`) %>%
+  mutate(type = case_when(sum(person_prefer) == 2 ~ 'strong person bias',
+                          sum(place_prefer) == 2 ~ 'strong place bias',
+                          TRUE ~ 'ambiguous')) -> figureData
+
+graded.df %>%
+  dplyr::select(subject_id, session, condition, trial_index, ends_with('Correct')) %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'thingCorrect', values_to = 'isCorrect') %>%
+  group_by(subject_id, condition) %>%
+  summarise(across(isCorrect, .fns = ~mean(.x, na.rm = TRUE)), .groups = 'drop') %>%
+  pivot_wider(id_cols = all_of(c('subject_id')), names_from = condition, values_from = isCorrect) -> summarised.df
+```
+
+## Proportion Correct is Biased Towards Persons in Place/Person space
+
+In the animation below, I slowly build up a figure placing our subjects into "Place/Person" space. X-axis = dependency on famous person triads, Y-axis = dependency on famous place triads (Figure 1). You can divide this space on the diagonal (Figure 2) into "place-bias" (upper left; red; Figure 3) and "person-bias" (lower right; blue; Figure 4) zones. The asterisks represent subjects average across sessions (Figure 5). The "dumbells" (i.e., line with two dots at either end) also represents each subject -- the end of each "dumbell" is how the participant performed in session 1 and session 2. The asterisks -- representing each subject's average across sessions -- sits in the center of this line (Figure 6). Participant's "dumbells" are then color coded based on whether they had a `strong place bias` (red), a `strong person bias` (blue), or it was `ambiguous` (black) whether or not they have a bias (Figure 7).
+
+
+```{r, animation.hook='ffmpeg', echo=FALSE, interval=2, fig.align='center'}
+(ggplot(figureData, aes(x = `famous person`, y = `famous place`)) +
+    guides(color = 'none') +
+    theme_minimal() +
+    scale_x_continuous(limits = c(0, 1)) +
+    scale_y_continuous(limits = c(0, 1)) +
+    theme(aspect.ratio = 1) -> blank)
+
+(blank + geom_abline(slope = 1, intercept = 0, linetype = 'solid') -> blank)
+
+(blank + 
+    annotate(geom = 'polygon', x = c(0,0,1), y = c(0,1,1), alpha = 0.3, fill = scales::muted('red')) +
+    annotate(geom = 'label', x = 0.25, y = 0.9, label = '"place" bias', color = scales::muted('red')) -> blank)
+
+(blank +
+    annotate(geom = 'polygon', x = c(0,1,1), y = c(0,0,1), alpha = 0.3, fill = scales::muted('blue')) +
+    annotate(geom = 'label', x = 0.9, y = 0.25, label = '"person" bias', color = scales::muted('blue')) -> blank)
+
+blank + 
+  geom_point(data = summarised.df, shape = 'asterisk', size = 2)
+
+blank +
+  geom_point(data = summarised.df, shape = 'asterisk', size = 2) +
+  geom_point(aes()) + 
+  geom_path(aes(group = subject_id), linetype = 'solid')
+
+blank + 
+  geom_point(data = summarised.df, shape = 'asterisk', size = 2) +
+  geom_point(aes(color = type)) + 
+  geom_path(aes(group = subject_id, color = type)) + 
+  scale_color_manual(values = c('black', 'blue', 'red'))
+blank + 
+  geom_point(data = summarised.df, shape = 'asterisk', size = 2)
+```
+
+A table counting the number of subjects with a `strong place bias` (i.e., place bias in BOTH sessions), `strong person bias` (i.e., person bias in BOTH sessions), and an ambiguous bias (they "jumped" from session to session OR they perfectly hug the diagonal):  
+
+```{r}
+figureData %>%
+  ungroup() %>%
+  count(subject_id, type) %>%
+  count(type)
+```
+
+## Person dependency > Place Dependency
+
+```{r echo = FALSE}
+graded.df %>%
+  dplyr::select(subject_id, session, condition, trial_index, ends_with('Correct')) %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'thingCorrect', values_to = 'isCorrect') %>%
+  group_by(subject_id, session, condition) %>%
+  summarise(across(isCorrect, .fns = ~mean(.x, na.rm = TRUE)), .groups = 'drop') -> df
+```
+
+```{r}
+ggplot(df, aes(x = condition, y = isCorrect)) +
+  geom_point() +
+  geom_line(aes(group = subject_id), alpha = 0.2) +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2, fill = 'gray') +
+  facet_grid(~session) +
+  theme_classic()
+```
+
+```{r}
+graded.df %>%
+  dplyr::select(subject_id, session, condition, trial_index, ends_with('Correct')) %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'thingCorrect', values_to = 'isCorrect') %>%
+  filter(!is.na(isCorrect)) -> df
+
+glmer(isCorrect ~ session * condition + (condition*session|subject_id), data = df, family = 'binomial') -> model1.fit
+
+summary(model1.fit)
+```
+
+## What about our key hypothetical test?
+
+```{r echo = FALSE}
+graded.df %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'thingCorrect', values_to = 'isCorrect') %>%
+  group_by(subject_id, session, condition) %>%
+  summarise(across(isCorrect, .fns = ~mean(.x, na.rm = TRUE)), .groups = 'drop') %>%
+  unite(col = 'sess_cond', session, condition) %>%
+  pivot_wider(id_cols = subject_id, names_from = sess_cond, values_from = isCorrect) -> df
+```
+
+`session1_famous person` ~~ `session2_famous person` CONTROLLING FOR `session1_famous place`, `session2_famous place`: 
+
+```{r, echo=TRUE}
+(ppcor::pcor.test(x = df$`session1_famous person`, 
+                 y = df$`session2_famous person`, 
+                 z = df[,c('session1_famous place', 'session2_famous place')]) -> result1)
+```
+
+`session1_famous place` ~~ `session2_famous place` CONTROLLING FOR `session1_famous person`, `session2_famous person`: 
+
+```{r}
+(ppcor::pcor.test(x = df$`session1_famous place`, 
+                 y = df$`session2_famous place`, 
+                 z = df[,c('session1_famous person', 'session2_famous person')]) -> result2)
+```
+
+What is our stopping decision?
+
+```{r}
+# stopping decision
+
+theMaxPvalue <- max(result1$p.value, result2$p.value)
+
+alphaStrong <- 0.035
+alphaWeak   <- 0.282
+
+if(theMaxPvalue < alphaStrong){
+  print('Reject the Null Hypothesis')
+}
+
+if(theMaxPvalue > alphaWeak){
+  print('Fail to Reject the Null Hypothesis')
+}
+
+if(theMaxPvalue > alphaStrong & theMaxPvalue < alphaWeak){
+  print('Inconclusive. Continue data collection.')
+}
+```
+

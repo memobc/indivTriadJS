@@ -15,10 +15,10 @@ library(tidyverse)
 library(rmarkdown)
 library(ggridges)
 
-tidy.enc   <- read_rds('../tidy_enc.rds')
-tidy.ret   <- read_rds('../tidy_ret.rds')
-tidy.bds   <- read_rds('../tidy_bds.rds')
-tidy.catch <- read_rds('../tidy_catch.rds')
+tidy.enc   <- read_rds('tidy_enc.rds')
+tidy.ret   <- read_rds('tidy_ret.rds')
+tidy.bds   <- read_rds('tidy_bds.rds')
+tidy.catch <- read_rds('tidy_catch.rds')
 ```
 
 ## Exclusion Criterion 1
@@ -28,16 +28,16 @@ for reaction time for any 1 of our tasks.
 
 ### Encoding RTs
 
-Table is sorted by session (`study_id`) and the absolute value of the z score of their average reaction time for encoding trials (specifically, how long it took them to submit their imagination success rating; `mean_rt_slider`). Does NOT include catch trials) calculated within session (`zscore`). See code.  
+Table is sorted by session (`session`) and the absolute value of the z score of their average reaction time for encoding trials (specifically, how long it took them to submit their imagination success rating; `mean_rt_slider`). Does NOT include catch trials) calculated within session (`zscore`). See code.  
 
 ```{r}
 # encoding
 tidy.enc %>%
   # calculate the mean RT for the imagination success slider for each subject/session
-  group_by(subject_id, study_id) %>%
+  group_by(subject_id, session) %>%
   summarise(mean_rt_slider = mean(rt_slider), .groups = 'drop') %>%
   # calculate a zscore within session
-  group_by(study_id) %>%
+  group_by(session) %>%
   mutate(zscore = as.double(scale(mean_rt_slider))) %>%
   # exclude subjects faster than 3 SDs
   ungroup() %>%
@@ -45,7 +45,7 @@ tidy.enc %>%
   # rts are in milliseconds. Convert to seconds
   mutate(mean_rt_slider = mean_rt_slider / 1000) %>%
   # arrange by session and descending absolute value zscore
-  arrange(study_id, desc(abs(zscore))) %>%
+  arrange(session, desc(abs(zscore))) %>%
   paged_table()
 ```
 
@@ -54,35 +54,32 @@ tidy.enc %>%
   # rt milliseconds --> seconds
   mutate(rt_slider = rt_slider / 1000) %>%
   # a density ridges plot. See ggridges package.
-  ggplot(aes(x = rt_slider, y = subject_id, height = after_stat(density))) +
-  geom_density_ridges(
-    jittered_points = TRUE,
-    position = position_points_jitter(width = 0.05, height = 0),
-    point_shape = '|', point_size = 1.5, point_alpha = 1, alpha = 0.7,
-  ) +
+  ggplot(aes(x = rt_slider, y = subject_id)) +
+  geom_point(shape = '|', size = 1.5) +
   scale_x_continuous(breaks = seq(0, 300, 50)) +
-  labs(x = 'slider_rt (s)', title = 'Encoding Slider Response', subtitle = 'RT Distributions') +
-  facet_grid(~study_id)
+  labs(x = 'slider_rt (s)', title = 'Encoding Slider Response', subtitle = 'RT Distributions', y = 'subjects') +
+  facet_grid(~session) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
 ### Cued Recall RTs
 
-Table is sorted by session (`study_id`) and the absolute value of the z score of their average reaction time for cued recall trials calculated within session (`zscore`). See code.  
+Table is sorted by session (`session`) and the absolute value of the z score of their average reaction time for cued recall trials calculated within session (`zscore`). See code.  
 
 ```{r}
 # cued recall
 tidy.ret %>%
   # calculate the mean RT for the imagination success slider for each subject/session
-  group_by(subject_id, study_id) %>%
+  group_by(subject_id, session) %>%
   summarise(mean_rt_cued_recall = mean(rt), .groups = 'drop') %>%
   # calculate a zscore within session
-  group_by(study_id) %>%
+  group_by(session) %>%
   mutate(zscore = as.double(scale(mean_rt_cued_recall))) %>%
   # exclude subjects faster than 3 SDs
   ungroup() %>%
   mutate(exclude_ret = zscore < -3) %>%
   # arrange by session and descending absolute value zscore
-  arrange(study_id, desc(abs(zscore))) %>%
+  arrange(session, desc(abs(zscore))) %>%
   paged_table()
 ```
 
@@ -91,35 +88,33 @@ tidy.ret %>%
   # rt milliseconds --> seconds
   mutate(rt = rt / 1000) %>%
   # a density ridges plot. See ggridges package.
-  ggplot(aes(x = rt, y = subject_id, height = after_stat(density))) +
-  geom_density_ridges(
-    jittered_points = TRUE,
-    position = position_points_jitter(width = 0.05, height = 0),
-    point_shape = '|', point_size = 3, point_alpha = 1, alpha = 0.7,
-  ) +
+  ggplot(aes(x = rt, y = subject_id)) +
+  geom_vline(color = 'red', xintercept = 600, linetype = 'dotted') +
+  geom_point(shape = '|', size = 1.5) +
   scale_x_continuous(breaks = seq(0,700, 100)) +
-  labs(x = 'slider_rt (s)', title = 'Cued Recall', subtitle = 'Submit RT Distributions') +
-  facet_grid(~study_id)
+  labs(x = 'slider_rt (s)', title = 'Cued Recall', subtitle = 'Submit RT Distributions', y = 'subjects', caption = 'dashes = trials; red dashed = 10 minutes.') +
+  facet_grid(~session) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
 ### BDS RTs
 
-Table is sorted by session (`study_id`) and the absolute value of the z score of their average reaction time for BDS trials calculated within session (`zscore`). See code.  
+Table is sorted by session (`session`) and the absolute value of the z score of their average reaction time for BDS trials calculated within session (`zscore`). See code.  
 
 ```{r}
 # bds
 tidy.bds %>%
   # calculate the mean RT for the imagination success slider for each subject/session
-  group_by(subject_id, study_id) %>%
+  group_by(subject_id, session) %>%
   summarise(mean_rt_bds = mean(rt), .groups = 'drop') %>%
   # calculate a zscore within session
-  group_by(study_id) %>%
+  group_by(session) %>%
   mutate(zscore = as.double(scale(mean_rt_bds))) %>%
   # exclude subjects faster than 3 SDs
   ungroup() %>%
   mutate(exclude_bds = zscore < -3) %>%
   # arrange by session and descending absolute value zscore
-  arrange(study_id, desc(abs(zscore))) %>%
+  arrange(session, desc(abs(zscore))) %>%
   paged_table()
 ```
 
@@ -128,71 +123,67 @@ tidy.bds %>%
   # rt milliseconds --> seconds
   mutate(rt = rt / 1000) %>%
   # a density ridges plot. See ggridges package.
-  ggplot(aes(x = rt, y = subject_id, height = after_stat(density))) +
-  geom_density_ridges(
-    jittered_points = TRUE,
-    position = position_points_jitter(width = 0.05, height = 0),
-    point_shape = '|', point_size = 3, point_alpha = 1, alpha = 0.7,
-  ) +
+  ggplot(aes(x = rt, y = subject_id)) +
+  geom_point(shape = '|', size = 1.5) +
   scale_x_continuous(breaks = seq(0,300,50)) +
-  labs(x = 'slider_rt (s)', title = 'Backwards Digit Span', subtitle = 'RT Distributions') +
-  facet_grid(~study_id)
+  labs(x = 'reaction time (s)', title = 'Backwards Digit Span', subtitle = 'RT Distributions', y = 'subjects', caption = 'dashes = trials') +
+  facet_grid(~session) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
-
 
 ## Exclusion Criterion 2
 
-Participants who objectively demonstrated clear low-effort throughout the experiment. Specifically participants are missing responses from more than 90% of cued recall trials. Table is sorted by session (`study_id`) and proportion of cued recall response prompts left blank (`prop_blank`).    
+Participants who objectively demonstrated clear low-effort throughout the experiment. Specifically participants are missing responses from more than 90% of cued recall trials. Table is sorted by session (`session`) and proportion of cued recall response prompts left blank (`prop_blank`).    
 
 ```{r}
 tidy.ret %>%
   # data from wide --> long
   pivot_longer(cols = starts_with('ret_resp'), names_to = 'resp_num', values_to = 'text_resp') %>%
   # calculate proportion left blank for each subject/session
-  group_by(subject_id, study_id) %>%
+  group_by(subject_id, session) %>%
   summarise(nblank = sum(text_resp == ""), total = n(), .groups = 'drop') %>%
   mutate(prop_blank = nblank / total) %>%
   # exclude IFF proportion blank > 90%
   mutate(exclude = prop_blank > .9) %>%
-  # sort table by study_id, proportion blank
-  arrange(study_id, desc(prop_blank)) -> propBlank.df
+  # sort table by session, proportion blank
+  arrange(session, desc(prop_blank)) -> propBlank.df
 
 paged_table(propBlank.df)
 ```
 
 ## Exclusion Criterion 3
 
-Participants who objectively demonstrated clear low-effort throughout the experiment. Specifically participants used the same response on the slider scale for every single encoding trial. Table below is sorted by session (`study_id`) and the standard deviation of their slider responses.  
+Participants who objectively demonstrated clear low-effort throughout the experiment. Specifically participants used the same response on the slider scale for every single encoding trial. Table below is sorted by session (`session`) and the standard deviation of their slider responses.  
 
 ```{r}
 tidy.enc %>%
   # standard deviation of slider response for each subject/session
-  group_by(subject_id, study_id) %>%
+  group_by(subject_id, session) %>%
   summarise(sd_slider = sd(response_slider), .groups = 'drop') %>%
   # exclude subjects who have a standard deviation == 0 -- they had the same response every time
   mutate(exclude = sd_slider == 0) %>%
   # sort by session, sd of the slider
-  arrange(study_id, sd_slider) %>%
+  arrange(session, sd_slider) %>%
   paged_table()
 ```
 
 ## Exclusion Criterion 4
 
-Participants who objectively demonstrated clear low-effort throughout the experiment. Specifically, they responded with nonsense on the catch trials. The table below is sorted by session (confusingly labeled `study_id`) and average length, in characters, of their responses (`aveRespLength`). See code.
+Participants who objectively demonstrated clear low-effort throughout the experiment. Specifically, they responded with nonsense on the catch trials. The table below is sorted by session (confusingly labeled `session`) and average length, in characters, of their responses (`aveRespLength`). See code.
 
 Session 1 only:
 
 ```{r}
 # catch trials
 tidy.catch %>%
-  filter(study_id == 'session1') %>%
+  filter(session == 'session1') %>%
   # calculate number of characters for each response
   mutate(respLength = str_length(response)) %>%
   # calculate average response length for each subject/session
   group_by(subject_id) %>%
   mutate(avgRespLength = mean(respLength)) %>% 
   arrange(avgRespLength) %>%
-  select(subject_id, study_id, response) %>%
+  select(subject_id, session, response) %>%
   paged_table()
 ```
 
@@ -201,26 +192,25 @@ Session 2 only:
 ```{r}
 # catch trials
 tidy.catch %>%
-  filter(study_id == 'session2') %>%
+  filter(session == 'session2') %>%
   # calculate number of characters for each response
   mutate(respLength = str_length(response)) %>%
   # calculate average response length for each subject/session
   group_by(subject_id) %>%
   mutate(avgRespLength = mean(respLength)) %>% 
   arrange(avgRespLength) %>%
-  select(subject_id, study_id, response) %>%
+  select(subject_id, session, response) %>%
   paged_table()
 ```
 
-
-## Wired Resp Lengths
+## Suspect Cued Recall Response Lengths
 
 Identify individuals with unusually long response lengths.
 
 ```{r, warning=FALSE, message=FALSE}
 tidy.ret %>% 
   mutate(respLength = str_length(ret_resp_1) + str_length(ret_resp_2)) %>% 
-  group_by(subject_id,study_id) %>% 
+  group_by(subject_id, session) %>% 
   summarise(across(respLength, max)) %>% 
   arrange(desc(respLength))
 ```

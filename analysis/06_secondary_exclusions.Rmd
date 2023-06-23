@@ -13,13 +13,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 
-df.interaction <- read_rds('../compiled_interaction.rds')
-df.experiment <- read_rds('../compiled_experiment.rds')
-df.graded <- read_rds('../graded_df.rds')
+df.interaction <- read_rds('compiled_interaction.rds')
+df.experiment <- read_rds('compiled_experiment.rds')
+df.graded <- read_rds('graded_df.rds')
 
-df.sam <- read_rds('../tidy_sam.rds')
-df.iri <- read_rds('../tidy_iri.rds')
-df.vviq <- read_rds('../tidy_vviq.rds')
+df.sam <- read_rds('tidy_sam.rds')
+df.iri <- read_rds('tidy_iri.rds')
+df.vviq <- read_rds('tidy_vviq.rds')
 ```
 
 ## Criterion 1: RT Slower than 10 minutes
@@ -31,10 +31,10 @@ Reaction time on any 1 trial during encoding/retrieval is slower than 5 minutes.
 # remove events without a rt
 df.experiment %>%
   filter(!is.na(rt)) %>%
-  group_by(subject_id, study_id, phase) %>%
+  group_by(subject_id, session, phase) %>%
   summarise(exclude = any(rt > 10*60*1000), .groups = 'drop') %>%
   filter(phase %in% c('enc', 'ret')) %>%
-  pivot_wider(names_from = study_id, values_from = exclude) %>%
+  pivot_wider(names_from = session, values_from = exclude) %>%
   rmarkdown::paged_table()
 ```
 
@@ -45,9 +45,9 @@ df.experiment %>%
   mutate(highlight = rt > 10*60*1000) %>%
   mutate(rt = rt/1000/60) %>%
   ggplot(aes(x = rt, y = subject_id)) +
-  geom_vline(xintercept = 10, color = 'red') +
+  geom_vline(xintercept = 10, color = 'red', linetype = 'dotted') +
   geom_point(shape = "|", size = 1.5) +
-  facet_grid(~study_id) +
+  facet_grid(~session) +
   scale_color_manual(values = c('black', 'red')) +
   theme_light() +
   guides(color = "none") +
@@ -66,8 +66,8 @@ df.experiment %>%
   mutate(rt = rt/1000/60) %>%
   ggplot(aes(x = rt, y = subject_id)) +
   geom_point(shape = "|", size = 1.5) +
-  facet_grid(~study_id) +
-  geom_vline(xintercept = 10, color = 'red') +
+  facet_grid(~session) +
+  geom_vline(xintercept = 10, color = 'red', linetype = 'dotted') +
   scale_color_manual(values = c('black', 'red')) +
   theme_light() +
   guides(color = "none") +
@@ -85,13 +85,13 @@ Cued recall performance in greater than 3 SDs away from sample mean.
 
 ```{r}
 df.graded %>%
-  select(subject_id, study_id, trial_index, encTrialNum, ends_with('Correct')) %>%
+  select(subject_id, session, trial_index, encTrialNum, ends_with('Correct')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
   filter(!is.na(correct)) %>%
-  group_by(subject_id, study_id) %>%
+  group_by(subject_id, session) %>%
   summarise(prop_correct = mean(correct), .groups = 'drop') %>%
-  # z score within session (study_id)
-  group_by(study_id) %>%
+  # z score within session (session)
+  group_by(session) %>%
   mutate(zscore = as.double(scale(prop_correct))) %>%
   mutate(exclude = abs(zscore) > 3) %>%
   arrange(desc(abs(zscore))) %>%

@@ -3,7 +3,7 @@
 # requirements ------------------------------------------------------------
 
 library(tidyverse)
-source('analysis/grade_cuedRecall.R')
+source('grade_cuedRecall.R')
 
 # load data ---------------------------------------------------------------
 
@@ -18,6 +18,14 @@ tidy.ret %>%
   nest(data = c(ret_resp_1, ret_resp_2, ret_probe, condition, objOne, objTwo, key)) %>%
   mutate(isCorrect = map(data, grade_cuedRecall)) %>%
   unnest(cols = c(data, isCorrect)) %>%
-  select(subject_id, study_id, session_id, ret_probe, ret_probe_pos, ret_resp_1, ret_resp_2, condition:keyCorrect, encTrialNum, trial_index) -> graded.df
+  dplyr::select(subject_id, study_id, session_id, session, ret_probe, ret_probe_pos, ret_resp_1, ret_resp_2, condition:keyCorrect, encTrialNum, trial_index) -> graded.df
+
+# only participants who have session1 and session2 data
+graded.df %>% 
+  nest(data = -all_of(c('subject_id', 'session'))) %>% 
+  pivot_wider(id_cols = subject_id, names_from = session, values_from = data) %>% 
+  filter(map_lgl(session1, is_tibble) & map_lgl(session2, is_tibble)) %>%
+  pivot_longer(-subject_id, names_to = 'session', values_to = 'data') %>%
+  unnest(cols = data) -> graded.df
 
 write_rds(x = graded.df, file = 'graded_df.rds')

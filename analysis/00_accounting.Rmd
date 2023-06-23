@@ -16,7 +16,7 @@ library(rmarkdown)
 Hand select the data directory. A directory selection window will pop up.  
 
 ```{r data_dir}
-d <- choose.dir(caption = 'Select Data Folder')
+d <- rstudioapi::selectDirectory()
 ```
 
 # Data Descriptions
@@ -27,7 +27,7 @@ The rosetta stone data frame (`rosetta`). Hand created by Kyle. Translates the p
 into English.
 
 ```{r rosetta, warning=FALSE, message=FALSE}
-file.path(d, 'study_id_rosetta.csv') -> path.2.file
+file.path('../study_id_rosetta.csv') -> path.2.file
 
 read_csv(file = path.2.file) %>%
   rename(notes = ...4) -> rosetta
@@ -124,7 +124,7 @@ print(f.exp[1])
 | `sub`  | prolific's subject_id |  
 | `ses`  |  for V1, prolific's session_id. for V2 + v3, prolific's study_id |  
 
-There are 109 experimental data files:  
+There are 128 experimental data files:  
 
 ```{r}
 length(f.exp)
