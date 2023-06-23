@@ -104,4 +104,4 @@ left_join(dependancy.df, independent.df,
 final.dependancy %>%
   mutate(dependency = joinedRetrieval.data - joinedRetrieval.indep) -> final.dependancy
 
-write_rds(x = final.dependancy, file = 'tidy_dependency.rds')
+write_rds(x = final.dependancy, file = 'tidy_data/tidy_dependency.rds')
