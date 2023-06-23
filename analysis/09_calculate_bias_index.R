@@ -18,7 +18,7 @@ dependency.df %>%
 
 dependency.df %>%
   group_by(subject_id, condition) %>%
-  summarise(across(.cols = dependency, .fns = mean)) %>%
+  summarise(across(.cols = dependency, .fns = mean), .groups = 'drop') %>%
   pivot_wider(names_from = 'condition', values_from = 'dependency') -> summarised.df
 
 (ggplot(figureData, aes(x = `famous person`, y = `famous place`)) +

@@ -175,7 +175,7 @@ if(theMaxPvalue > alphaStrong & theMaxPvalue < alphaWeak){
 ## Sanity check -- encoding success predicts later memory?
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-graded.df <- read_rds('graded_df.rds')
+graded.df <- read_rds('tidy_data/graded_df.rds')
 
 left_join(graded.df, tidy.enc) %>%
   dplyr::select(subject_id, condition, session, trial_index, encTrialNum, ends_with('Correct'), response_slider) %>%
