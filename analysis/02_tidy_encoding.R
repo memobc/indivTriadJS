@@ -6,7 +6,7 @@ library(tidyverse)
 
 # load compiled data ------------------------------------------------------
 
-df.exp <- read_rds('compiled_experiment.rds')
+df.exp <- read_rds('tidy_data/compiled_experiment.rds')
 
 # tidy --------------------------------------------------------------------
 # 
@@ -60,8 +60,8 @@ tidy.enc %>%
   pivot_longer(-subject_id, names_to = 'session', values_to = 'data') %>%
   unnest(cols = data) -> tidy.enc
 
-saveRDS(tidy.enc, file = 'tidy_enc.rds')
+saveRDS(tidy.enc, file = 'tidy_data/tidy_enc.rds')
 
 left_join(enc.catch, enc.presention, by = c('subject_id', 'study_id', 'session_id', 'session', 'encTrialNum')) -> tidy.catch
 
-saveRDS(tidy.catch, file = 'tidy_catch.rds')
+saveRDS(tidy.catch, file = 'tidy_data/tidy_catch.rds')

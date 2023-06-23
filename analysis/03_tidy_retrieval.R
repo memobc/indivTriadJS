@@ -6,8 +6,8 @@ library(tidyverse)
 
 # load data ---------------------------------------------------------------
 
-df.exp   <- read_rds('compiled_experiment.rds')
-tidy.enc <- read_rds('tidy_enc.rds')
+df.exp   <- read_rds('tidy_data/compiled_experiment.rds')
+tidy.enc <- read_rds('tidy_data/tidy_enc.rds')
 
 # retrieval ---------------------------------------------------------------
 
@@ -22,4 +22,4 @@ df.exp %>%
 
 left_join(tidy.ret, tidy.enc, by = c("subject_id", "study_id", "session", "session_id", "encTrialNum")) -> tidy.ret
 
-saveRDS(tidy.ret, file = 'tidy_ret.rds')
+saveRDS(tidy.ret, file = 'tidy_data/tidy_ret.rds')

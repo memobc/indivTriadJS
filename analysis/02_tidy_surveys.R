@@ -6,7 +6,7 @@ library(tidyverse)
 
 # load data ---------------------------------------------------------------
 
-df.exp <- read_rds('compiled_experiment.rds')
+df.exp <- read_rds('tidy_data/compiled_experiment.rds')
 
 # surveys -----------------------------------------------------------------
 # Rows in df.exp represent events
@@ -45,7 +45,7 @@ df.exp %>%
   unnest(response) %>%
   dplyr::select(subject_id, study_id, session_id, session, trial_index, time_elapsed, ends_with('Level')) -> tidy.debrief
 
-saveRDS(tidy.debrief, file = 'tidy_debrief.rds')
+saveRDS(tidy.debrief, file = 'tidy_data/tidy_debrief.rds')
 
 #-- sam
 
@@ -92,7 +92,7 @@ tidy.sam %>%
   group_by(subject_id, category) %>%
   summarise(across(response, .fns = ~sum(.x, na.rm = TRUE))) -> tidy.sam
 
-saveRDS(tidy.sam, file = 'tidy_sam.rds')
+saveRDS(tidy.sam, file = 'tidy_data/tidy_sam.rds')
 
 #-- iri
 
@@ -126,7 +126,7 @@ tidy.iri %>%
   group_by(subject_id, category) %>%
   summarise(across(score, .fns = ~sum(.x, na.rm = TRUE)), .groups = 'drop') -> tidy.iri
 
-saveRDS(tidy.iri, file = 'tidy_iri.rds')
+saveRDS(tidy.iri, file = 'tidy_data/tidy_iri.rds')
 
 #-- vviq
 
@@ -150,4 +150,4 @@ df.exp %>%
   group_by(subject_id) %>%
   summarise(across(response, ~sum(.x, na.rm = TRUE))) -> tidy_vivq
 
-saveRDS(tidy_vivq, file = 'tidy_vviq.rds')
+saveRDS(tidy_vivq, file = 'tidy_data/tidy_vviq.rds')

@@ -27,10 +27,9 @@ The rosetta stone data frame (`rosetta`). Hand created by Kyle. Translates the p
 into English.
 
 ```{r rosetta, warning=FALSE, message=FALSE}
-file.path('../study_id_rosetta.csv') -> path.2.file
+file.path('metadata/study_id_rosetta.csv') -> path.2.file
 
-read_csv(file = path.2.file) %>%
-  rename(notes = ...4) -> rosetta
+read_csv(file = path.2.file, show_col_types = FALSE) -> rosetta
 
 paged_table(rosetta)
 ```
@@ -219,7 +218,7 @@ df.dem %>%
 
 ```{r, warning=FALSE, message=FALSE}
 df.exp %>%
-  left_join(rosetta) %>%
+  left_join(rosetta, by = join_by(study_id)) %>%
   count(version, session)
 ```
 
@@ -237,7 +236,7 @@ df.dem %>%
 ```
 ```{r, warning=FALSE, message=FALSE}
 df.exp %>%
-  left_join(rosetta) %>%
+  left_join(rosetta, by = join_by(study_id)) %>%
   count(subject_id, session) %>%
   complete(subject_id, session, fill = list(n = 0)) %>%
   pivot_wider(names_from = session, values_from = n) %>%

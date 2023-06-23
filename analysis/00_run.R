@@ -1,4 +1,9 @@
-setwd('./analysis/')
+# In order for this to run, the active project in R studio MUST be
+# the analysis directory in the indivTriadsJS repository. You will
+# get an error if not.
+rstudioapi::getActiveProject()
+
+rmarkdown::render('00_accounting.Rmd')
 source('01_compile.R')
 source('02_tidy_bds.R')
 source('02_tidy_encoding.R')

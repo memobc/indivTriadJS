@@ -6,7 +6,7 @@ library(tidyverse)
 
 # load data ---------------------------------------------------------------
 
-df.exp <- read_rds('compiled_experiment.rds')
+df.exp <- read_rds('tidy_data/compiled_experiment.rds')
 
 # backwards digit span ----------------------------------------------------
 # 
@@ -48,4 +48,4 @@ df.exp %>%
 
 left_join(bds.pres, bds.resp) -> tidy.bds
 
-saveRDS(tidy.bds, file = 'tidy_bds.rds')
+saveRDS(tidy.bds, file = 'tidy_data/tidy_bds.rds')

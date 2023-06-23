@@ -11,7 +11,7 @@ d      <- rstudioapi::selectDirectory()
 
 # the rosetta stone -- translates prolific study ids into English
 
-rosetta <- read_csv('study_id_rosetta.csv') %>%
+rosetta <- read_csv('metadata/study_id_rosetta.csv') %>%
            rename(notes = ...4)
 
 # prolific demographic data
@@ -27,13 +27,11 @@ tibble(study_id = extracted.study.id, dem.data = df.dem) %>%
 # experimental data
 
 f.exp  <- list.files(path = d, pattern = '.*data-experiment.csv', full.names = T)
-
 df.exp <- map_dfr(f.exp, read_csv, show_col_types = F)
 
+# There is one dataset that has subject_id, study_id, session_id listed as "NA".
+# Without this information the dataset is unidentifiable. Remove from further consideration.
 df.exp %>% filter(!is.na(subject_id)) -> df.exp
-
-df.exp %>% pull(subject_id) %>% unique() -> prolific_subject_ids
-df.exp %>% pull(study_id) %>% unique() -> prolific_study_ids
 
 # light tidying
 df.exp %>%
@@ -46,7 +44,7 @@ df.exp %>%
   mutate(phase = factor(phase, levels = rev(c('welcome_screen', 'consent', 'demographics', 'stim_ratings', 'instr_pre_enc', 'enc', 'instr_pre_bds', 'bds', 'instr_pre_ret', 'ret', 'debrief', 'sam', 'iri', 'vviq')))) %>%
   mutate(rt = as.double(rt)) -> df.exp
 
-write_rds(x = df.exp, file = 'compiled_experiment.rds')
+write_rds(x = df.exp, file = 'tidy_data/compiled_experiment.rds')
 
 # interaction data
 
@@ -58,4 +56,4 @@ tibble(file = f.int) %>%
          session_id = str_extract(f.int, '(?<=ses-).*(?=_data)')) %>%
   select(-file) -> df.int
 
-write_rds(x = df.int, file = 'compiled_interaction.rds')
+write_rds(x = df.int, file = 'tidy_data/compiled_interaction.rds')

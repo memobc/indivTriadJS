@@ -1,8 +1,9 @@
-study_id,session,version,
+study_id,session,version,notes
 645414644d939e64c3fe90e2,session1,v1,30 min duration
 6454151d41c3900c1dff226b,session2,v1,30 min duration
 647f2a13553cc8fc8e132b63,session1,v2,45 min duration
 647f2e21e8d8662972f125b6,session2,v2,45 min duration
 6480ca21f249c477384ec9f1,session1,v3,45 min duration + additional study description
 6480caa63ca67331e6041166,session2,v3,45 min duration + additional study description
-649209273fcb5d42e59b48be,session2,v3b,45 min duration + additional study description
+649209273fcb5d42e59b48be,session2,v3a,45 min duration + additional study description
+649461cc3b000d0dfa95575b,session2,v3b,45 min duration + additional study description
