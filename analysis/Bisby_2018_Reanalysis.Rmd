@@ -1,0 +1,204 @@
+---
+title: "Bisby 2018 Reanalysis"
+author: "Kyle Kurkela"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(readxl)
+library(patchwork)
+```
+
+# Bisby 2018 Reanalysis
+
+This markdown assumes that you already downloaded Bisby and collagues (2018) data and the data lies in your downloads folder.
+
+## Experiment 1
+
+Load and tidy data:
+
+```{r}
+# only selecting subset of data corresponding to dependency and associative recognition
+df <- read_excel('~/Downloads/NegContDisruptsCoh.xlsx', 
+                 sheet = 'Experiment 1', 
+                 range = 'N4:Y20', 
+                 col_names = c('neu_Loc-Obj', 'neu_Pers-Loc', 'neu_Obj-Pers', 
+                               'neg_Loc-Obj', 'neg_Pers-Loc', 'neg_Obj-Pers',
+                               'neu_Data', 'neu_Independent', 'neu_Dependent', 
+                               'neg_Data', 'neg_Independent', 'neg_Dependent'))
+
+# add subject id column
+df %>%
+  add_column(subject = 1:17) -> df
+
+# put the data into a "tidy" format -- see tidyverse functions
+# calculate "dependency" a la Ngo and collages (2021)
+df %>%
+  pivot_longer(cols = c(-subject), names_to = 'type', values_to = 'value') %>%
+  separate(type, into = c('valence', 'type'), sep = '_') %>%
+  pivot_wider(id_cols = all_of(c('subject', 'valence')), names_from = type, values_from = value) %>%
+  rowwise() %>%
+  mutate(Dependency = Data - Independent, 
+         Performance = mean(c_across(all_of(c('Loc-Obj', 'Pers-Loc', 'Obj-Pers'))))) -> df
+```
+
+Figure:
+
+```{r}
+# Dataframe `df` defined in previous code chunk
+ggplot(df, aes(x = Performance, y = Dependency)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ x + I(x^2)) +
+  geom_vline(xintercept = 0.17, color = 'red', linetype = 'dotted') +
+  facet_grid(~valence) +
+  labs(title = 'Experiment 1', 
+       subtitle = 'Concurrent Presentation', 
+       x = 'Associative Recognition Performance', 
+       caption = 'Red Line = Chance Performance (1/6 or ~0.17 or ~17%. Dots = subjects.') -> exp1
+
+exp1
+```
+
+Stats:
+
+```{r}
+lm(Dependency ~ Performance + I(Performance^2) * valence, data = df) -> model.fit
+
+summary(model.fit)
+```
+
+## Experiment 2
+
+Load and tidy data:
+
+```{r}
+# Using some R code to create tidyverse compatible column names
+order   <- c('Person Last', 'Person First')
+valence <- c('neutral', 'negative')
+type    <- c('Loc-Obj', 'Pers-Loc', 'Obj-Pers')
+
+expand_grid(order, valence, type) %>%
+  add_column(data = 'Associative Recognition') %>%
+  mutate(column_name = str_glue('{data}_{order}_{valence}_{type}')) -> colNames.df.AssRecog
+
+calc <- c('Data', 'Indep', 'Depend')
+expand_grid(order, valence, calc) %>%
+  add_column(data = 'Dependency') %>%
+  mutate(column_name = str_glue('{data}_{order}_{valence}_{calc}')) -> colNames.df.Depend
+
+# load data
+df <- read_excel('~/Downloads/NegContDisruptsCoh.xlsx', 
+                 sheet = 'Experiment 2', 
+                 range = 'A4:Y29', 
+                 col_names = c('subject', colNames.df.AssRecog$column_name, colNames.df.Depend$column_name))
+
+# tidy
+df %>%
+  pivot_longer(cols = c(-subject), names_to = 'type', values_to = 'value') %>%
+  separate(type, into = c('data', 'condition', 'valence', 'type'), sep = '_') %>%
+  pivot_wider(id_cols = all_of(c('subject', 'condition', 'valence')), names_from = type, values_from = value) %>%
+  rowwise() %>%
+  mutate(Dependency = Data - Indep, 
+         Performance = mean(c_across(all_of(c('Loc-Obj', 'Pers-Loc', 'Obj-Pers'))))) -> df
+```
+
+Figure:
+
+```{r}
+# Dataframe `df` defined in previous code chunk
+ggplot(df, aes(x = Performance, y = Dependency)) +
+  geom_point() +
+  geom_vline(xintercept = 0.17, color = 'red', linetype = 'dotted') +
+  geom_smooth(method = 'lm', formula = y ~ x + I(x^2)) +
+  facet_grid(condition~valence) +
+  labs(title = 'Experiment 2', 
+       subtitle = 'Sequential Presentation', 
+       x = 'Associative Recognition Performance', 
+       caption = 'Red Line = Chance Performance (1/6 or ~0.17 or ~17%. Dots = subjects.') -> exp2
+
+exp2
+```
+
+Stats:
+
+```{r}
+lm(Dependency ~ Performance + I(Performance^2) * condition * valence, data = df) -> model.fit
+
+summary(model.fit)
+```
+
+
+## Experiment 3
+
+Load and tidy data:
+
+```{r}
+# Using some R code to create tidyverse compatible column names
+data    <- c('Associative Recognition', 'Dependency')
+order   <- c('Person Last', 'Person First')
+valence <- c('neutral', 'negative')
+type    <- c('Loc-Obj', 'Pers-Loc', 'Obj-Pers')
+
+expand_grid(order, valence, type) %>%
+  add_column(data = 'Associative Recognition') %>%
+  mutate(column_name = str_glue('{data}_{order}_{valence}_{type}')) -> colNames.df.AssRecog
+
+
+calc <- c('Data', 'Indep', 'Depend')
+expand_grid(order, valence, calc) %>%
+  add_column(data = 'Dependency') %>%
+  mutate(column_name = str_glue('{data}_{order}_{valence}_{calc}')) -> colNames.df.Depend
+
+# load data
+df <- read_excel('~/Downloads/NegContDisruptsCoh.xlsx', 
+                 sheet = 'Experiment 3', range = 'A4:Y30', 
+                 col_names = c('subject', colNames.df.AssRecog$column_name, colNames.df.Depend$column_name))
+
+# tidy
+df %>%
+  pivot_longer(cols = c(-subject), names_to = 'type', values_to = 'value') %>%
+  separate(type, into = c('data', 'condition', 'valence', 'type'), sep = '_') %>%
+  pivot_wider(id_cols = all_of(c('subject', 'condition', 'valence')), names_from = type, values_from = value) %>%
+  rowwise() %>%
+  mutate(Dependency = Data - Indep, 
+         Performance = mean(c_across(all_of(c('Loc-Obj', 'Pers-Loc', 'Obj-Pers'))))) -> df
+```
+
+Figure:
+
+```{r}
+# Dataframe `df` defined in previous code chunk
+ggplot(df, aes(x = Performance, y = Dependency)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ x + I(x^2)) +
+  geom_vline(xintercept = 0.17, color = 'red', linetype = 'dotted') +
+  facet_grid(condition~valence) +
+  labs(title = 'Experiment 3', 
+       subtitle = 'Sequential Presentation 24 Hour Delay', 
+       x = 'Associative Recognition Performance', 
+       caption = 'Red Line = Chance Performance (1/6 or ~0.17 or ~17%. Dots = Subjects.') -> exp3
+
+exp3
+```
+
+Stats:
+
+```{r}
+lm(Dependency ~ Performance + I(Performance^2) * condition * valence, data = df) -> model.fit
+
+summary(model.fit)
+```
+
+## Putting it all together
+
+```{r}
+exp1 + exp2 + exp3 + plot_annotation(title = 'Bisby et al 2018')
+```
+

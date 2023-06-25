@@ -1,4 +1,5 @@
 *.Rproj
+analysis/work/*
 analysis/*.html
 analysis/markdowns/*
 All

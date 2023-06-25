@@ -1,0 +1,181 @@
+---
+title: "Kurkela Dependency vs Horner Dependency"
+author: "Kyle Kurkela"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+    df_print: paged
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+```
+
+
+How do my dependency calculations compare with those from [Aiden Horner (Bisby et al. 2018)](https://figshare.com/articles/software/Model_code/5240752)?  
+  
+## Kyle's Calculations:  
+
+See `09_calculate_dependency.R`.  
+  
+The Results look like this:  
+
+```{r}
+tidy.dependency <- read_rds('tidy_data/tidy_dependency.rds')
+
+head(tidy.dependency)
+```
+
+For every subject (62), session (2), condition (2) combination (total = 248), three different numbers are calculated:
+
+| calculation | description |
+| ---------   | ----------- |
+| `joinedRetreival.data`  | the average proportion of joined retrieval averaged across 6 contingency tables as observed in the data. | 
+| `joinedRetreival.indep` | the average proportion of joined retrieval averaged across 6 contingency tables as estimated assuming independence. |
+| `dependency` | `joinedRetreival.data` - `joinedRetrieval.indep` |
+
+## Horner Calculations:
+
+[Aiden Horner's Dependency MATLAB script as released with Bisby et al. 2018](https://figshare.com/articles/software/Model_code/5240752):
+
+```{MATLAB, eval = FALSE}
+function [dep] = Dependency(res,pair,guess,c)
+%% Function to calculate behavioural dependency measure
+%  Aidan J Horner 04/2015
+
+% input:
+% res       =   MxN matrix of M 'events' and N 'retrieval trials'
+% pair      =   pair of retrieval trials to calculate dependency 
+%               (e.g., cue location retrieve object and cue location retrieve person)
+%               example = [1 2] - uses first two columns to build contingency table for analysis
+% optional inputs:
+% guess     =   include guessing in Dependent Model (1 or 0)
+%               default = 1
+% c         =   number of choices (i.e., c-alternative forced choice) - for
+%               estimating level of guessing
+%               default = 6
+
+% output:
+% dep       =   dependency measure for [data independent_model dependent_model]
+
+%% housekeeping
+
+if nargin   < 3
+    guess   = 1;                                            % set 'guess' to 1 if not defined by user
+    c       = 6;                                            % set 'c' to 6 if not defined by user
+end
+
+%% calculate dependency for data
+ 
+res2        = res(:,pair);                                  % create column Mx2 matrix for retrieval trials defined by 'pair'
+dep(1)      = sum(sum(res2,2)~=1)/size(res2,1);         	% calculate dependency for data
+
+%% calculate dependency for independent model
+
+acc         = mean(res2,1);                                 % calculate accuracy for each retrieval type
+dep(2)      = ((acc(1)*acc(2))+((1-acc(1))*(1-acc(2))));    % calculate dependency for independent model
+
+%% calculate dependency for dependent model
+
+cont        = nan(size(res2,1),2,2);                        % create matrix for dependent model probabilities
+g           = (1-mean(res(:)))*(c/(c-1));                   % calculate level of guessing
+b           = mean(res); b(:,pair) = nan;                   % calculate average performance
+for i       = 1:size(res2,1)                                % loop through all event   
+    a       = res(i,:); a(:,pair) = nan;                    % calculate event specific performance
+    E       = mean(a,'all','omitmissing')/mean(b,'all','omitmissing');                        % calculate ratio of event / average performance (episodic factor)
+    for p = 1:2;
+        if E*acc(p)>1
+            P(p) = 1;
+        else
+            if guess == 1
+                P(p) = (E*(acc(p)-(g/c)))+(g/c);
+            elseif guess == 0
+                P(p) = E*acc(p);
+            end
+        end
+    end
+    cont(i,1,1) = P(1)*P(2);
+    cont(i,1,2) = (1-P(1))*P(2);
+    cont(i,2,1) = P(1)*(1-P(2));
+    cont(i,2,2) = (1-P(1))*(1-P(2));
+end
+cont2       = squeeze(sum(cont));                           % create contingency table
+dep(3)      = (cont2(1,1)+cont2(2,2))/sum(cont2(:));        % calculate dependency for dependent model
+```
+
+  
+See my application of Aiden's script to our data in `09_calculate_dependency_horner.R`.  
+  
+The results looks like this:  
+
+```{r}
+tidy.horner <- read_rds('tidy_data/tidy_horner.rds')
+
+head(tidy.horner)
+```
+
+For every subject (62), session (2), condition (2) combination (total = 248), the following are calculated:
+
+| calculation | description |
+| ---------   | ----------- |
+| `Data_Ab_Ac`:`Data_Ca_Bc` | To match Horner and colleagues descriptions, I relabeled our experimental variables to match theirs. A = `key`, B = `objOne`, C = `objTwo.` These variables represent estimated joined retrieval observed in the data for each of these 6 contingency tables. | 
+| `Indep_Ab_Ac`:`Indep_Ca_Bc` | To match Horner and colleagues descriptions, I relabeled our experimental variables to match theirs. A = `key`, B = `objOne`, C = `objTwo.` These variables represent estimated joined retrieval under the independent model for each of the 6 contingency tables. | 
+| `Depend_Ab_Ac`:`Depend_Ca_Bc` | To match Horner and colleagues descriptions, I relabeled our experimental variables to match theirs. A = `key`, B = `objOne`, C = `objTwo.` These variables represent estimated joined retrieval under the dependent model for each of the 6 contingency tables. |
+| `Data` | Average of `Data_AbAc`:`Data_CaBc`. | 
+| `Indep` | Average of `Indep_AbAc`:`Indep_CaBc`. | 
+| `Depend` | Average of `Depend_AbAc`:`Depend_CaBc`. | 
+
+## How do our calculations compare?
+
+```{r}
+# tidy up the condition column to match the horner table
+tidy.dependency %>%
+  mutate(condition = str_remove(condition, ' ')) -> tidy.dependency
+
+# join the two tables together, matching the rows
+left_join(tidy.dependency, tidy.horner, 
+          by = join_by('subject_id' == 'subj', 'session' == 'sess', 'condition' == 'cond')) -> joined.df
+```
+
+```{r}
+joined.df %>%
+  dplyr::select(joinedRetrieval.data, joinedRetrieval.indep, dependency, Data, Indep, Depend) %>%
+  corrr::correlate(quiet = T) %>%
+  corrr::shave(upper = F) %>%
+  corrr::stretch(na.rm = T) -> figure.df
+
+axis.sort <- c('joinedRetrieval.data', 'joinedRetrieval.indep', 'dependency', 'Data', 'Indep', 'Depend')
+
+ggplot(figure.df, aes(x = x, y = y, fill = r, label = round(r, 2))) +
+  geom_tile() +
+  geom_text() +
+  scale_x_discrete(limits = axis.sort) +
+  scale_y_discrete(limits = rev(axis.sort)) +
+  theme_minimal() +
+  theme(axis.title = element_blank(), axis.text.x = element_text(angle = 90), panel.grid = element_blank()) +
+  scale_fill_gradient2() +
+  labs(title = "Kurkela's calculations vs Horner's calculations")
+```
+
+
+### Kyle's Independence vs Horner's Independence
+
+```{r}
+ggplot(joined.df, aes(x = Indep, y = joinedRetrieval.indep)) +
+       geom_point() +
+       geom_smooth(method = 'lm', formula = y ~ x) +
+  labs(title = "Aiden Horner's 'Indep' calculaton is identitical to my Independent calculation.")
+```
+
+### Kyle's Data vs Horner's Data
+
+```{r}
+ggplot(joined.df, aes(x = Data, y = joinedRetrieval.data)) +
+       geom_point() +
+       geom_smooth(method = 'lm', formula = y ~ x) +
+  labs(title = "Aiden Horner's 'Indep' calculaton is identitical to my Independent calculation.")
+```
+

@@ -1,0 +1,144 @@
+---
+title: "Ngo 2021 Reanalysis"
+author: "Kyle Kurkela"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+I suspect that there is either an error in the data reported by Ngo et al. 2021, an error in their independent model calculation, or maybe there is something that I am misunderstanding about their calculation.
+
+To illustrate lets load Ngo et al. 2021's openly available data. Note: assumes you already downloaded the data and it is present in your "Downloads" folder:
+
+```{r}
+# Load Ngo et al. 2021's data
+df <- read_csv('~/Downloads/pspc_data_v2.csv', show_col_types = FALSE)
+
+head(df)
+```
+
+## How do my calculations compare to Ngo's?
+
+Ngo and colleagues (2021) report their independent model joined retrieval calculations in the columns labeled: `Independent_model_Ab_Ac`:`Independent_model_Ab_Cb`. If the author of this markdown is understanding things correctly, this number should be a function of the associative recognition performance for each participant reported in columns `Ab_Accuracy`:`Cb_Accuracy`. Specifically:
+
+```{r}
+# Function estimating joined retrieval under an independent model. Pab is the probability of correctly identifying the first association, Pac probability of correctly identifying the second association.
+calcuate_joinedRetreival <- function(Pab, Pac){
+  
+  upperLeft  <- Pab*Pac
+  lowerLeft  <- Pab*(1-Pac)
+  upperRight <- Pac*(1-Pab)
+  lowerRight <- (1-Pab)*(1-Pac)
+  
+  daMatrix   <- matrix(c(upperLeft, lowerLeft, upperRight, lowerRight), nrow = 2, ncol = 2)
+  
+  joinedRetrieval <- daMatrix[1,1] + daMatrix[2,2]
+  
+  return(joinedRetrieval)
+  
+}
+```
+
+We can apply this to Ngo et al 2021's data and show that it doesn not match what they report in their independent model joined retrieval columns (i.e., columns `Independent_model_Ab_Ac`:`Independent_model_Ab_Cb`):
+
+```{r}
+# calculate 6 new columns representing my version of joined retrieval estimated under the independent model
+df %>%
+  mutate(joinedRetrieval_AbAc = map2_dbl(Ab_Accuracy, Ac_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_BaBc = map2_dbl(Ba_Accuracy, Bc_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_CaCb = map2_dbl(Ca_Accuracy, Cb_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_BaCa = map2_dbl(Ba_Accuracy, Ca_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_AbCb = map2_dbl(Ab_Accuracy, Cb_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_AcBc = map2_dbl(Ac_Accuracy, Bc_Accuracy, calcuate_joinedRetreival)) -> df
+
+# tidy for presentation
+df %>%
+  pivot_longer(cols = c(starts_with('Independent_model'), starts_with('joinedRetrieval')), 
+               names_to = 'type', values_to = 'estimate') %>%
+  mutate(type = str_replace(type, 'joinedRetrieval', 'Kurkela')) %>%
+  mutate(type = str_replace(type, 'Independent_model', 'Ngo')) %>%
+  mutate(type = str_replace(type, '(?<=[A-Z][a-z])_', '')) %>%
+  separate(type, into = c('analyst', 'assocation')) %>%
+  pivot_wider(names_from = analyst, values_from = estimate) %>%
+  dplyr::select(ID, assocation, Kurkela, Ngo) -> figureData
+
+head(figureData)
+```
+
+```{r, warning=FALSE, message=FALSE}
+# compare our calculations to Ngo et al. 2021's calculations
+ggplot(figureData, aes(x = Kurkela, y = Ngo)) +
+  geom_point() +
+  labs(x = "Kurkela's Estimate", y = "Ngo's Reported Estimate", 
+       title = 'Proportion of Joined Retrieval Under the Independent Model',
+       subtitle = 'Using Open Data from Ngo and Colleagues 2021') +
+  facet_wrap(~assocation, labeller = label_both)
+```
+
+My estimates seem to have no relationship to Ngo and colleagues (2018).
+
+## Does Ngo's Data show the Inverse U shaped Relationship?
+
+My data show an interesting strong inverse U shaped relationship between associative memory performance and dependency across subjects. Ngo and collagues (2021) does not seem to show that relationship. But would it if we corrected their estimate of joined retrieval under the independent model?
+
+Ngo and colleagues data does **NOT** show an inverse U shaped relationship:
+
+```{r}
+ggplot(df, aes(x = PC_Accuracy, y = Dependency)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x + I(x^2)) +
+  labs(title = 'Ngo et al. 2021', subtitle = 'Relationship Between Reported Dependency & Accuracy')
+```
+
+```{r}
+lm(Dependency ~ PC_Accuracy + I(PC_Accuracy^2), data = df) -> model.fit
+
+summary(model.fit)
+```
+
+But we suspect their estimate of joined retrieval under the independent model is off. What would this relationship look like if we corrected their calculation?
+
+```{r}
+# Apply our estimate of joined retrieval under the null model to Ngo et al.'s data
+df %>%
+  dplyr::select(ID, PC_Accuracy, 
+                Ab_Accuracy, Ac_Accuracy, Ba_Accuracy, 
+                Bc_Accuracy, Ca_Accuracy, Cb_Accuracy, 
+                Collapsed_Data) %>%
+  mutate(joinedRetrieval_AbAc = map2_dbl(Ab_Accuracy, Ac_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_BaBc = map2_dbl(Ba_Accuracy, Bc_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_CaCb = map2_dbl(Ca_Accuracy, Cb_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_BaCa = map2_dbl(Ab_Accuracy, Ac_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_AbCb = map2_dbl(Ab_Accuracy, Ac_Accuracy, calcuate_joinedRetreival),
+         joinedRetrieval_AcBc = map2_dbl(Ab_Accuracy, Ac_Accuracy, calcuate_joinedRetreival)) %>%
+  rowwise() %>%
+  mutate(Collapsed_Data_Independent = mean(c_across(starts_with('joinedRetrieval')))) %>%
+  ungroup() %>%
+  dplyr::select(-starts_with('joinedRetrieval')) %>%
+  mutate(Kyles_Dependency = Collapsed_Data - Collapsed_Data_Independent) %>%
+  filter(!is.na(Kyles_Dependency)) -> df
+
+# plot performance alongside dependency
+ggplot(df, aes(x = PC_Accuracy, y = Kyles_Dependency)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ x + I(x^2)) +
+  geom_vline(xintercept = 0.25, color = 'red', linetype = 'dotted') +
+  labs(title = 'Ngo et al. 2021', subtitle = "Dependency Calculated Using Kyle's Independent Model Calculation.",
+       caption = 'Dots = subjects. Red Dotted Line = Chance (1/4 or .25 or 25%).')
+```
+
+```{r}
+lm(Kyles_Dependency ~ PC_Accuracy + I(PC_Accuracy^2), data = df) -> model.fit
+
+summary(model.fit)
+```
+
+Yes it does. Similar to my data.
