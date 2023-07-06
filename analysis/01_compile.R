@@ -43,16 +43,20 @@ df.exp %>%
   mutate(phase = factor(phase, levels = rev(c('welcome_screen', 'consent', 'demographics', 'stim_ratings', 'instr_pre_enc', 'enc', 'instr_pre_bds', 'bds', 'instr_pre_ret', 'ret', 'debrief', 'sam', 'iri', 'vviq')))) %>%
   mutate(rt = as.double(rt)) -> df.exp
 
+# only grab the first 60 subjects who have data from session 1 and session 2
+rosetta %>%
+  unnest(cols = dem.data) -> rosetta
+  
+df.exp %>%
+  nest(data = -all_of(c('subject_id', 'session'))) %>%
+  left_join(., rosetta, by = join_by('subject_id' == `Participant id`,'session')) %>%
+  pivot_wider(id_cols = subject_id, names_from = 'session', values_from = c('Completed at', 'data')) %>%
+  filter(map_lgl(data_session1, is_tibble) & map_lgl(data_session2, is_tibble)) %>%
+  arrange(`Completed at_session2`) %>%
+  slice(1:60) %>%
+  dplyr::select(-starts_with('Completed at')) %>%
+  pivot_longer(starts_with('data'), names_to = 'session', values_to = 'data') %>%
+  mutate(session = str_remove(session, 'data_')) %>%
+  unnest(cols = data) -> df.exp
+
 write_rds(x = df.exp, file = 'tidy_data/compiled_experiment.rds')
-
-# interaction data
-
-f.int  <- list.files(path = d, pattern = '.*data-interaction.csv', full.names = T)
-
-tibble(file = f.int) %>%
-  mutate(data = map(file, read_csv, show_col_types = F),
-         subject_id = str_extract(f.int, '(?<=sub-).*(?=_ses)'),
-         session_id = str_extract(f.int, '(?<=ses-).*(?=_data)')) %>%
-  dplyr::select(-file) -> df.int
-
-write_rds(x = df.int, file = 'tidy_data/compiled_interaction.rds')

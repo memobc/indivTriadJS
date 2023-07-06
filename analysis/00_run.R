@@ -24,3 +24,10 @@ rmarkdown::render('10_explore_proportion.Rmd', output_file = 'explore_proportion
 rmarkdown::render('10_explore_success.Rmd', output_file = 'explore_success.html', output_dir = 'markdowns')
 rmarkdown::render('10_familiarity_ratings.Rmd', output_file = 'familiarity_ratings.html', output_dir = 'markdowns')
 rmarkdown::render('10_survey_analysis.Rmd', output_file = 'survey_analysis.html', output_dir = 'markdowns')
+
+# winsorize analyses
+
+rmarkdown::render('07_winsor.Rmd', output_file = 'no_winsor.html', output_dir = 'markdowns', params = list(winsorLow = -1, winsorHigh = 2))
+rmarkdown::render('07_winsor.Rmd', output_file = '05_95_winsor.html', output_dir = 'markdowns', params = list(winsorLow = 0.05, winsorHigh = 0.95))
+rmarkdown::render('07_winsor.Rmd', output_file = '10_90_winsor.html', output_dir = 'markdowns', params = list(winsorLow = 0.1, winsorHigh = 0.9))
+rmarkdown::render('07_winsor.Rmd', output_file = '25_75_winsor.html', output_dir = 'markdowns', params = list(winsorLow = 0.25, winsorHigh = 0.75))

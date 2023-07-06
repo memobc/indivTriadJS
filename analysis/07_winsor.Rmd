@@ -1,0 +1,239 @@
+---
+title: "Depdendency Results Change as a Result of Winsorizing"
+date: "`r Sys.Date()`"
+author: "Kyle Kurkela"
+output: 
+  html_document: 
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+    df_print: paged
+params:
+  winsorLow: 0.05
+  winsorHigh: 0.95
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(lmerTest)
+library(report)
+
+graded.df <- read_rds('tidy_data/graded_df.rds')
+dependency.df <- read_rds('tidy_data/tidy_dependency.rds')
+```
+
+# Winsorize Data
+
+A table of total recall performance for each subject x session x condition.
+
+```{r}
+(graded.df %>%
+  dplyr::select(subject_id, study_id, session_id,
+                session, condition, encTrialNum,
+                trial_index, ends_with('Correct')) %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
+  filter(!is.na(correct)) %>%
+  group_by(subject_id, session, condition) %>%
+  summarise(across(correct, mean), .groups = 'drop') %>%
+  mutate(numCorrect = correct * 72, total = 72) %>%
+  arrange(correct, subject_id, session, condition) -> performance.df)
+```
+
+Remove subjects if they have extreme performance in any one condition:
+
+```{r}
+# filter out subjects IF they have any extreme condition
+performance.df %>%
+  filter(correct > params$winsorLow & correct < params$winsorHigh) %>%
+  count(subject_id) %>%
+  filter(n == 4) %>%
+  pull(subject_id) -> goodSs
+
+dependency.df %>%
+  filter(subject_id %in% goodSs) -> dependency.df
+```
+
+### Is there dependency?
+
+```{r}
+dependency.df %>% 
+  group_by(subject_id) %>% 
+  summarise(across(starts_with('joinedRetrieval'), mean), .groups = 'drop') -> tmp.df
+
+joinedRetrieval.data <- tmp.df$joinedRetrieval.data
+joinedRetrieval.indep <- tmp.df$joinedRetrieval.indep
+
+# paired t-test
+t.test(joinedRetrieval.data, joinedRetrieval.indep, paired = T) -> testResult
+
+# nice summary using report
+report(testResult) %>% 
+  summary()
+```
+
+### Dependency as a function of session/condition?
+
+```{r}
+ggplot(dependency.df, aes(x = condition, y = dependency)) +
+  geom_point(alpha = 0.4) +
+  geom_line(aes(group = subject_id), alpha = 0.4) +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2, fill = 'white') +
+  scale_y_continuous(limits = c(NA, 0.5)) +
+  theme_classic() +
+  labs(title = 'Dependency', 
+       subtitle = str_glue('On Winsorized Subsample (n = {n})', n = length(goodSs)), 
+       y = 'Dependency', x = 'Triad Type') +
+  guides(color = "none") +
+  facet_wrap(~session, ncol = 2) -> plotB
+
+ggsave(filename = 'figures/Figure2_winsor_595.png', 
+       plot = plotB, 
+       width = 7, height = 5, dpi = 600,
+       device = 'png', units = 'in')
+
+plotB
+```
+
+Fit a linear mixed effects model:
+
+```{r}
+lmer(dependency ~ session * condition + (1|subject_id), data = dependency.df) -> model1.fit
+
+summary(model1.fit)
+```
+
+Get a nice report from `report`:
+
+```{r}
+report(model1.fit) -> rep1
+
+summary(rep1)
+```
+
+### partial correlation tests?
+
+```{r}
+dependency.df %>%
+  unite(col = 'sess_cond', session, condition) %>%
+  pivot_wider(id_cols = subject_id, names_from = sess_cond, values_from = dependency) %>%
+  dplyr::select(-subject_id) %>% as.list() -> x
+```
+
+Famous Person ~~ Famous Person
+
+```{r}
+(ppcor::pcor.test(x = x$`session1_famous person`,
+                 y = x$`session2_famous person`,
+                 z = c(x$`session1_famous place`, x$`session2_famous place`)) -> result1)
+```
+
+Famous Place ~~ Famous Place
+
+```{r}
+(ppcor::pcor.test(x = x$`session1_famous place`,
+                  y = x$`session2_famous place`,
+                  z = c(x$`session1_famous person`, x$`session2_famous person`)) -> result2)
+```
+
+### figure y
+
+```{r}
+# pivot wider. calculate bias
+dependency.df %>%
+  pivot_wider(id_cols = all_of(c('subject_id', 'session')), 
+              names_from = condition, values_from = dependency) %>%
+  group_by(subject_id) %>%
+  mutate(person_prefer = `famous person` > `famous place`,
+         place_prefer = `famous person` < `famous place`) %>%
+  mutate(type = case_when(sum(person_prefer) == 2 ~ 'strong person bias',
+                          sum(place_prefer) == 2 ~ 'strong place bias',
+                          TRUE ~ 'ambiguous')) %>%
+   mutate(bias = `famous person` - `famous place`) -> figureData
+```
+
+```{r}
+ggplot(figureData, aes(x = session, y = bias, color = type)) +
+  geom_point() +
+  geom_line(aes(group = subject_id)) +
+  facet_grid(~type) +
+  scale_color_manual(values = c('black', 'blue', 'red')) +
+  guides(color = 'none') +
+  labs(title = str_glue('Winsorized Data (n = {n})', n = length(goodSs)))
+```
+
+### figure z
+
+```{r}
+# summarise over session. pivot wider.
+dependency.df %>%
+  group_by(subject_id, condition) %>%
+  summarise(across(.cols = dependency, .fns = mean), .groups = 'drop') %>%
+  pivot_wider(names_from = 'condition', values_from = 'dependency') -> summarised.df
+```
+
+
+```{r}
+ggplot(figureData, aes(x = `famous person`, y = `famous place`)) +
+    guides(color = 'none') +
+    theme_minimal() +
+    scale_x_continuous(limits = c(-0.025, .45)) +
+    scale_y_continuous(limits = c(-0.025, .45)) +
+    theme(aspect.ratio = 1) +
+    geom_abline(slope = 1, intercept = 0, linetype = 'solid') +
+    annotate(geom = 'polygon', x = c(0,0,.45), y = c(0,.45,.45), alpha = 0.3, fill = scales::muted('red')) +
+    annotate(geom = 'label', x = 0.1, y = 0.4, label = '"place" bias', color = scales::muted('red')) +
+    annotate(geom = 'polygon', x = c(0,.45,.45), y = c(0,0,.45), alpha = 0.3, fill = scales::muted('blue')) +
+    annotate(geom = 'label', x = 0.4, y = 0.1, label = '"person" bias', color = scales::muted('blue')) +
+    geom_point(data = summarised.df, shape = 'asterisk', size = 2) +
+  labs(title = str_glue('Winsorized Data (n = {n}', n = length(goodSs)))
+```
+
+### Still the U shape relationship?
+
+```{r}
+dependency.df %>%
+  group_by(subject_id) %>%
+  summarise(dependency = mean(dependency)) -> dependency.summarised
+
+graded.df %>%
+  pivot_longer(cols = ends_with('Correct'), names_to = 'type', values_to = 'isCorrect') %>%
+  filter(!is.na(isCorrect)) %>%
+  group_by(subject_id) %>%
+  summarise(retrieval_success = mean(isCorrect), .groups = 'drop') -> graded.summarized
+
+dependency.summarised %>%
+  left_join(., graded.summarized, by = join_by('subject_id')) -> df
+```
+
+```{r}
+ggplot(df, aes(x = retrieval_success, y = dependency)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ x + I(x^2)) +
+  labs(title = 'Dependency is a Quadratic Function Retrieval Success',
+       subtitle = str_glue('On Windsorized Subsample (n = {n})', n = length(goodSs)),
+       caption = 'dots = subjects',
+       x = '% Cued Recall Prompts Correct',
+       y = 'Avg Dependency') +
+  theme_classic() -> plotA
+
+ggsave(filename = 'figures/Figure3.png', 
+       plot = plotA, 
+       width = 7, height = 5, dpi = 600,
+       device = 'png', units = 'in')
+
+plotA
+```
+
+```{r}
+lm(dependency ~ retrieval_success + I(retrieval_success^2), data = df) -> model.fit
+
+summary(model.fit)
+```
+```{r}
+report(model.fit) -> rep1
+
+summary(rep1)
+```
+

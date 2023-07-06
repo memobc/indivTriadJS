@@ -23,7 +23,8 @@ dependency.df <- read_rds('tidy_data/tidy_dependency.rds')
 
 ```{r tidy, echo=FALSE}
 dependency.df %>%
-  pivot_wider(id_cols = all_of(c('subject_id', 'session')), names_from = condition, values_from = dependency) %>%
+  pivot_wider(id_cols = all_of(c('subject_id', 'session')), 
+              names_from = condition, values_from = dependency) %>%
   group_by(subject_id) %>%
   mutate(person_prefer = `famous person` > `famous place`,
          place_prefer = `famous person` < `famous place`) %>%

@@ -142,8 +142,27 @@ ggplot(df, aes(x = retrieval_success, y = dependency)) +
   labs(title = 'Dependency is a Quadratic Function Retrieval Success', 
        caption = 'dots = subjects',
        x = '% Cued Recall Prompts Correct',
-       y = 'Avg Dependency')
+       y = 'Avg Dependency') +
+  theme_classic() -> plotA
+
+ggsave(filename = 'figures/Figure3.png', 
+       plot = plotA, 
+       width = 7, height = 5, dpi = 600,
+       device = 'png', units = 'in')
+
+plotA
 ```
+
+```{r}
+lm(dependency ~ retrieval_success + I(retrieval_success^2), data = df) -> model.fit
+
+summary(model.fit)
+```
+```{r}
+report(model.fit) %>%
+  summary()
+```
+
 
 ## Encoding Success and Dependency
 

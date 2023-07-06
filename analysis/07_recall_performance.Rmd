@@ -17,6 +17,7 @@ library(tidyverse)
 library(ggbeeswarm)
 library(ggdist)
 library(lmerTest)
+library(report)
 
 graded.df <- read_rds('tidy_data/graded_df.rds')
 dependency.df <- read_rds('tidy_data/tidy_dependency.rds')
@@ -26,11 +27,13 @@ dependency.df <- read_rds('tidy_data/tidy_dependency.rds')
 
 ```{r}
 graded.df %>%
-  dplyr::select(subject_id, study_id, session_id, session, condition, encTrialNum, trial_index, ends_with('Correct')) %>%
+  dplyr::select(subject_id, study_id, session_id, 
+                session, condition, encTrialNum, 
+                trial_index, ends_with('Correct')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'position', values_to = 'correct') %>%
   filter(!is.na(correct)) %>%
   group_by(subject_id, condition, session) %>%
-  summarise(across(correct, mean), .groups = 'drop') -> performance.df
+  summarise(across(correct, mean), .groups = 'drop')-> performance.df
 
 performance.df %>%
   arrange(session, correct) %>%
@@ -43,7 +46,15 @@ ggplot(performance.df, aes(y = correct, x = condition)) +
  geom_line(aes(group = subject_id), alpha = 0.5) +
  facet_grid(~session) +
  stat_summary(geom = 'crossbar', width = 0.2, fun.data = mean_se, fill = 'white') +
- labs(y = '% Cued Recall responses Correct', title = 'Famous Person >>> Famous Place')
+ labs(y = '% Cued Recall Responses Correct', title = 'Overall Accuracy', x = 'Triad Type') +
+ theme_classic() -> plotA
+
+ggsave(filename = 'figures/Figure1.png', 
+       plot = plotA, 
+       width = 7, height = 5, dpi = 600,
+       device = 'png', units = 'in')
+
+plotA
 ```
 
 ```{r}
@@ -54,23 +65,58 @@ graded.df %>%
 ```
 
 ```{r}
-glmer(correct ~ session * condition + (condition*session|subject_id), family = 'binomial', data = df) -> model1.fit
+glmer(correct ~ session * condition + (condition*session|subject_id), 
+      family = 'binomial', data = df) -> model1.fit
 
 summary(model1.fit)
+
+report(model1.fit, effectsize_method = 'sdy') -> rep1
+
+summary(rep1)
 ```
 
 ## Dependency
 
 ```{r}
+dependency.df %>% 
+  group_by(subject_id) %>% 
+  summarise(across(starts_with('joinedRetrieval'), mean), .groups = 'drop') -> tmp.df
+
+t.test(tmp.df$joinedRetrieval.data, tmp.df$joinedRetrieval.indep, paired = T) -> testResult
+
+report(testResult) %>% 
+  summary()
+```
+
+```{r}
 ggplot(dependency.df, aes(x = condition, y = dependency)) +
   geom_point(alpha = 0.4) +
   geom_line(aes(group = subject_id), alpha = 0.4) +
-  stat_summary(geom = 'crossbar', fun.data = mean_se, fill = 'red', color = 'blue', width = 0.2) +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2, fill = 'white') +
   scale_y_continuous(limits = c(NA, 0.5)) +
-  theme_light() +
-  labs(title = 'Dependency') +
+  theme_classic() +
+  labs(title = 'Dependency', subtitle = 'On Windsorized Subsample (n = 40)', y = 'Dependency', x = 'Triad Type') +
   guides(color = "none") +
-  facet_wrap(~session, ncol = 2)
+  facet_wrap(~session, ncol = 2) -> plotB
+
+ggsave(filename = 'figures/Figure2.png', 
+       plot = plotB, 
+       width = 7, height = 5, dpi = 600,
+       device = 'png', units = 'in')
+
+plotB
+```
+
+```{r}
+lmer(dependency ~ session * condition + (1|subject_id), data = dependency.df) -> model1.fit
+
+summary(model1.fit)
+```
+
+```{r}
+report(model1.fit) -> rep1
+
+summary(rep1)
 ```
 
 ```{r}
