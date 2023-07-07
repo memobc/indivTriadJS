@@ -139,10 +139,10 @@ where:
 ggplot(df, aes(x = retrieval_success, y = dependency)) +
   geom_point() +
   geom_smooth(method = 'lm', formula = y ~ x + I(x^2)) +
-  labs(title = 'Dependency is a Quadratic Function Retrieval Success', 
+  labs(title = 'Dependency is a Quadratic Function of Overall Accuracy', 
        caption = 'dots = subjects',
-       x = '% Cued Recall Prompts Correct',
-       y = 'Avg Dependency') +
+       x = 'Overall Accuracy',
+       y = 'Dependency') +
   theme_classic() -> plotA
 
 ggsave(filename = 'figures/Figure3.png', 

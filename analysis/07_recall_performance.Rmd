@@ -95,7 +95,7 @@ ggplot(dependency.df, aes(x = condition, y = dependency)) +
   stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2, fill = 'white') +
   scale_y_continuous(limits = c(NA, 0.5)) +
   theme_classic() +
-  labs(title = 'Dependency', subtitle = 'On Windsorized Subsample (n = 40)', y = 'Dependency', x = 'Triad Type') +
+  labs(title = 'Retrieval Dependency', y = 'Dependency', x = 'Triad Type') +
   guides(color = "none") +
   facet_wrap(~session, ncol = 2) -> plotB
 

@@ -16,6 +16,7 @@ library(tidyverse)
 library(ggbeeswarm)
 library(ppcor)
 library(lmerTest)
+library(patchwork)
 
 # data
 graded.df     <- read_rds('tidy_data/graded_df.rds')
@@ -52,7 +53,7 @@ graded.df %>%
 In the animation below, I slowly build up a figure placing our subjects into "Place/Person" space. X-axis = dependency on famous person triads, Y-axis = dependency on famous place triads (Figure 1). You can divide this space on the diagonal (Figure 2) into "place-bias" (upper left; red; Figure 3) and "person-bias" (lower right; blue; Figure 4) zones. The asterisks represent subjects average across sessions (Figure 5). The "dumbells" (i.e., line with two dots at either end) also represents each subject -- the end of each "dumbell" is how the participant performed in session 1 and session 2. The asterisks -- representing each subject's average across sessions -- sits in the center of this line (Figure 6). Participant's "dumbells" are then color coded based on whether they had a `strong place bias` (red), a `strong person bias` (blue), or it was `ambiguous` (black) whether or not they have a bias (Figure 7).
 
 
-```{r, animation.hook='ffmpeg', echo=FALSE, interval=2, fig.align='center'}
+```{r, animation.hook='gifski', echo=FALSE, interval=2, fig.align='center'}
 (ggplot(figureData, aes(x = `famous person`, y = `famous place`)) +
     guides(color = 'none') +
     theme_minimal() +
@@ -68,7 +69,7 @@ In the animation below, I slowly build up a figure placing our subjects into "Pl
 
 (blank +
     annotate(geom = 'polygon', x = c(0,1,1), y = c(0,0,1), alpha = 0.3, fill = scales::muted('blue')) +
-    annotate(geom = 'label', x = 0.9, y = 0.25, label = '"person" bias', color = scales::muted('blue')) -> blank)
+    annotate(geom = 'label', x = 0.75, y = 0.1, label = '"person" bias', color = scales::muted('blue')) -> blank)
 
 blank + 
   geom_point(data = summarised.df, shape = 'asterisk', size = 2)
@@ -125,6 +126,35 @@ glmer(isCorrect ~ session * condition + (condition*session|subject_id), data = d
 
 summary(model1.fit)
 ```
+
+```{r}
+figureData %>%
+  mutate(bias = `famous person` - `famous place`) %>%
+  pivot_wider(id_cols = subject_id, names_from = session, values_from = bias) %>%
+  ggplot(., aes(session1, session2)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ x) +
+  theme_classic() +
+  labs(x = 'Bias in Session 1', y = 'Bias in Session 2') -> pltA
+
+pltA
+```
+
+```{r}
+blank + 
+  geom_point(data = summarised.df, shape = 'asterisk', size = 2) -> pltB
+
+pltA + pltB + plot_annotation(title = 'Overall Accuracy', tag_levels = 'A', tag_suffix = ')') -> pltC
+
+ggsave(filename = 'figures/Figure17.png', 
+       plot = pltC, device = 'png', 
+       width = 7, height = 5, 
+       units = 'in', dpi = 600)
+
+pltC
+```
+
+
 
 ## What about our key hypothetical test?
 

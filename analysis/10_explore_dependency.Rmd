@@ -58,7 +58,7 @@ In the animation below, I slowly build up a figure placing our subjects into "Pl
 
 (blank +
     annotate(geom = 'polygon', x = c(0,.45,.45), y = c(0,0,.45), alpha = 0.3, fill = scales::muted('blue')) +
-    annotate(geom = 'label', x = 0.4, y = 0.1, label = '"person" bias', color = scales::muted('blue')) -> blank)
+    annotate(geom = 'label', x = 0.35, y = 0.05, label = '"person" bias', color = scales::muted('blue')) -> blank)
 
 blank + 
   geom_point(data = summarised.df, shape = 'asterisk', size = 2)
@@ -91,11 +91,21 @@ figureData %>%
 
 ```{r, echo=FALSE}
 ggplot(dependency.df, aes(x = condition, y = dependency)) +
-  geom_point() +
-  geom_line(aes(group = subject_id), alpha = 0.2) +
-  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2, fill = 'gray') +
-  facet_grid(~session) +
-  theme_classic()
+  geom_point(alpha = 0.4) +
+  geom_line(aes(group = subject_id), alpha = 0.4) +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2, fill = 'white') +
+  scale_y_continuous(limits = c(NA, 0.5)) +
+  theme_classic() +
+  labs(title = 'Retrieval Dependency', y = 'Dependency', x = 'Triad Type') +
+  guides(color = "none") +
+  facet_wrap(~session, ncol = 2) -> plotB
+
+ggsave(filename = 'figures/Figure2.png', 
+       plot = plotB, 
+       width = 7, height = 5, dpi = 600,
+       device = 'png', units = 'in')
+
+plotB
 ```
 
 ```{r}
@@ -103,6 +113,45 @@ lmer(dependency ~ session * condition + (condition|subject_id), data = dependenc
 
 summary(model1.fit)
 ```
+
+```{r}
+dependency.df %>%
+  pivot_wider(id_cols = c(subject_id,session), names_from = condition, values_from = dependency) %>%
+  mutate(bias = `famous person` - `famous place`) %>%
+  pivot_wider(id_cols = subject_id, names_from = session, values_from = bias) -> tmp.df
+
+
+ggplot(tmp.df, aes(x = session1, y = session2)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = 'lm') +
+  labs(x = 'Bias in Session 1', 
+       y = 'Bias in Session 2') +
+  theme_classic() -> pltA
+
+pltA
+```
+
+```{r}
+cor.test(tmp.df$session1, tmp.df$session2) -> res1
+
+report::report(res1)
+```
+
+```{r}
+blank + 
+  geom_point(data = summarised.df, shape = 'asterisk', size = 2) -> pltB
+
+pltA + pltB + plot_annotation(title = 'Content Biases in Retrieval Dependency', 
+                              tag_levels = 'A', tag_suffix = ')') -> pltC
+
+ggsave(filename = 'figures/Figure15.png',
+       plot = pltC, device = 'png',
+       width = 7, height = 5, dpi = 600,
+       units = 'in')
+
+pltC
+```
+
 
 ## What about our key hypothetical test?
 

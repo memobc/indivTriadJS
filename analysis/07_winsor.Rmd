@@ -211,17 +211,14 @@ dependency.summarised %>%
 ggplot(df, aes(x = retrieval_success, y = dependency)) +
   geom_point() +
   geom_smooth(method = 'lm', formula = y ~ x + I(x^2)) +
-  labs(title = 'Dependency is a Quadratic Function Retrieval Success',
-       subtitle = str_glue('On Windsorized Subsample (n = {n})', n = length(goodSs)),
-       caption = 'dots = subjects',
-       x = '% Cued Recall Prompts Correct',
-       y = 'Avg Dependency') +
+  labs(title = str_glue('{params$winsorLow*100}%/{params$winsorHigh*100}% Subsample (n = {n})', 
+                        n = length(goodSs)),
+       x = 'Overall Accuracy',
+       y = 'Dependency') +
+  scale_x_continuous(limits = c(0,1), breaks = c(0, 0.25, 0.5, .75, 1)) +
   theme_classic() -> plotA
 
-ggsave(filename = 'figures/Figure3.png', 
-       plot = plotA, 
-       width = 7, height = 5, dpi = 600,
-       device = 'png', units = 'in')
+write_rds(plotA, file = str_glue('figures/winsor-{params$winsorLow*100}{params$winsorHigh*100}_plt.Rds'))
 
 plotA
 ```

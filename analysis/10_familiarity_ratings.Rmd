@@ -67,7 +67,8 @@ Person/Place Space
 
 ```{r}
 df %>% 
-  pivot_wider(id_cols = all_of(c('subject_id', 'session')), names_from = stimType, values_from = rating) %>%
+  pivot_wider(id_cols = all_of(c('subject_id', 'session')), 
+              names_from = stimType, values_from = rating) %>%
   ggplot(aes(x = people, y = places)) +
   geom_abline(slope = 1, intercept = 0) +
   geom_point() +
@@ -76,24 +77,37 @@ df %>%
   geom_line(aes(group = subject_id)) +
   labs(x = 'Avg Famous Person Familarity', 
        y = 'Avg Famous Places Familarity', 
-       caption = 'dumbells = subjects. Dots = sessions', title = 'Person Familarity >> Place Familarity')
+       caption = 'dumbells = subjects. Dots = sessions', 
+       title = 'Person Familarity >> Place Familarity')
 ```
 
 ```{r}
 ggplot(df, aes(x = stimType, y = rating)) +
-  geom_point() +
-  geom_line(aes(group = subject_id), alpha = 0.2) +
-  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2) +
+  geom_point(alpha = 0.4) +
+  geom_line(aes(group = subject_id), alpha = 0.4) +
+  stat_summary(geom = 'crossbar', fun.data = mean_se, width = 0.2, fill = 'white') +
   facet_grid(~session) +
-  labs(title = 'Person Familarity >> Place Familarity', subtitle = 'Alternative Visual', 
-       x = '', y = 'Familarity Rating', 
-       caption = 'dots = subjects. Lines connect subjects.')
+  labs(title = 'Familarity of Famous Experimental Stimuli', 
+       x = 'Famous Stimuli Type', y = 'Familarity Rating', 
+       caption = 'dots = subjects. Lines connect subjects.') +
+  theme_classic() -> plt
+
+ggsave(filename = 'figures/Figure17.png', 
+       plot = plt, device = 'png', 
+       width = 7, height = 5, units = 'in', dpi = 600)
+
+plt
 ```
 
 ```{r}
 lmer(data = df, rating ~ session*stimType + (stimType|subject_id)) -> model.fit
 summary(model.fit)
 ```
+
+```{r}
+report::report(model.fit)
+```
+
 
 ## Does familarity rating predict encoding success?
 
@@ -134,17 +148,91 @@ df <- read_rds('tidy_data/graded_df.rds')
 
 left_join(df, fam.ratings.df, by = c('subject_id', 'session', 'key' = 'stimuli')) %>%
   pivot_longer(cols = ends_with('Correct'), names_to = 'type', values_to = 'isCorrect') %>%
-  filter(!is.na(isCorrect)) %>%
-  group_by(subject_id, session, encTrialNum, key, rating) %>%
-  summarise(numCorrect = sum(isCorrect), .groups = 'drop') -> df
+  filter(!is.na(isCorrect)) -> df
+
+# assign each encoding trial a unique id to use as a nested random effect
+df %>%
+  nest(cols = -c(subject_id, session, encTrialNum)) %>%
+  arrange(subject_id, session, encTrialNum) %>%
+  mutate(encTrialID = rep(1:48, 60)) %>%
+  unnest(cols) -> df
 ```
 
 ### Stats
 
 ```{r}
-lmer(numCorrect ~ rating + (1|subject_id), data = df) -> model.1
-summary(model.1)
+library(lavaan)
+
+model <- '
+  rating ~ condition
+  isCorrect ~ condition
+  isCorrect ~ rating
+'
+
+sem(model = model, data = df, ordered = c('isCorrect', 'condition')) -> model.fit
+
+summary(model.fit)
 ```
+```{r}
+df %>%
+  dplyr::select(subject_id, session, condition, rating, isCorrect) %>%
+  mutate(subject_id = factor(subject_id, labels = 1:60)) %>%
+  mutate(session = factor(session, levels = c('session1', 'session2'), labels = c(1,2))) %>%
+  mutate(condition = factor(condition, levels = c('famous place', 'famous person'), labels = c(1,2))) %>%
+  mutate(isCorrect = as.double(isCorrect)) %>%
+  write_delim(., file = 'test.txt', col_names = FALSE)
+```
+
+
+```{r}
+glmer(isCorrect ~ condition * session + rating +
+        (condition*rating|subject_id), 
+      data = df, family = 'binomial') -> model.1
+
+glmer(isCorrect ~ rating + 
+        (condition*rating|subject_id),
+      data = df, family = 'binomial') -> model.3
+
+anova(model.1, model.3)
+```
+
+```{r}
+report::report(model.1) -> res1
+
+res1
+```
+
+
+```{r}
+df$predictionRE <- predict(model.1, newdata = df, type = 'response', re.form = NULL)
+df$predictionFE <- predict(model.1, newdata = df, type = 'response', re.form = NA)
+
+df %>%
+  group_by(subject_id, encTrialID) %>%
+  summarise(isCorrect = mean(isCorrect),
+            session = unique(session),
+            condition = unique(condition),
+            rating = unique(rating),
+            predictionRE = unique(predictionRE),
+            predictionFE = unique(predictionFE), .groups = 'drop') -> summ.df
+```
+
+```{r}
+ggplot(summ.df, aes(x = rating, y = isCorrect)) +
+  geom_point() +
+  geom_line(aes(y = predictionFE)) +
+  guides(color = 'none') +
+  facet_grid(session~condition)
+```
+
+```{r}
+ggplot(summ.df, aes(x = rating, y = isCorrect)) +
+  geom_point() +
+  geom_line(aes(y = predictionFE)) +
+  guides(color = 'none') +
+  facet_grid(session~condition)
+```
+
 
 ### Visual
 
@@ -156,7 +244,7 @@ ggplot(df, aes(x = rating, y = numCorrect)) +
   labs(y = 'Number of Cued Retrievals Answered Correctly', 
        x = 'Familarity Rating for Key Stimulus', 
        caption = 'dots = trials', 
-       title = 'Familarity Rating Predicts Imagination Success')
+       title = 'Familarity Rating Predicts Retrieval Accuracy')
 ```
 
 ## Does familarity rating predict dependency?
