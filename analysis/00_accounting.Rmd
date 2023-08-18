@@ -2,6 +2,8 @@
 title: "Data Accounting"
 date: "`r Sys.Date()`"
 author: "Kyle Kurkela"
+params:
+  d: "Z:/Data/Behavioral_Online/TRIADS/TRIADs"
 output:
   html_document: 
     toc: yes
@@ -17,10 +19,11 @@ Account for the data that has been collected. How many datasets do we have? How 
 ```{r requirements, warning=FALSE, message=FALSE}
 library(tidyverse) # <3
 library(rmarkdown)
+library(assertthat)
 
 # pop up box to select directory that contains the raw data
 # data currently live on mcguinn2k
-d <- rstudioapi::selectDirectory()
+d <- params$d
 ```
 
 # Data Descriptions

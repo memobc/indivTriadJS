@@ -135,7 +135,8 @@ figureData %>%
   geom_point() +
   geom_smooth(method = 'lm', formula = y ~ x) +
   theme_classic() +
-  labs(x = 'Bias in Session 1', y = 'Bias in Session 2') -> pltA
+  labs(x = 'Person Accuracy Bias in Session 1', 
+       y = 'Person Accuracy Bias in Session 2') -> pltA
 
 pltA
 ```

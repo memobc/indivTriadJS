@@ -23,3 +23,4 @@ data/*.png
 *.png
 .vscode/
 *.rds
+analysis/tidy_data/*

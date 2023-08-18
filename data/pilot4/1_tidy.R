@@ -10,7 +10,7 @@ source('toolbox/independentModel.R')
 # load data ---------------------------------------------------------------
 
 # load data
-data.files <- list.files(pattern = '.*experiment_data.csv', path = '/Volumes/memolab/Data/TRIADs/pilot4/', full.names = TRUE)
+data.files <- list.files(pattern = '.*experiment_data.csv', path = 'pilot4/', full.names = TRUE)
 df         <- map_dfr(.x = data.files, .f = read_csv, col_type = cols(subject = col_factor()))
 write_csv(x = df, file = 'pilot4/raw_concatenated.csv')
 

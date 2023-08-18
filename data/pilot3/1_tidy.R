@@ -2,10 +2,10 @@
 
 # requirements
 library(tidyverse)
-source('findCorrectAnswer.R')
+source('toolbox/findCorrectAnswer.R')
 
 # load data
-data.files <- list.files(path = '/Volumes/memolab/Data/TRIADs/pilot3/', pattern = '.*experiment_data.csv', full.names = TRUE)
+data.files <- list.files(path = 'pilot3/', pattern = '.*experiment_data.csv', full.names = TRUE)
 df <- map_dfr(.x = data.files, .f = read_csv, .id = 'file')
 
 # bug fix -- day variable is not reliable. Assumes that the data.files array is sorted by date.

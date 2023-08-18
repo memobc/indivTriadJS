@@ -5,7 +5,7 @@ library(tidyverse)
 source('toolbox/findCorrectAnswer.R')
 
 # load data
-data.files <- list.files(path = '/Volumes/memolab/Data/TRIADs/pilot2/', pattern = '.*experiment_data.csv', full.names = TRUE)
+data.files <- list.files(path = 'pilot2/', pattern = '.*experiment_data.csv', full.names = TRUE)
 df <- map_dfr(.x = data.files, .f = read_csv)
 write_csv(x = df, file = 'pilot2/raw_concatenated.csv')
 
